@@ -12,6 +12,7 @@ import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting
 import { ApiSmtp } from '../glitter-base/route/smtp.js';
 import { BgListComponent } from './bg-list-component.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 
 const html = String.raw;
 
@@ -312,6 +313,7 @@ export class BgNotify {
       query?: string;
       queryType?: string;
       filter?: any;
+      listLimit: number;
     } = {
       id: glitter.getUUID(),
       tableId: glitter.getUUID(),
@@ -321,6 +323,7 @@ export class BgNotify {
       query: '',
       queryType: 'email',
       filter: {},
+      listLimit: TableStorage.getLimit(),
     };
     return gvc.bindView(() => {
       const ListComp = new BgListComponent(gvc, vm, FilterOptions.emailFilterFrame);
@@ -348,8 +351,7 @@ export class BgNotify {
                               gvc,
                               callback: (value: any) => {
                                 vm.queryType = value;
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(id);
+                                gvc.notifyDataChange([vm.tableId, id]);
                               },
                               default: vm.queryType || 'email',
                               options: FilterOptions.emailSelect,
@@ -357,12 +359,19 @@ export class BgNotify {
                             BgWidget.searchFilter(
                               gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(id);
+                                gvc.notifyDataChange([vm.tableId, id]);
                               }),
                               vm.query || '',
                               '搜尋所有信件內容'
                             ),
+                            BgWidget.countingFilter({
+                              gvc,
+                              callback: value => {
+                                vm.listLimit = value;
+                                gvc.notifyDataChange([vm.tableId, id]);
+                              },
+                              default: vm.listLimit,
+                            }),
                             BgWidget.funnelFilter({
                               gvc,
                               callback: () => {
@@ -382,10 +391,9 @@ export class BgNotify {
                         return BgWidget.tableV3({
                           gvc: gvc,
                           getData: vmi => {
-                            const limit = 20;
                             ApiSmtp.history({
                               page: vmi.page - 1,
-                              limit: limit,
+                              limit: vm.listLimit,
                               search: vm.query ?? '',
                               searchType: vm.queryType ?? 'email',
                               sendTime: undefined,
@@ -463,7 +471,7 @@ export class BgNotify {
                                 }
 
                                 vm.dataList = data.response.data;
-                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getDatalist();
                                 vmi.loading = false;
@@ -958,7 +966,7 @@ export class BgNotify {
             ApiUser.getUserList({
               page: 0,
               limit: 99999,
-              only_id:true
+              only_id: true,
             }).then(dd => {
               dd.response.data.map((user: any) => {
                 if (user.userData.email && user.userData.email.length > 0) {
@@ -1309,7 +1317,7 @@ export class BgNotify {
                                   ApiUser.getUserList({
                                     page: 0,
                                     limit: 99999,
-                                    only_id:true
+                                    only_id: true,
                                   }).then(dd => {
                                     if (dd.response.data) {
                                       const ids: number[] = [];
@@ -1361,8 +1369,8 @@ export class BgNotify {
                                           ApiUser.getUserList({
                                             page: 0,
                                             limit: 99999,
-                                            only_id:true,
-                                            search: data.query
+                                            only_id: true,
+                                            search: data.query,
                                           }).then(dd => {
                                             if (dd.response.data) {
                                               vm.dataList = dd.response.data

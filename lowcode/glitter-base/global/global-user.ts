@@ -39,10 +39,12 @@ export class GlobalUser {
 
   public static set token(value) {
     GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('token'), value);
-    if(value){
-      GlobalUser.registerFCM(value);
-    }else{
-      GlobalUser.unregisterFCM()
+    if(!['cms_system'].includes((window as any).appName)){
+      if(value){
+        GlobalUser.registerFCM(value);
+      }else{
+        GlobalUser.unregisterFCM()
+      }
     }
 
   }

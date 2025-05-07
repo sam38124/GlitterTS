@@ -44,6 +44,8 @@ export interface RowInitData {
   save_stock: string;
   barcode: string;
   sub_title: string;
+  product_general_tag: string;
+  product_customize_tag: string;
 }
 
 export interface RowInitKitchen {
@@ -84,13 +86,17 @@ export class ProductExcel {
   }
 
   checkString(value: any): string {
-    if (CheckInput.isEmpty(value)) {
+    try {
+      if (CheckInput.isEmpty(value)) {
+        return '';
+      }
+      if (typeof value === 'string' || typeof value === 'number') {
+        return `${value}`;
+      }
+      return '';
+    } catch (error) {
       return '';
     }
-    if (typeof value === 'string' || typeof value === 'number') {
-      return `${value}`;
-    }
-    return '';
   }
 
   checkNumber(value: any) {
@@ -298,6 +304,8 @@ export class ProductExcel {
       '安全庫存數量',
       '商品條碼',
       '商品簡述',
+      '商品標籤',
+      '管理員標籤',
     ];
   }
 
@@ -359,6 +367,9 @@ export class ProductExcel {
         '100',
         '10',
         'CODE1230',
+        '簡述內容',
+        '標籤A,標籤B',
+        '標籤C,標籤D',
       ],
       [
         '',
@@ -549,37 +560,39 @@ export class ProductExcel {
     ];
   }
 
-  static getInitData = () => ({
-    name: '',
-    status: '',
-    category: '',
-    productType: '',
-    img: '',
-    SEO_domain: '',
-    SEO_title: '',
-    SEO_desc: '',
-    spec1: '',
-    spec1Value: '',
-    spec2: '',
-    spec2Value: '',
-    spec3: '',
-    spec3Value: '',
-    sku: '',
-    cost: '',
-    sale_price: '',
-    compare_price: '',
-    benefit: '',
-    shipment_type: '',
-    length: '',
-    width: '',
-    height: '',
-    weight: '',
-    weightUnit: '',
-    stockPolicy: '',
-    stock: '',
-    save_stock: '',
-    barcode: '',
-  });
+  static getInitData = () => {
+    return {
+      name: '',
+      status: '',
+      category: '',
+      productType: '',
+      img: '',
+      SEO_domain: '',
+      SEO_title: '',
+      SEO_desc: '',
+      spec1: '',
+      spec1Value: '',
+      spec2: '',
+      spec2Value: '',
+      spec3: '',
+      spec3Value: '',
+      sku: '',
+      cost: '',
+      sale_price: '',
+      compare_price: '',
+      benefit: '',
+      shipment_type: '',
+      length: '',
+      width: '',
+      height: '',
+      weight: '',
+      weightUnit: '',
+      stockPolicy: '',
+      stock: '',
+      save_stock: '',
+      barcode: '',
+    };
+  };
 
   static getProductTypeString(product: any) {
     product.productType = product.productType ?? {
@@ -627,95 +640,55 @@ export class ProductExcel {
     this.saveAsExcelFile(buffer, `${name}.xlsx`);
   }
 
+  static rowDataKeys: (keyof RowInitData)[] = [
+    'name',
+    'status',
+    'category',
+    'productType',
+    'img',
+    'SEO_domain',
+    'SEO_title',
+    'SEO_desc',
+    'spec1',
+    'spec1Value',
+    'spec2',
+    'spec2Value',
+    'spec3',
+    'spec3Value',
+    'sku',
+    'cost',
+    'sale_price',
+    'compare_price',
+    'benefit',
+    'shipment_type',
+    'length',
+    'width',
+    'height',
+    'weight',
+    'weightUnit',
+    'stockPolicy',
+    'stock',
+    'save_stock',
+    'barcode',
+    'sub_title',
+    'product_general_tag',
+    'product_customize_tag',
+  ];
+
   // 匯出零售商品
   static exportCommodity(gvc: GVC, getFormData: any) {
-    const rowInitData: RowInitData = {
-      name: '',
-      status: '',
-      category: '',
-      productType: '',
-      img: '',
-      SEO_domain: '',
-      SEO_title: '',
-      SEO_desc: '',
-      spec1: '',
-      spec1Value: '',
-      spec2: '',
-      spec2Value: '',
-      spec3: '',
-      spec3Value: '',
-      sku: '',
-      cost: '',
-      sale_price: '',
-      compare_price: '',
-      benefit: '',
-      shipment_type: '',
-      length: '',
-      width: '',
-      height: '',
-      weight: '',
-      weightUnit: '',
-      stockPolicy: '',
-      stock: '',
-      save_stock: '',
-      barcode: '',
-      sub_title: '',
-    };
+    const rowInitDataKeys = this.rowDataKeys;
+
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ visible: true });
+
     ApiShop.getProduct(getFormData).then(response => {
-      const expo = new ProductExcel(gvc, ProductExcel.exampleHeader(), Object.keys(rowInitData));
-      let exportData: any[] = [];
-      // todo stocklist還沒放
-      response.response.data.forEach((productData: any) => {
-        const baseRowData = (index: number): RowInitData => ({
-          id: index === 0 ? productData.content.id || '' : '',
-          name: index === 0 ? productData.content.title || '未命名商品' : '',
-          status:
-            index === 0
-              ? (() => {
-                  switch (productData.content?.status) {
-                    case 'draft':
-                      return '草稿';
-                    case 'schedule':
-                      return '期間限定';
-                    default:
-                      return '啟用';
-                  }
-                })()
-              : '',
-          category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
-          productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
-          img: expo.checkString(
-            (productData.content.variants[index] && productData.content.variants[index].preview_image) ||
-              productData.content.preview_image[0]
-          ),
-          SEO_domain: index === 0 ? expo.checkString(productData.content?.seo?.domain) : '',
-          SEO_title: index === 0 ? expo.checkString(productData.content?.seo?.title) : '',
-          SEO_desc: index === 0 ? expo.checkString(productData.content?.seo?.content) : '',
-          spec1: index === 0 ? expo.checkString(productData.content?.specs[0]?.title) : '',
-          spec1Value: expo.checkString(productData.content.variants[index]?.spec[0]),
-          spec2: index === 0 ? expo.checkString(productData.content?.specs[1]?.title) : '',
-          spec2Value: expo.checkString(productData.content.variants[index]?.spec[1]),
-          spec3: index === 0 ? expo.checkString(productData.content?.specs[2]?.title) : '',
-          spec3Value: expo.checkString(productData.content.variants[index]?.spec[2]),
-          sku: expo.checkString(productData.content.variants[index]?.sku),
-          cost: expo.checkNumber(productData.content.variants[index]?.cost),
-          sale_price: expo.checkNumber(productData.content.variants[index]?.sale_price),
-          compare_price: expo.checkNumber(productData.content.variants[index]?.compare_price),
-          benefit: expo.checkNumber(productData.content.variants[index]?.profit),
-          shipment_type: getShipmentType(productData.content.variants[index]?.shipment_type),
-          length: expo.checkNumber(productData.content.variants[index]?.v_length || 0),
-          width: expo.checkNumber(productData.content.variants[index]?.v_width || 0),
-          height: expo.checkNumber(productData.content.variants[index]?.v_height || 0),
-          weight: expo.checkNumber(productData.content.variants[index]?.weight || 0),
-          weightUnit: expo.checkString(productData.content.variants[index]?.weightUnit || 'KG'),
-          stockPolicy: productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
-          stock: expo.checkNumber(productData.content.variants[index]?.stock),
-          save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
-          barcode: expo.checkString(productData.content.variants[index]?.barcode),
-          sub_title: expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title as string),
-        });
+      const products = response.response.data;
+      const exporter = new ProductExcel(gvc, ProductExcel.exampleHeader(), rowInitDataKeys);
+
+      const exportData = products.flatMap((productData: any) => {
+        const product = productData.content;
+        const lang = Language.getLanguage();
 
         const getShipmentType = (type: string) => {
           switch (type) {
@@ -728,13 +701,63 @@ export class ProductExcel {
           }
         };
 
-        productData.content.variants.forEach((variant: any, index: number) => {
-          const rowData = baseRowData(index);
-          exportData.push(rowData);
-        });
+        const getProductStatus = (status: string) => {
+          switch (status) {
+            case 'draft':
+              return '草稿';
+            case 'schedule':
+              return '期間限定';
+            default:
+              return '啟用';
+          }
+        };
+
+        const getBaseRowData = (variant: any, index: number): RowInitData => {
+          return {
+            id: index === 0 ? product.id || '' : '',
+            name: index === 0 ? product.title || '未命名商品' : '',
+            status: index === 0 ? getProductStatus(product.status) : '',
+            category: index === 0 ? exporter.checkString(product.collection?.filter(Boolean).join(', ')) : '',
+            productType: index === 0 ? exporter.checkString(this.getProductTypeString(product)) : '',
+            img: exporter.checkString(variant?.preview_image || product.preview_image?.[0]),
+            SEO_domain: index === 0 ? exporter.checkString(product.seo?.domain) : '',
+            SEO_title: index === 0 ? exporter.checkString(product.seo?.title) : '',
+            SEO_desc: index === 0 ? exporter.checkString(product.seo?.content) : '',
+            spec1: index === 0 ? exporter.checkString(product.specs?.[0]?.title) : '',
+            spec1Value: exporter.checkString(variant?.spec?.[0]),
+            spec2: index === 0 ? exporter.checkString(product.specs?.[1]?.title) : '',
+            spec2Value: exporter.checkString(variant?.spec?.[1]),
+            spec3: index === 0 ? exporter.checkString(product.specs?.[2]?.title) : '',
+            spec3Value: exporter.checkString(variant?.spec?.[2]),
+            sku: exporter.checkString(variant?.sku),
+            cost: exporter.checkNumber(variant?.cost),
+            sale_price: exporter.checkNumber(variant?.sale_price),
+            compare_price: exporter.checkNumber(variant?.compare_price),
+            benefit: exporter.checkNumber(variant?.profit),
+            shipment_type: getShipmentType(variant?.shipment_type),
+            length: exporter.checkNumber(variant?.v_length || 0),
+            width: exporter.checkNumber(variant?.v_width || 0),
+            height: exporter.checkNumber(variant?.v_height || 0),
+            weight: exporter.checkNumber(variant?.weight || 0),
+            weightUnit: exporter.checkString(variant?.weightUnit || 'KG'),
+            stockPolicy: variant?.show_understocking === 'true' ? '追蹤' : '不追蹤',
+            stock: exporter.checkNumber(variant?.stock),
+            save_stock: exporter.checkNumber(variant?.save_stock),
+            barcode: exporter.checkString(variant?.barcode),
+            sub_title: index === 0 ? exporter.checkString(product.language_data?.[lang]?.sub_title || '') : '',
+            product_general_tag:
+              index === 0
+                ? exporter.checkString(product.product_tag?.language?.[lang]?.filter(Boolean).join(', ') || '')
+                : '',
+            product_customize_tag:
+              index === 0 ? exporter.checkString(product.product_customize_tag?.filter(Boolean).join(', ') || '') : '',
+          };
+        };
+
+        return product.variants.map((variant: any, index: number) => getBaseRowData(variant, index));
       });
 
-      expo.export(exportData, `商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`);
+      exporter.export(exportData, `商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`);
       dialog.dataLoading({ visible: false });
     });
   }
@@ -797,7 +820,7 @@ export class ProductExcel {
                     }
                   })()
                 : '',
-            category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
+            category: index === 0 ? expo.checkString(productData.content.collection.filter(Boolean).join(', ')) : '',
             productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
             img: expo.checkString(productData.content.preview_image[0]),
             SEO_domain: index === 0 ? expo.checkString(productData.content?.seo?.domain) : '',
@@ -838,7 +861,7 @@ export class ProductExcel {
                     }
                   })()
                 : '',
-            category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
+            category: index === 0 ? expo.checkString(productData.content.collection.filter(Boolean).join(', ')) : '',
             productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
             img: expo.checkString(
               (productData.content.variants[index] && productData.content.variants[index].preview_image) ||
@@ -978,7 +1001,10 @@ export class ProductExcel {
                   },
                   checked: {
                     ...baseFormData,
-                    id_list: dataArray.map((item: { id: number }) => item.id).join(','),
+                    id_list: dataArray
+                      .map((item: { id: number }) => item.id)
+                      .filter(Boolean)
+                      .join(','),
                   },
                   all: baseFormData,
                 };
@@ -1300,14 +1326,16 @@ export class ProductExcel {
                     keywords: '',
                   },
                   template: '',
+                  product_tag: {
+                    language: {},
+                  },
                 };
                 productData.id = id_list[postMD.length];
                 productData.title = this.checkString(row[0]);
-                productData.sub_title = this.checkString(row[29]);
                 productData.status = row[1] == '啟用' ? 'active' : 'draft';
                 productData.collection = row[2].split(',') ?? [];
                 // 去除多餘空白
-                productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
+                productData.collection = productData.collection.map((item: string) => item.trim().replace(/\s+/g, ''));
                 productData.collection.forEach((row: any) => {
                   let collection = row.replace(/\s+/g, '');
                   // if (regex.test(collection)) {
@@ -1361,6 +1389,7 @@ export class ProductExcel {
                 productData.seo.domain = this.checkString(row[5]);
                 productData.seo.title = this.checkString(row[6]);
                 productData.seo.content = this.checkString(row[7]);
+                productData.product_category = product_category;
                 // spec值 merge
                 let indices = [8, 10, 12];
                 indices.forEach(index => {
@@ -1371,6 +1400,21 @@ export class ProductExcel {
                     });
                   }
                 });
+                productData.sub_title = this.checkString(row[29]);
+                productData.product_tag.language[Language.getLanguage()] = (() => {
+                  try {
+                    return row[30].split(',').map((item: string) => item.trim().replace(/\s+/g, '')) ?? [];
+                  } catch (error) {
+                    return [];
+                  }
+                })();
+                productData.product_customize_tag = (() => {
+                  try {
+                    return row[31].split(',').map((item: string) => item.trim().replace(/\s+/g, '')) ?? [];
+                  } catch (error) {
+                    return [];
+                  }
+                })();
               }
               let indices = [9, 11, 13];
               indices.forEach((rowindex, key) => {

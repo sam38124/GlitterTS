@@ -20,6 +20,7 @@ import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting
 import { BgListComponent } from './bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { ApiLineMessage } from '../glitter-base/route/line.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 const html = String.raw;
 const inputStyle = 'font-size: 16px; height: 40px; width: 300px;';
 export class BgLine {
@@ -263,6 +264,7 @@ export class BgLine {
             query: '',
             queryType: 'email',
             filter: {},
+            listLimit: TableStorage.getLimit(),
         };
         return gvc.bindView(() => {
             const ListComp = new BgListComponent(gvc, vm, FilterOptions.emailFilterFrame);
@@ -288,17 +290,23 @@ export class BgLine {
                                                 gvc,
                                                 callback: (value) => {
                                                     vm.queryType = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
+                                                    gvc.notifyDataChange([vm.tableId, id]);
                                                 },
                                                 default: vm.queryType || 'email',
                                                 options: FilterOptions.snsSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event(e => {
                                                 vm.query = `${e.value}`.trim();
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(id);
+                                                gvc.notifyDataChange([vm.tableId, id]);
                                             }), vm.query || '', '搜尋所有訊息內容'),
+                                            BgWidget.countingFilter({
+                                                gvc,
+                                                callback: value => {
+                                                    vm.listLimit = value;
+                                                    gvc.notifyDataChange([vm.tableId, id]);
+                                                },
+                                                default: vm.listLimit,
+                                            }),
                                             BgWidget.funnelFilter({
                                                 gvc,
                                                 callback: () => {
@@ -318,10 +326,9 @@ export class BgLine {
                                         gvc: gvc,
                                         getData: vmi => {
                                             var _a, _b;
-                                            const limit = 20;
                                             ApiLineMessage.history({
                                                 page: vmi.page - 1,
-                                                limit: limit,
+                                                limit: vm.listLimit,
                                                 search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
                                                 searchType: (_b = vm.queryType) !== null && _b !== void 0 ? _b : 'email',
                                                 sendTime: undefined,
@@ -392,7 +399,7 @@ export class BgLine {
                                                         });
                                                     }
                                                     vm.dataList = data.response.data;
-                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                    vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                                     vmi.originalData = vm.dataList;
                                                     vmi.tableData = getDatalist();
                                                     vmi.loading = false;
@@ -795,7 +802,7 @@ export class BgLine {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
-                            only_id: true
+                            only_id: true,
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 if (user.userData.lineID) {
@@ -1144,7 +1151,7 @@ export class BgLine {
                                                 ApiUser.getUserList({
                                                     page: 0,
                                                     limit: 99999,
-                                                    only_id: true
+                                                    only_id: true,
                                                 }).then(dd => {
                                                     if (dd.response.data) {
                                                         const ids = [];
@@ -1195,7 +1202,8 @@ export class BgLine {
                                                             ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                search: data.query, only_id: true,
+                                                                search: data.query,
+                                                                only_id: true,
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data

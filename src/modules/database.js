@@ -11,6 +11,7 @@ const exception_1 = __importDefault(require("./exception"));
 const process_1 = __importDefault(require("process"));
 const TAG = '[Database]';
 let pool;
+let block_create = false;
 const createPool = async () => {
     const logger = new logger_1.default();
     console.log(`config.DB_CONN_LIMIT=>`, config_1.default.DB_CONN_LIMIT);
@@ -22,7 +23,8 @@ const createPool = async () => {
         port: config_1.default.DB_PORT,
         user: config_1.default.DB_USER,
         password: config_1.default.DB_PWD,
-        supportBigNumbers: true
+        supportBigNumbers: true,
+        waitForConnections: true
     });
     try {
         return pool;
@@ -65,7 +67,7 @@ const execute = async (sql, params) => {
     }
     catch (err) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-        if (`${err}`.includes('Too many connections')) {
+        if (`${err}`.includes('Too many connections') || `${err}`.includes('Queue limit reached')) {
             process_1.default.exit(1);
         }
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement ' + sql + ' because ' + err);
@@ -84,7 +86,7 @@ const query = async (sql, params) => {
     }
     catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-        if (`${err}`.includes('Too many connections')) {
+        if (`${err}`.includes('Too many connections') || `${err}`.includes('Queue limit reached')) {
             process_1.default.exit(1);
         }
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to query statement ' + sql + ' because ' + err);

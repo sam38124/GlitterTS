@@ -3,6 +3,7 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class ShoppingAllowanceManager {
     static main(gvc, query) {
@@ -20,6 +21,7 @@ export class ShoppingAllowanceManager {
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.invoiceFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -236,6 +238,14 @@ export class ShoppingAllowanceManager {
                                             vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.id);
                                         }), vm.query || '', '搜尋折讓單'),
+                                        BgWidget.countingFilter({
+                                            gvc,
+                                            callback: value => {
+                                                vm.listLimit = value;
+                                                gvc.notifyDataChange(vm.id);
+                                            },
+                                            default: vm.listLimit,
+                                        }),
                                         BgWidget.funnelFilter({
                                             gvc,
                                             callback: () => {
@@ -260,10 +270,9 @@ export class ShoppingAllowanceManager {
                         BgWidget.tableV3({
                             gvc: gvc,
                             getData: vmi => {
-                                const limit = 20;
                                 ApiShop.getAllowance({
                                     page: vmi.page - 1,
-                                    limit: limit,
+                                    limit: vm.listLimit,
                                     search: (vm === null || vm === void 0 ? void 0 : vm.query) || '',
                                     searchType: (vm === null || vm === void 0 ? void 0 : vm.queryType) || 'order_id',
                                     orderString: vm.orderString,
@@ -319,7 +328,7 @@ export class ShoppingAllowanceManager {
                                     }
                                     console.log(data.response);
                                     vm.dataList = data.response.data;
-                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                     vmi.originalData = vm.dataList;
                                     vmi.tableData = getDatalist();
                                     vmi.loading = false;

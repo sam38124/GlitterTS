@@ -14,9 +14,6 @@ class MigratePublicUserConfig {
     async setLogisticsGroup() {
         var _a;
         const app_name = this.app_name;
-        if (app_name !== 't_1725992531001') {
-            return;
-        }
         function compareArray(arr1, arr2) {
             const slice1 = arr1.slice().sort();
             const slice2 = arr2.slice().sort();
@@ -39,9 +36,6 @@ class MigratePublicUserConfig {
         FROM \`${app_name}\`.t_manager_post
         WHERE JSON_UNQUOTE(JSON_EXTRACT(content, '$.designated_logistics')) IS NOT NULL;
       `, []);
-        if (getData.length === 0) {
-            return;
-        }
         const unique_tags_string = (_a = getData[0].unique_tags) !== null && _a !== void 0 ? _a : '';
         const unique_tags_json = JSON.parse(`[${unique_tags_string}]`);
         const unique_tags_array = Array.isArray(unique_tags_json) ? unique_tags_json : [];

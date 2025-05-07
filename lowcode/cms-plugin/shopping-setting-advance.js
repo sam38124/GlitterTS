@@ -781,7 +781,7 @@ export class ShoppingSettingAdvance {
                                                             },
                                                             {
                                                                 key: 'designated',
-                                                                value: '指定物流',
+                                                                value: '指定物流群組',
                                                             },
                                                         ].filter(item => {
                                                             return !(item.key === 'designated' && dataList.length === 0);

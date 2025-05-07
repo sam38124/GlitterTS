@@ -13,6 +13,7 @@ const user_1 = require("../services/user");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_1 = require("../services/share-permission");
 const filter_protect_data_js_1 = require("../services/filter-protect-data.js");
+const monitor_js_1 = require("../services/monitor.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -260,10 +261,10 @@ router.post('/login', async (req, resp) => {
         const user = new user_1.User(req.get('g-app'), req.body.token);
         const { login_type, fb_token, line_token, redirect, google_token, user_id, pin, account, pwd } = req.body;
         const loginMethods = {
-            fb: async () => user.loginWithFb(fb_token),
-            line: async () => user.loginWithLine(line_token, redirect),
-            google: async () => user.loginWithGoogle(google_token, redirect),
-            apple: async () => user.loginWithApple(req.body.token),
+            fb: async () => user.loginWithFb(fb_token, req),
+            line: async () => user.loginWithLine(line_token, redirect, req),
+            google: async () => user.loginWithGoogle(google_token, redirect, req),
+            apple: async () => user.loginWithApple(req.body.token, req),
             pin: async () => user.loginWithPin(user_id, pin),
             default: async () => user.login(account, pwd),
         };
@@ -655,7 +656,7 @@ router.delete('/batch/tag', async (req, resp) => {
 });
 router.get('/ip/info', async (req, resp) => {
     try {
-        const ip = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        const ip = req.query.ip || monitor_js_1.Monitor.userIP(req);
         return resp.send(await user_1.User.ipInfo(ip));
     }
     catch (err) {

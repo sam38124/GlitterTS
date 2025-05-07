@@ -775,6 +775,15 @@ export class EditorElem {
     structEnd?: string;
   }) {
     const codeID = obj.gvc.glitter.getUUID();
+    console.log(`codeEditor`, {
+      type: 'getData',
+      value: `${obj.structStart ? obj.structStart : `(()=>{`} ${obj.initial ?? ''}
+                ${obj.structEnd ? obj.structEnd : '})()'}`,
+      language: 'javascript',
+      refactor: true,
+      structStart: obj.structStart,
+      structEnd: obj.structEnd,
+    });
 
     function getComponent(gvc: GVC, height: number) {
       return gvc.bindView(() => {
@@ -789,10 +798,10 @@ export class EditorElem {
             childWindow.postMessage(
               {
                 type: 'getData',
-                value: `${obj.structStart ? obj.structStart : `(()=>{`} ${obj.initial ?? ''}
-                ${obj.structEnd ? obj.structEnd : '})()'}`,
+                value: `${obj.structStart ? obj.structStart : `(()=>{`} \n${obj.initial ?? ''}
+${obj.structEnd ? obj.structEnd : '})()'}`,
                 language: 'javascript',
-                refactor: true,
+                refactor: false,
                 structStart: obj.structStart,
                 structEnd: obj.structEnd,
               },
@@ -1132,7 +1141,7 @@ export class EditorElem {
                           快速插入
                           ${obj.quick_insert
                             .map(dd => {
-                              return html`<div
+                              return html` <div
                                 style="cursor: pointer;"
                                 onclick="${gvc.event(() => {
                                   editor.selection.restore();

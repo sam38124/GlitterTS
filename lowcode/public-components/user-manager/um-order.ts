@@ -860,7 +860,7 @@ export class UMOrder {
     gvc.addMtScript(
       [
         {
-          src: `https://js.paynow.com.tw/sdk/v2/index.js`,
+          src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
         },
       ],
       () => {},
@@ -1451,7 +1451,7 @@ export class UMOrder {
                                     </button>
                                   </span>`;
                                 };
-                                return Language.text('awaiting_verification') + repayBtn();
+                                return Language.text('unpaid') + repayBtn();
                               }
                               return orderData.proof_purchase
                                 ? Language.text('awaiting_verification')

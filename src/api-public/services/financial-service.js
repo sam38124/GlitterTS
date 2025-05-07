@@ -526,8 +526,14 @@ class PayPal {
     constructor(appName, keyData) {
         this.keyData = keyData;
         this.appName = appName;
-        this.PAYPAL_CLIENT_ID = keyData.BETA == 'true' ? "ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX" : keyData.PAYPAL_CLIENT_ID;
-        this.PAYPAL_SECRET = keyData.BETA == 'true' ? "ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d" : keyData.PAYPAL_SECRET;
+        this.PAYPAL_CLIENT_ID =
+            keyData.BETA == 'true'
+                ? 'ATz7uJryxmGA2SmR5PxQ_IFXFYKeWd_R1SIzsr_bDrJQMYgRR5z_TXEnjcBh2P4DQDDYnLdHu0aNfugX'
+                : keyData.PAYPAL_CLIENT_ID;
+        this.PAYPAL_SECRET =
+            keyData.BETA == 'true'
+                ? 'ENb25ujfYB0GBzv6GvzDW2a7gx-KgsVZwxOBqF0WSH3Zr7SU1BBdI8KQ_XRpcgcjj8VWTOWwo83NxK5d'
+                : keyData.PAYPAL_SECRET;
         this.PAYPAL_BASE_URL = keyData.BETA == 'true' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
     }
     async getAccessToken() {
@@ -548,8 +554,8 @@ class PayPal {
                     grant_type: 'client_credentials',
                 }).toString(),
             };
-            node_console_1.default.log("this.PAYPAL_CLIENT_ID -- ", this.PAYPAL_CLIENT_ID);
-            node_console_1.default.log("this.PAYPAL_SECRET -- ", this.PAYPAL_SECRET);
+            node_console_1.default.log('this.PAYPAL_CLIENT_ID -- ', this.PAYPAL_CLIENT_ID);
+            node_console_1.default.log('this.PAYPAL_SECRET -- ', this.PAYPAL_SECRET);
             const response = await axios_1.default.request(config);
             return response.data.access_token;
         }
@@ -584,33 +590,49 @@ class PayPal {
                 },
                 data: {
                     intent: 'CAPTURE',
-                    purchase_units: [
-                        {
-                            reference_id: orderData.orderID,
-                            amount: {
-                                currency_code: 'TWD',
-                                value: itemPrice,
-                                breakdown: {
-                                    item_total: {
-                                        currency_code: 'TWD',
-                                        value: itemPrice,
+                    purchase_units: (() => {
+                        let unit_array = [
+                            {
+                                reference_id: orderData.orderID,
+                                amount: {
+                                    currency_code: 'TWD',
+                                    value: orderData.total,
+                                    breakdown: {
+                                        item_total: {
+                                            currency_code: 'TWD',
+                                            value: orderData.total + orderData.discount,
+                                        },
+                                        discount: { value: orderData.discount, currency_code: "TWD" }
                                     },
                                 },
+                                items: orderData.lineItems
+                                    .map(item => {
+                                    var _a;
+                                    return {
+                                        name: item.title,
+                                        unit_amount: {
+                                            currency_code: 'TWD',
+                                            value: item.sale_price,
+                                        },
+                                        quantity: item.count,
+                                        description: (_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : '',
+                                    };
+                                })
+                                    .concat([
+                                    {
+                                        name: 'Shipment fee',
+                                        unit_amount: {
+                                            currency_code: 'TWD',
+                                            value: orderData.shipment_fee,
+                                        },
+                                        quantity: 1,
+                                        description: 'shipment_fee',
+                                    }
+                                ])
                             },
-                            items: orderData.lineItems.map(item => {
-                                var _a;
-                                return {
-                                    name: item.title,
-                                    unit_amount: {
-                                        currency_code: 'TWD',
-                                        value: item.sale_price,
-                                    },
-                                    quantity: item.count,
-                                    description: (_a = item.spec.join(',')) !== null && _a !== void 0 ? _a : '',
-                                };
-                            }),
-                        },
-                    ],
+                        ];
+                        return unit_array;
+                    })(),
                     application_context: {
                         brand_name: this.appName,
                         landing_page: 'NO_PREFERENCE',
@@ -760,7 +782,8 @@ class LinePay {
                         .map(data => {
                         return data.count * data.sale_price;
                     })
-                        .reduce((a, b) => a + b, 0) - (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)),
+                        .reduce((a, b) => a + b, 0) -
+                        (orderData.discount + parseInt(`${orderData.use_rebate || 0}`, 10)),
                     products: orderData.lineItems
                         .map(data => {
                         return {

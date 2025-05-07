@@ -26,6 +26,7 @@ import { ShoppingSettingBasic } from './shopping-setting-basic.js';
 import { ShoppingSettingAdvance } from './shopping-setting-advance.js';
 import { ProductInitial } from '../public-models/product.js';
 import { IminModule } from './pos-pages/imin-module.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class ShoppingProductSetting {
     static main(gvc, type = 'product') {
@@ -45,6 +46,7 @@ export class ShoppingProductSetting {
             ai_initial: {},
             apiJSON: {},
             checkedData: [],
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -164,8 +166,7 @@ export class ShoppingProductSetting {
                                                             gvc,
                                                             callback: (value) => {
                                                                 vm.queryType = value;
-                                                                gvc.notifyDataChange(vm.tableId);
-                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange([vm.tableId, id]);
                                                             },
                                                             default: vm.queryType || 'title',
                                                             options: FilterOptions.productSelect,
@@ -173,9 +174,16 @@ export class ShoppingProductSetting {
                                                         }),
                                                         BgWidget.searchFilter(gvc.event(e => {
                                                             vm.query = `${e.value}`.trim();
-                                                            gvc.notifyDataChange(vm.tableId);
-                                                            gvc.notifyDataChange(id);
+                                                            gvc.notifyDataChange([vm.tableId, id]);
                                                         }), vm.query || '', '搜尋'),
+                                                        BgWidget.countingFilter({
+                                                            gvc,
+                                                            callback: value => {
+                                                                vm.listLimit = value;
+                                                                gvc.notifyDataChange([vm.tableId, id]);
+                                                            },
+                                                            default: vm.listLimit,
+                                                        }),
                                                         BgWidget.funnelFilter({
                                                             gvc,
                                                             callback: () => ListComp.showRightMenu(productFunnel),
@@ -184,8 +192,7 @@ export class ShoppingProductSetting {
                                                             gvc,
                                                             callback: (value) => {
                                                                 vm.orderString = value;
-                                                                gvc.notifyDataChange(vm.tableId);
-                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange([vm.tableId, id]);
                                                             },
                                                             default: vm.orderString || 'default',
                                                             options: FilterOptions.productListOrderBy,
@@ -199,14 +206,13 @@ export class ShoppingProductSetting {
                                         gvc.bindView({
                                             bind: vm.tableId,
                                             view: () => {
-                                                const limit = 20;
                                                 return BgWidget.tableV3({
                                                     gvc: gvc,
                                                     getData: vmi => {
                                                         function loop() {
                                                             vm.apiJSON = {
                                                                 page: vmi.page - 1,
-                                                                limit: limit,
+                                                                limit: vm.listLimit,
                                                                 search: vm.query || undefined,
                                                                 searchType: vm.queryType || undefined,
                                                                 orderBy: vm.orderString || undefined,
@@ -344,7 +350,7 @@ export class ShoppingProductSetting {
                                                                     });
                                                                 }
                                                                 vm.dataList = data.response.data;
-                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                                                 vmi.originalData = vm.dataList;
                                                                 vmi.tableData = getDatalist();
                                                                 vmi.loading = false;
@@ -678,7 +684,7 @@ export class ShoppingProductSetting {
                       <div style="font-weight: 700;">定價</div>
                       <div class="d-flex w-100" style="gap:18px;">
                         <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
-                          <div>售價*</div>
+                          <div>售價</div>
                           <input
                             style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                             placeholder="請輸入售價"
@@ -741,6 +747,9 @@ export class ShoppingProductSetting {
                     const vm = {
                         id: gvc.glitter.getUUID(),
                     };
+                    if (obj.vm.type === 'add') {
+                        variant.shipment_type = 'none';
+                    }
                     return {
                         bind: vm.id,
                         view: () => {
@@ -912,7 +921,7 @@ export class ShoppingProductSetting {
                                         />
                                       `;
                             })
-                                .join(``)}
+                                .join('')}
                                 </div>
                               </div>`;
                         }
@@ -924,7 +933,7 @@ export class ShoppingProductSetting {
                               <div class="flex-fill d-flex flex-column" style="gap: 8px">
                                 <div>庫存數量</div>
                                 <div
-                                  class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                                  class="w-100 ${postMD.shopee_id ? '' : `d-none`}"
                                   style="font-size: 14px;font-weight: 400;color: #8D8D8D;"
                                 >
                                   此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
@@ -1080,7 +1089,7 @@ export class ShoppingProductSetting {
         })()}
               ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
             </div>
-            <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
+            <div class="${obj.single ? `d-none` : ''}" style="min-width:300px; max-width:100%;">
               ${BgWidget.summaryCard(gvc.bindView({
             bind: 'right',
             view: () => {
@@ -1126,7 +1135,7 @@ export class ShoppingProductSetting {
                           `;
                     }
                     else {
-                        return ``;
+                        return '';
                     }
                 })
                     .join('');
@@ -1142,7 +1151,7 @@ export class ShoppingProductSetting {
         `, {
             style: obj.vm.type === 'editSpec' ? '' : 'margin-top: 0 !important;',
         })}
-      <div class="update-bar-container ${obj.single ? `d-none` : ``}">
+      <div class="update-bar-container ${obj.single ? `d-none` : ''}">
         ${BgWidget.cancel(obj.gvc.event(() => {
             checkStore(obj && obj.goBackEvent
                 ? obj.goBackEvent.cancel
@@ -1265,7 +1274,7 @@ export class ShoppingProductSetting {
                     view: () => {
                         var _b, _c, _d, _e, _f;
                         const languageData = postMD.language_data[vm.language] || {};
-                        languageData.title = ((_b = languageData.title) === null || _b === void 0 ? void 0 : _b.trim()) ? languageData.title : (postMD === null || postMD === void 0 ? void 0 : postMD.title) || 'Default Title';
+                        languageData.title = ((_b = languageData.title) === null || _b === void 0 ? void 0 : _b.trim()) ? languageData.title : (postMD === null || postMD === void 0 ? void 0 : postMD.title) || '';
                         languageData.content = (_c = languageData.content) !== null && _c !== void 0 ? _c : postMD.content;
                         languageData.content_array = (_d = languageData.content_array) !== null && _d !== void 0 ? _d : postMD.content_array;
                         languageData.content_json = (_e = languageData.content_json) !== null && _e !== void 0 ? _e : postMD.content_json;

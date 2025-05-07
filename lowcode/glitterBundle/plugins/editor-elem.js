@@ -680,7 +680,17 @@ export class EditorElem {
         return html ` <iframe class="rounded-3" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
     static codeEditor(obj) {
+        var _a;
         const codeID = obj.gvc.glitter.getUUID();
+        console.log(`codeEditor`, {
+            type: 'getData',
+            value: `${obj.structStart ? obj.structStart : `(()=>{`} ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
+                ${obj.structEnd ? obj.structEnd : '})()'}`,
+            language: 'javascript',
+            refactor: true,
+            structStart: obj.structStart,
+            structEnd: obj.structEnd,
+        });
         function getComponent(gvc, height) {
             return gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
@@ -692,10 +702,10 @@ export class EditorElem {
                         const childWindow = (document.getElementById(frameID) || window.parent.document.getElementById(frameID)).contentWindow;
                         childWindow.postMessage({
                             type: 'getData',
-                            value: `${obj.structStart ? obj.structStart : `(()=>{`} ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
-                ${obj.structEnd ? obj.structEnd : '})()'}`,
+                            value: `${obj.structStart ? obj.structStart : `(()=>{`} \n${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
+${obj.structEnd ? obj.structEnd : '})()'}`,
                             language: 'javascript',
-                            refactor: true,
+                            refactor: false,
                             structStart: obj.structStart,
                             structEnd: obj.structEnd,
                         }, domain);
@@ -974,7 +984,7 @@ export class EditorElem {
                           快速插入
                           ${obj.quick_insert
                                     .map(dd => {
-                                    return html `<div
+                                    return html ` <div
                                 style="cursor: pointer;"
                                 onclick="${gvc.event(() => {
                                         editor.selection.restore();

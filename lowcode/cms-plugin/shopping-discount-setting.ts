@@ -7,8 +7,59 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { Tool } from '../modules/tool.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 
 type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
+type RebackType = 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+type Trigger = 'auto' | 'code' | 'distribution';
+type ProductOffStart = 'price_asc' | 'price_desc' | 'price_all';
+type Device = 'normal' | 'pos';
+type Method = 'fixed' | 'percent';
+type Rule = 'min_price' | 'min_count';
+type ConditionType = 'item' | 'order';
+type Counting = 'single' | 'each';
+type IncludeDiscount = 'before' | 'after';
+type SelectShipmentType = 'all' | 'select';
+
+interface VoucherData {
+  id: string;
+  type: 'voucher';
+  status: 0 | 1 | -1;
+  title: string;
+  code?: string;
+  reBackType: RebackType;
+  method: Method;
+  trigger: Trigger;
+  device: Device[];
+  value: string;
+  add_on_products?: string[];
+  for: VoucherForType;
+  rule: Rule;
+  counting: Counting;
+  conditionType: ConditionType;
+  includeDiscount: IncludeDiscount;
+  productOffStart: ProductOffStart;
+  forKey: (number | string)[];
+  ruleValue: number;
+  startDate: string;
+  startTime: string;
+  endDate?: string;
+  endTime?: string;
+  overlay: boolean;
+  start_ISO_Date: string;
+  end_ISO_Date: string;
+  rebateEndDay: string;
+  target: string;
+  targetList: (number | string)[];
+  macroLimited: number;
+  microLimited: number;
+  selectShipment: {
+    type: SelectShipmentType;
+    list: string[];
+  };
+}
+
+const html = String.raw;
 
 export class ShoppingDiscountSetting {
   public static getLabel(voucher_type: string): string {
@@ -22,8 +73,9 @@ export class ShoppingDiscountSetting {
     return labels[voucher_type] ?? '未知活動';
   }
 
-  public static main(gvc: GVC, voucher_type: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway') {
+  public static main(gvc: GVC, voucher_type: RebackType) {
     const glitter = gvc.glitter;
+    const dialog = new ShareDialog(glitter);
     const vm: {
       type: 'list' | 'add' | 'replace';
       data: any;
@@ -35,7 +87,6 @@ export class ShoppingDiscountSetting {
       dataList: undefined,
       query: undefined,
     };
-    const html = String.raw;
 
     return gvc.bindView(() => {
       const id = glitter.getUUID();
@@ -140,7 +191,6 @@ export class ShoppingDiscountSetting {
                         {
                           name: '批量移除',
                           event: () => {
-                            const dialog = new ShareDialog(gvc.glitter);
                             dialog.checkYesOrNot({
                               text: '是否確認刪除所選項目？',
                               callback: response => {
@@ -219,41 +269,16 @@ export class ShoppingDiscountSetting {
     const gvc = obj.gvc;
     const glitter = gvc.glitter;
     const vm = obj.vm;
-    const html = String.raw;
+    const dialog = new ShareDialog(glitter);
 
-    const voucherData: {
-      id: string;
-      title: string;
-      reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
-      method: 'percent' | 'fixed';
-      trigger: 'auto' | 'code' | 'distribution';
-      device: ('normal' | 'pos')[];
-      value: string;
-      add_on_products?: string[];
-      for: VoucherForType;
-      rule: 'min_price' | 'min_count';
-      counting: 'single' | 'each';
-      conditionType: 'item' | 'order';
-      includeDiscount: 'before' | 'after';
-      productOffStart: 'price_asc' | 'price_desc' | 'price_all';
-      forKey: (number | string)[];
-      ruleValue: number;
-      startDate: string;
-      startTime: string;
-      endDate?: string;
-      endTime?: string;
-      status: 0 | 1 | -1;
-      type: 'voucher';
-      code?: string;
-      overlay: boolean;
-      start_ISO_Date: string;
-      end_ISO_Date: string;
-      rebateEndDay: string;
-      target: string;
-      targetList: [];
-      macroLimited: number;
-      microLimited: number;
-    } = {
+    const pageVM = {
+      viewID: gvc.glitter.getUUID(),
+      conditionID: gvc.glitter.getUUID(),
+      countingID: gvc.glitter.getUUID(),
+      productOffID: gvc.glitter.getUUID(),
+    };
+
+    const voucherData: VoucherData = {
       title: '',
       code: '',
       trigger: 'auto',
@@ -283,10 +308,11 @@ export class ShoppingDiscountSetting {
       conditionType: 'order',
       includeDiscount: 'before',
       productOffStart: 'price_desc',
+      selectShipment: { type: 'all', list: [] },
       ...vm.data,
     };
 
-    function getVoucherTextList() {
+    function summaryTextList() {
       return [
         `活動標題：${voucherData.title && voucherData.title.length > 0 ? voucherData.title : '尚無標題'}`,
         `適用商品：${(() => {
@@ -350,16 +376,551 @@ export class ShoppingDiscountSetting {
       ];
     }
 
-    const pageVM = {
-      conditionId: gvc.glitter.getUUID(),
-      countingId: gvc.glitter.getUUID(),
-      productOffId: gvc.glitter.getUUID(),
-    };
+    function title() {
+      return html` <div class="tx_700">活動標題</div>
+        ${BgWidget.mbContainer(18)}
+        ${BgWidget.editeInput({
+          gvc: gvc,
+          title: '',
+          default: voucherData.title,
+          placeHolder: '請輸入活動標題',
+          callback: text => {
+            voucherData.title = text;
+          },
+        })}
+        ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`;
+    }
+
+    function status() {
+      return html` <div class="tx_700">活動狀態</div>
+        ${BgWidget.mbContainer(12)}
+        ${BgWidget.switchTextButton(
+          gvc,
+          voucherData.status === 1,
+          {
+            left: '關閉',
+            right: '啟用',
+          },
+          bool => {
+            voucherData.status = bool ? 1 : 0;
+          }
+        )}`;
+    }
+
+    function trigger() {
+      return html` <div class="tx_700">活動方式</div>
+        ${BgWidget.mbContainer(18)}
+        ${BgWidget.multiCheckboxContainer(
+          gvc,
+          [
+            {
+              key: 'auto',
+              name: '自動折扣',
+              innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣'),
+            },
+            {
+              key: 'code',
+              name: '優惠代碼',
+              innerHtml: (() => {
+                const id = glitter.getUUID();
+                return gvc.bindView({
+                  bind: id,
+                  view: () =>
+                    gvc.map([
+                      BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣'),
+                      BgWidget.editeInput({
+                        gvc: gvc,
+                        title: '',
+                        default: voucherData.code ?? '',
+                        placeHolder: '請輸入優惠券代碼',
+                        callback: text => {
+                          voucherData.code = text.toUpperCase();
+                        },
+                        endText: html` <div class="d-flex justify-content-end">
+                          ${BgWidget.mbContainer(8)}
+                          ${BgWidget.blueNote(
+                            document.body.clientWidth > 768 ? '隨機產生優惠代碼' : '隨機產生',
+                            gvc.event(() => {
+                              voucherData.code = Tool.randomString(6).toUpperCase();
+                              gvc.notifyDataChange(id);
+                            })
+                          )}
+                        </div>`,
+                      }),
+                    ]),
+                });
+              })(),
+            },
+            {
+              key: 'distribution',
+              name: '供分銷連結或一頁式網頁使用',
+            },
+          ],
+          [voucherData.trigger],
+          text => {
+            if (text[0] === 'auto') {
+              voucherData.code = undefined;
+            }
+            if (text[0] === 'distribution') {
+              voucherData.for = 'all';
+            }
+            voucherData.trigger = text[0] as Trigger;
+            gvc.notifyDataChange(pageVM.viewID);
+          },
+          { single: true }
+        )}`;
+    }
+
+    function target() {
+      return html` <div class="tx_700">活動對象</div>
+        ${BgWidget.mbContainer(18)}
+        ${gvc.bindView(() => {
+          const id = gvc.glitter.getUUID();
+          return {
+            bind: id,
+            view: () => {
+              return html`
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  ${BgWidget.selectFilter({
+                    gvc: gvc,
+                    callback: text => {
+                      voucherData.target = text;
+                      gvc.notifyDataChange(id);
+                    },
+                    default: voucherData.target ?? 'all',
+                    options: [
+                      {
+                        key: 'all',
+                        value: '所有顧客',
+                      },
+                      {
+                        key: 'customer',
+                        value: '特定顧客',
+                      },
+                      {
+                        key: 'levels',
+                        value: '會員等級',
+                      },
+                      // {
+                      //     key: 'group',
+                      //     value: '顧客分群',
+                      // },
+                    ],
+                    style: 'width: 100%;',
+                  })}
+                  <div>
+                    ${(() => {
+                      switch (voucherData.target) {
+                        case 'all':
+                          return '';
+                        case 'customer':
+                          return gvc.bindView(() => {
+                            const customVM = {
+                              id: gvc.glitter.getUUID(),
+                              loading: true,
+                              dataList: [] as OptionsItem[],
+                            };
+                            return {
+                              bind: customVM.id,
+                              view: () => {
+                                if (customVM.loading) {
+                                  return BgWidget.spinner();
+                                }
+                                return html`
+                                  <div class="d-flex flex-column p-2" style="gap: 18px;">
+                                    <div
+                                      class="d-flex align-items-center gray-bottom-line-18"
+                                      style="justify-content: space-between;"
+                                    >
+                                      <div class="form-check-label c_updown_label">
+                                        <div class="tx_normal">顧客名稱</div>
+                                      </div>
+                                      ${BgWidget.grayButton(
+                                        '查看全部',
+                                        gvc.event(() => {
+                                          BgWidget.selectDropDialog({
+                                            gvc: gvc,
+                                            title: '搜尋特定顧客',
+                                            tag: 'select_users',
+                                            updownOptions: FilterOptions.userOrderBy,
+                                            callback: value => {
+                                              voucherData.targetList = value;
+                                              customVM.loading = true;
+                                              gvc.notifyDataChange(customVM.id);
+                                            },
+                                            default: (voucherData.targetList ?? []).map(id => id.toString()),
+                                            api: (data: { query: string; orderString: string }) => {
+                                              return new Promise(resolve => {
+                                                ApiUser.getUserListOrders({
+                                                  page: 0,
+                                                  limit: 99999,
+                                                  search: data.query,
+                                                  orderString: data.orderString,
+                                                }).then(dd => {
+                                                  if (dd.response.data) {
+                                                    resolve(
+                                                      dd.response.data.map(
+                                                        (item: {
+                                                          userID: number;
+                                                          userData: {
+                                                            name: string;
+                                                            email: string;
+                                                          };
+                                                        }) => {
+                                                          return {
+                                                            key: item.userID,
+                                                            value: item.userData.name ?? '（尚無姓名）',
+                                                            note: item.userData.email,
+                                                          };
+                                                        }
+                                                      )
+                                                    );
+                                                  }
+                                                });
+                                              });
+                                            },
+                                            style: 'width: 100%;',
+                                          });
+                                        }),
+                                        { textStyle: 'font-weight: 400;' }
+                                      )}
+                                    </div>
+                                    ${obj.gvc.map(
+                                      customVM.dataList.map((opt: OptionsItem, index) => {
+                                        return html` <div class="form-check-label c_updown_label">
+                                          <span class="tx_normal">${index + 1}. ${opt.value}</span>
+                                          ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                        </div>`;
+                                      })
+                                    )}
+                                  </div>
+                                `;
+                              },
+                              onCreate: () => {
+                                if (customVM.loading) {
+                                  if (voucherData.targetList.length === 0) {
+                                    setTimeout(() => {
+                                      customVM.dataList = [];
+                                      customVM.loading = false;
+                                      gvc.notifyDataChange(customVM.id);
+                                    }, 200);
+                                  } else {
+                                    ApiUser.getUserList({
+                                      page: 0,
+                                      limit: 99999,
+                                      id: voucherData.targetList.join(','),
+                                    }).then(dd => {
+                                      if (dd.response.data) {
+                                        customVM.dataList = dd.response.data.map(
+                                          (item: {
+                                            userID: string;
+                                            userData: {
+                                              name: string;
+                                              email: string;
+                                            };
+                                          }) => {
+                                            return {
+                                              key: item.userID,
+                                              value: item.userData.name,
+                                              note: item.userData.email,
+                                            };
+                                          }
+                                        );
+                                      }
+                                      customVM.loading = false;
+                                      gvc.notifyDataChange(customVM.id);
+                                    });
+                                  }
+                                }
+                              },
+                            };
+                          });
+                        case 'levels':
+                          return (() => {
+                            const levelVM = {
+                              id: gvc.glitter.getUUID(),
+                              loading: true,
+                              dataList: [],
+                            };
+                            return gvc.bindView({
+                              bind: levelVM.id,
+                              view: () => {
+                                if (levelVM.loading) {
+                                  return BgWidget.spinner({ text: { visible: false } });
+                                } else {
+                                  return BgWidget.selectDropList({
+                                    gvc: gvc,
+                                    callback: value => {
+                                      voucherData.targetList = value;
+                                      gvc.notifyDataChange(id);
+                                    },
+                                    default: (voucherData.targetList ?? []).map(id => id.toString()),
+                                    options: levelVM.dataList,
+                                    style: 'width: 100%;',
+                                  });
+                                }
+                              },
+                              divCreate: {
+                                style: 'width: 100%;',
+                              },
+                              onCreate: () => {
+                                if (levelVM.loading) {
+                                  ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                    if (dd.result && dd.response.value) {
+                                      levelVM.dataList = dd.response.value.levels.map(
+                                        (item: { id: string; tag_name: string }) => {
+                                          return {
+                                            key: item.id,
+                                            value: item.tag_name,
+                                            // note.txt: '人數'
+                                          };
+                                        }
+                                      );
+                                      levelVM.loading = false;
+                                      gvc.notifyDataChange(levelVM.id);
+                                    }
+                                  });
+                                }
+                              },
+                            });
+                          })();
+                        case 'group':
+                          return (() => {
+                            const levelVM = {
+                              id: gvc.glitter.getUUID(),
+                              loading: true,
+                              dataList: [],
+                            };
+                            return gvc.bindView({
+                              bind: levelVM.id,
+                              view: () => {
+                                if (levelVM.loading) {
+                                  return BgWidget.spinner({ text: { visible: false } });
+                                } else {
+                                  return BgWidget.selectDropList({
+                                    gvc: gvc,
+                                    callback: (value: []) => {
+                                      voucherData.targetList = value;
+                                      gvc.notifyDataChange(id);
+                                    },
+                                    default: (voucherData.targetList ?? []).map(id => id.toString()),
+                                    options: levelVM.dataList,
+                                    style: 'width: 100%;',
+                                  });
+                                }
+                              },
+                              divCreate: {
+                                style: 'width: 100%;',
+                              },
+                              onCreate: () => {
+                                if (levelVM.loading) {
+                                  ApiUser.getUserGroupList().then((dd: any) => {
+                                    if (dd.result && dd.response.data) {
+                                      levelVM.dataList = dd.response.data
+                                        .filter((item: any) => {
+                                          return item.type !== 'level';
+                                        })
+                                        .map((item: any) => {
+                                          return {
+                                            key: item.type,
+                                            value: item.title,
+                                          };
+                                        });
+                                      levelVM.loading = false;
+                                      gvc.notifyDataChange(levelVM.id);
+                                    }
+                                  });
+                                }
+                              },
+                            });
+                          })();
+                        default:
+                          return '';
+                      }
+                    })()}
+                  </div>
+                </div>
+              `;
+            },
+          };
+        })}`;
+    }
+
+    function device() {
+      return html` <div class="tx_700">可使用訂單來源</div>
+        ${BgWidget.mbContainer(18)}
+        ${BgWidget.multiCheckboxContainer(
+          gvc,
+          [
+            { key: 'normal', name: 'APP & 官網' },
+            { key: 'pos', name: 'POS' },
+          ],
+          voucherData.device ?? ['normal'],
+          text => {
+            voucherData.device = text as Device[];
+            gvc.notifyDataChange(pageVM.viewID);
+          },
+          { single: false }
+        )}`;
+    }
+
+    function selectShipment() {
+      const id = glitter.getUUID();
+      return gvc.bindView({
+        bind: id,
+        view: () => {
+          return html` <div class="tx_700">可使用物流</div>
+            ${BgWidget.mbContainer(18)}
+            ${[
+              BgWidget.select({
+                gvc,
+                callback: value => {
+                  voucherData.selectShipment.type = value as SelectShipmentType;
+                  gvc.notifyDataChange(id);
+                },
+                default: voucherData.selectShipment.type,
+                options: [
+                  { key: 'all', value: '所有物流' },
+                  { key: 'select', value: '指定物流' },
+                ],
+              }),
+              voucherData.selectShipment.type === 'all'
+                ? ''
+                : BgWidget.selectDropList({
+                    gvc: gvc,
+                    callback: value => {
+                      voucherData.selectShipment.list = value;
+                    },
+                    default: voucherData.selectShipment.list ?? [],
+                    options: ShipmentConfig.list.map(item => {
+                      return {
+                        key: item.value,
+                        value: item.title,
+                      };
+                    }),
+                    style: 'width: 100%;',
+                  }),
+            ]
+              .filter(Boolean)
+              .join(BgWidget.mbContainer(8))}`;
+        },
+      });
+    }
+
+    function rebackProduct() {
+      return gvc.bindView(() => {
+        const vm = {
+          id: gvc.glitter.getUUID(),
+        };
+        if (!Array.isArray(voucherData.add_on_products)) {
+          voucherData.add_on_products = [];
+        }
+        return {
+          bind: vm.id,
+          view: () => {
+            return html`
+              <div class="tx_700">${voucherData.reBackType === 'add_on_items' ? `加購品項` : `贈品品項`}</div>
+              ${BgWidget.mbContainer(18)}
+              ${obj.gvc.bindView(() => {
+                const id = gvc.glitter.getUUID();
+                return {
+                  bind: id,
+                  view: () => {
+                    try {
+                      return html`
+                        <div
+                          class="d-flex align-items-center gray-bottom-line-18"
+                          style="gap: 24px; justify-content: space-between;"
+                        >
+                          <div class="form-check-label c_updown_label">
+                            <div class="tx_normal">商品列表</div>
+                          </div>
+                          ${BgWidget.grayButton(
+                            '選擇商品',
+                            gvc.event(() => {
+                              BgProduct.productsDialog({
+                                gvc: gvc,
+                                default: voucherData.add_on_products ?? [],
+                                callback: async value => {
+                                  voucherData.add_on_products = value;
+                                  gvc.notifyDataChange(id);
+                                },
+                                filter: dd => {
+                                  return true;
+                                },
+                                productType: voucherData.reBackType === 'add_on_items' ? 'addProduct' : 'giveaway',
+                              });
+                            }),
+                            { textStyle: 'font-weight: 400;' }
+                          )}
+                        </div>
+                        ${gvc.bindView(() => {
+                          const vm: {
+                            id: string;
+                            loading: boolean;
+                            data: OptionsItem[];
+                          } = {
+                            id: gvc.glitter.getUUID(),
+                            loading: true,
+                            data: [],
+                          };
+                          BgProduct.getProductOpts(
+                            voucherData.add_on_products!,
+                            voucherData.reBackType === 'add_on_items' ? 'addProduct' : 'giveaway'
+                          ).then(res => {
+                            vm.data = res;
+                            vm.loading = false;
+                            gvc.notifyDataChange(vm.id);
+                          });
+                          return {
+                            bind: vm.id,
+                            view: async () => {
+                              if (vm.loading) {
+                                return BgWidget.spinner();
+                              }
+                              return vm.data
+                                .map((opt: OptionsItem, index) => {
+                                  return html` <div
+                                    class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                  >
+                                    <span class="tx_normal">${index + 1}.</span>
+                                    ${BgWidget.validImageBox({
+                                      gvc: gvc,
+                                      image: opt.image,
+                                      width: 40,
+                                    })}
+                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                    ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                  </div>`;
+                                })
+                                .join('');
+                            },
+                            divCreate: {
+                              class: `d-flex py-2 flex-column`,
+                              style: `gap:10px;`,
+                            },
+                          };
+                        })}
+                      `;
+                    } catch (e) {
+                      console.error(e);
+                      return '';
+                    }
+                  },
+                  divCreate: {
+                    class: `w-100`,
+                  },
+                };
+              })}
+            `;
+          },
+        };
+      });
+    }
 
     return gvc.bindView(() => {
-      const viewID = gvc.glitter.getUUID();
       return {
-        bind: viewID,
+        bind: pageVM.viewID,
         view: () => {
           return BgWidget.container(
             [
@@ -371,9 +932,7 @@ export class ShoppingDiscountSetting {
                   })
                 )}
                 ${BgWidget.title(
-                  obj.type === 'add'
-                    ? `新增${ShoppingDiscountSetting.getLabel(obj.reBackType)}`
-                    : `編輯${ShoppingDiscountSetting.getLabel(obj.reBackType)}`
+                  `${obj.type === 'add' ? '新增' : '編輯'}${ShoppingDiscountSetting.getLabel(obj.reBackType)}`
                 )}
               </div>`,
               // 左右容器
@@ -381,394 +940,16 @@ export class ShoppingDiscountSetting {
                 {
                   // 優惠券設定
                   html: [
+                    BgWidget.mainCard([title(), status()].join(BgWidget.horizontalLine())),
                     BgWidget.mainCard(
                       [
-                        html` <div class="tx_700">活動標題</div>
-                          ${BgWidget.mbContainer(18)}
-                          ${BgWidget.editeInput({
-                            gvc: gvc,
-                            title: '',
-                            default: voucherData.title,
-                            placeHolder: '請輸入活動標題',
-                            callback: text => {
-                              voucherData.title = text;
-                            },
-                          })}
-                          ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`,
-                        html` <div class="tx_700">活動狀態</div>
-                          ${BgWidget.mbContainer(12)}
-                          ${BgWidget.switchTextButton(
-                            gvc,
-                            voucherData.status === 1,
-                            {
-                              left: '關閉',
-                              right: '啟用',
-                            },
-                            bool => {
-                              voucherData.status = bool ? 1 : 0;
-                            }
-                          )}`,
-                      ].join(BgWidget.horizontalLine())
-                    ),
-                    BgWidget.mainCard(
-                      [
-                        html` <div class="tx_700">活動方式</div>
-                          ${BgWidget.mbContainer(18)}
-                          ${BgWidget.multiCheckboxContainer(
-                            gvc,
-                            [
-                              {
-                                key: 'auto',
-                                name: '自動折扣',
-                                innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣'),
-                              },
-                              {
-                                key: 'code',
-                                name: '優惠代碼',
-                                innerHtml: (() => {
-                                  const id = glitter.getUUID();
-                                  return gvc.bindView({
-                                    bind: id,
-                                    view: () =>
-                                      gvc.map([
-                                        BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣'),
-                                        BgWidget.editeInput({
-                                          gvc: gvc,
-                                          title: '',
-                                          default: voucherData.code ?? '',
-                                          placeHolder: '請輸入優惠券代碼',
-                                          callback: text => {
-                                            voucherData.code = text.toUpperCase();
-                                          },
-                                          endText: html` <div class="d-flex justify-content-end">
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.blueNote(
-                                              document.body.clientWidth > 768 ? '隨機產生優惠代碼' : '隨機產生',
-                                              gvc.event(() => {
-                                                voucherData.code = Tool.randomString(6).toUpperCase();
-                                                gvc.notifyDataChange(id);
-                                              })
-                                            )}
-                                          </div>`,
-                                        }),
-                                      ]),
-                                  });
-                                })(),
-                              },
-                              {
-                                key: 'distribution',
-                                name: '供分銷連結或一頁式網頁使用',
-                              },
-                            ],
-                            [voucherData.trigger],
-                            text => {
-                              if (text[0] === 'auto') {
-                                voucherData.code = undefined;
-                              }
-                              if (text[0] === 'distribution') {
-                                voucherData.for = 'all';
-                              }
-                              voucherData.trigger = text[0] as 'auto' | 'code' | 'distribution';
-                              gvc.notifyDataChange(viewID);
-                            },
-                            { single: true }
-                          )}`,
-                        html` <div class="tx_700">活動對象</div>
-                          ${BgWidget.mbContainer(18)}
-                          ${gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            return {
-                              bind: id,
-                              view: () => {
-                                return html`
-                                  <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    ${BgWidget.selectFilter({
-                                      gvc: gvc,
-                                      callback: text => {
-                                        voucherData.target = text;
-                                        gvc.notifyDataChange(id);
-                                      },
-                                      default: voucherData.target ?? 'all',
-                                      options: [
-                                        {
-                                          key: 'all',
-                                          value: '所有顧客',
-                                        },
-                                        {
-                                          key: 'customer',
-                                          value: '特定顧客',
-                                        },
-                                        {
-                                          key: 'levels',
-                                          value: '會員等級',
-                                        },
-                                        // {
-                                        //     key: 'group',
-                                        //     value: '顧客分群',
-                                        // },
-                                      ],
-                                      style: 'width: 100%;',
-                                    })}
-                                    <div>
-                                      ${(() => {
-                                        switch (voucherData.target) {
-                                          case 'all':
-                                            return '';
-                                          case 'customer':
-                                            return gvc.bindView(() => {
-                                              const customVM = {
-                                                id: gvc.glitter.getUUID(),
-                                                loading: true,
-                                                dataList: [] as OptionsItem[],
-                                              };
-                                              return {
-                                                bind: customVM.id,
-                                                view: () => {
-                                                  if (customVM.loading) {
-                                                    return BgWidget.spinner();
-                                                  }
-                                                  return html`
-                                                    <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                      <div
-                                                        class="d-flex align-items-center gray-bottom-line-18"
-                                                        style="justify-content: space-between;"
-                                                      >
-                                                        <div class="form-check-label c_updown_label">
-                                                          <div class="tx_normal">顧客名稱</div>
-                                                        </div>
-                                                        ${BgWidget.grayButton(
-                                                          '查看全部',
-                                                          gvc.event(() => {
-                                                            BgWidget.selectDropDialog({
-                                                              gvc: gvc,
-                                                              title: '搜尋特定顧客',
-                                                              tag: 'select_users',
-                                                              updownOptions: FilterOptions.userOrderBy,
-                                                              callback: value => {
-                                                                voucherData.targetList = value;
-                                                                customVM.loading = true;
-                                                                gvc.notifyDataChange(customVM.id);
-                                                              },
-                                                              default: voucherData.targetList ?? [],
-                                                              api: (data: { query: string; orderString: string }) => {
-                                                                return new Promise(resolve => {
-                                                                  ApiUser.getUserListOrders({
-                                                                    page: 0,
-                                                                    limit: 99999,
-                                                                    search: data.query,
-                                                                    orderString: data.orderString,
-                                                                  }).then(dd => {
-                                                                    if (dd.response.data) {
-                                                                      resolve(
-                                                                        dd.response.data.map(
-                                                                          (item: {
-                                                                            userID: number;
-                                                                            userData: {
-                                                                              name: string;
-                                                                              email: string;
-                                                                            };
-                                                                          }) => {
-                                                                            return {
-                                                                              key: item.userID,
-                                                                              value:
-                                                                                item.userData.name ?? '（尚無姓名）',
-                                                                              note: item.userData.email,
-                                                                            };
-                                                                          }
-                                                                        )
-                                                                      );
-                                                                    }
-                                                                  });
-                                                                });
-                                                              },
-                                                              style: 'width: 100%;',
-                                                            });
-                                                          }),
-                                                          { textStyle: 'font-weight: 400;' }
-                                                        )}
-                                                      </div>
-                                                      ${obj.gvc.map(
-                                                        customVM.dataList.map((opt: OptionsItem, index) => {
-                                                          return html` <div class="form-check-label c_updown_label">
-                                                            <span class="tx_normal">${index + 1}. ${opt.value}</span>
-                                                            ${opt.note
-                                                              ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> `
-                                                              : ''}
-                                                          </div>`;
-                                                        })
-                                                      )}
-                                                    </div>
-                                                  `;
-                                                },
-                                                onCreate: () => {
-                                                  if (customVM.loading) {
-                                                    if (voucherData.targetList.length === 0) {
-                                                      setTimeout(() => {
-                                                        customVM.dataList = [];
-                                                        customVM.loading = false;
-                                                        gvc.notifyDataChange(customVM.id);
-                                                      }, 200);
-                                                    } else {
-                                                      ApiUser.getUserList({
-                                                        page: 0,
-                                                        limit: 99999,
-                                                        id: voucherData.targetList.join(','),
-                                                      }).then(dd => {
-                                                        if (dd.response.data) {
-                                                          customVM.dataList = dd.response.data.map(
-                                                            (item: {
-                                                              userID: string;
-                                                              userData: {
-                                                                name: string;
-                                                                email: string;
-                                                              };
-                                                            }) => {
-                                                              return {
-                                                                key: item.userID,
-                                                                value: item.userData.name,
-                                                                note: item.userData.email,
-                                                              };
-                                                            }
-                                                          );
-                                                        }
-                                                        customVM.loading = false;
-                                                        gvc.notifyDataChange(customVM.id);
-                                                      });
-                                                    }
-                                                  }
-                                                },
-                                              };
-                                            });
-                                          case 'levels':
-                                            return (() => {
-                                              const levelVM = {
-                                                id: gvc.glitter.getUUID(),
-                                                loading: true,
-                                                dataList: [],
-                                              };
-                                              return gvc.bindView({
-                                                bind: levelVM.id,
-                                                view: () => {
-                                                  if (levelVM.loading) {
-                                                    return BgWidget.spinner({ text: { visible: false } });
-                                                  } else {
-                                                    return BgWidget.selectDropList({
-                                                      gvc: gvc,
-                                                      callback: (value: []) => {
-                                                        voucherData.targetList = value;
-                                                        gvc.notifyDataChange(id);
-                                                      },
-                                                      default: voucherData.targetList ?? [],
-                                                      options: levelVM.dataList,
-                                                      style: 'width: 100%;',
-                                                    });
-                                                  }
-                                                },
-                                                divCreate: {
-                                                  style: 'width: 100%;',
-                                                },
-                                                onCreate: () => {
-                                                  if (levelVM.loading) {
-                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then(
-                                                      (dd: any) => {
-                                                        if (dd.result && dd.response.value) {
-                                                          levelVM.dataList = dd.response.value.levels.map(
-                                                            (item: { id: string; tag_name: string }) => {
-                                                              return {
-                                                                key: item.id,
-                                                                value: item.tag_name,
-                                                                // note.txt: '人數'
-                                                              };
-                                                            }
-                                                          );
-                                                          levelVM.loading = false;
-                                                          gvc.notifyDataChange(levelVM.id);
-                                                        }
-                                                      }
-                                                    );
-                                                  }
-                                                },
-                                              });
-                                            })();
-                                          case 'group':
-                                            return (() => {
-                                              const levelVM = {
-                                                id: gvc.glitter.getUUID(),
-                                                loading: true,
-                                                dataList: [],
-                                              };
-                                              return gvc.bindView({
-                                                bind: levelVM.id,
-                                                view: () => {
-                                                  if (levelVM.loading) {
-                                                    return BgWidget.spinner({ text: { visible: false } });
-                                                  } else {
-                                                    return BgWidget.selectDropList({
-                                                      gvc: gvc,
-                                                      callback: (value: []) => {
-                                                        voucherData.targetList = value;
-                                                        gvc.notifyDataChange(id);
-                                                      },
-                                                      default: voucherData.targetList ?? [],
-                                                      options: levelVM.dataList,
-                                                      style: 'width: 100%;',
-                                                    });
-                                                  }
-                                                },
-                                                divCreate: {
-                                                  style: 'width: 100%;',
-                                                },
-                                                onCreate: () => {
-                                                  if (levelVM.loading) {
-                                                    ApiUser.getUserGroupList().then((dd: any) => {
-                                                      if (dd.result && dd.response.data) {
-                                                        levelVM.dataList = dd.response.data
-                                                          .filter((item: any) => {
-                                                            return item.type !== 'level';
-                                                          })
-                                                          .map((item: any) => {
-                                                            return {
-                                                              key: item.type,
-                                                              value: item.title,
-                                                            };
-                                                          });
-                                                        levelVM.loading = false;
-                                                        gvc.notifyDataChange(levelVM.id);
-                                                      }
-                                                    });
-                                                  }
-                                                },
-                                              });
-                                            })();
-                                          default:
-                                            return '';
-                                        }
-                                      })()}
-                                    </div>
-                                  </div>
-                                `;
-                              },
-                            };
-                          })}`,
-                        html` <div class="tx_700">可使用訂單來源</div>
-                          ${BgWidget.mbContainer(18)}
-                          ${BgWidget.multiCheckboxContainer(
-                            gvc,
-                            [
-                              { key: 'normal', name: 'APP & 官網' },
-                              { key: 'pos', name: 'POS' },
-                            ],
-                            voucherData.device ?? ['normal'],
-                            text => {
-                              voucherData.device = text as ('normal' | 'pos')[];
-                              gvc.notifyDataChange(viewID);
-                            },
-                            { single: false }
-                          )}`,
+                        trigger(),
+                        target(),
+                        device(),
+                        voucherData.reBackType === 'shipment_free' ? selectShipment() : '',
                       ]
-                        .map(str => {
-                          return html` <div>${str}</div>`;
-                        })
+                        .filter(Boolean)
+                        .map(str => html`<div>${str}</div>`)
                         .join(BgWidget.horizontalLine())
                     ),
                     BgWidget.mainCard(
@@ -781,6 +962,7 @@ export class ShoppingDiscountSetting {
                           product: JSON.parse(JSON.stringify(voucherData.forKey)),
                           manager_tag: JSON.parse(JSON.stringify(voucherData.forKey)),
                         };
+
                         return {
                           bind: id,
                           dataList: [
@@ -793,6 +975,7 @@ export class ShoppingDiscountSetting {
                                 if (['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) {
                                   return [];
                                 }
+
                                 const valueInput = (obj: { startText?: string; endText?: string }) => {
                                   return BgWidget.editeInput({
                                     gvc: gvc,
@@ -804,10 +987,9 @@ export class ShoppingDiscountSetting {
                                     callback: text => {
                                       const texInt = parseInt(text, 10);
                                       if (voucherData.method === 'percent' && (texInt > 100 || texInt < 0)) {
-                                        const dialog = new ShareDialog(gvc.glitter);
                                         dialog.infoMessage({ text: '數值需介於0~100' });
                                         gvc.notifyDataChange(id);
-                                        gvc.notifyDataChange(pageVM.countingId);
+                                        gvc.notifyDataChange(pageVM.countingID);
                                       } else {
                                         voucherData.value = text;
                                       }
@@ -816,6 +998,7 @@ export class ShoppingDiscountSetting {
                                     endText: obj.endText,
                                   });
                                 };
+
                                 return [
                                   html` <div>
                                     <div class="tx_700">折扣金額</div>
@@ -837,8 +1020,8 @@ export class ShoppingDiscountSetting {
                                       [voucherData.method],
                                       text => {
                                         voucherData.value = '0';
-                                        voucherData.method = text[0] as 'fixed' | 'percent';
-                                        gvc.notifyDataChange(pageVM.conditionId);
+                                        voucherData.method = text[0] as Method;
+                                        gvc.notifyDataChange(pageVM.conditionID);
                                       },
                                       { single: true }
                                     )}
@@ -849,6 +1032,7 @@ export class ShoppingDiscountSetting {
                                 if (voucherData.trigger === 'distribution') {
                                   return [];
                                 }
+
                                 return [
                                   html`
                                     <div class="tx_700">套用至</div>
@@ -1097,137 +1281,13 @@ export class ShoppingDiscountSetting {
                         };
                       })
                     ),
-                    ...(() => {
-                      if (['giveaway', 'add_on_items'].includes(voucherData.reBackType)) {
-                        return [
-                          BgWidget.mainCard(
-                            gvc.bindView(() => {
-                              const vm = {
-                                id: gvc.glitter.getUUID(),
-                              };
-                              if (!Array.isArray(voucherData.add_on_products)) {
-                                voucherData.add_on_products = [];
-                              }
-                              return {
-                                bind: vm.id,
-                                view: () => {
-                                  return html`
-                                    <div class="tx_700">
-                                      ${voucherData.reBackType === 'add_on_items' ? `加購品項` : `贈品品項`}
-                                    </div>
-                                    ${BgWidget.mbContainer(18)}
-                                    ${obj.gvc.bindView(() => {
-                                      const id = gvc.glitter.getUUID();
-                                      return {
-                                        bind: id,
-                                        view: () => {
-                                          try {
-                                            return html`
-                                              <div
-                                                class="d-flex align-items-center gray-bottom-line-18"
-                                                style="gap: 24px; justify-content: space-between;"
-                                              >
-                                                <div class="form-check-label c_updown_label">
-                                                  <div class="tx_normal">商品列表</div>
-                                                </div>
-                                                ${BgWidget.grayButton(
-                                                  '選擇商品',
-                                                  gvc.event(() => {
-                                                    BgProduct.productsDialog({
-                                                      gvc: gvc,
-                                                      default: voucherData.add_on_products ?? [],
-                                                      callback: async value => {
-                                                        voucherData.add_on_products = value;
-                                                        gvc.notifyDataChange(id);
-                                                      },
-                                                      filter: dd => {
-                                                        return true;
-                                                      },
-                                                      productType:
-                                                        voucherData.reBackType === 'add_on_items'
-                                                          ? 'addProduct'
-                                                          : 'giveaway',
-                                                    });
-                                                  }),
-                                                  { textStyle: 'font-weight: 400;' }
-                                                )}
-                                              </div>
-                                              ${gvc.bindView(() => {
-                                                const vm: {
-                                                  id: string;
-                                                  loading: boolean;
-                                                  data: OptionsItem[];
-                                                } = {
-                                                  id: gvc.glitter.getUUID(),
-                                                  loading: true,
-                                                  data: [],
-                                                };
-                                                BgProduct.getProductOpts(
-                                                  voucherData.add_on_products!,
-                                                  voucherData.reBackType === 'add_on_items' ? 'addProduct' : 'giveaway'
-                                                ).then(res => {
-                                                  vm.data = res;
-                                                  vm.loading = false;
-                                                  gvc.notifyDataChange(vm.id);
-                                                });
-                                                return {
-                                                  bind: vm.id,
-                                                  view: async () => {
-                                                    if (vm.loading) {
-                                                      return BgWidget.spinner();
-                                                    }
-                                                    return vm.data
-                                                      .map((opt: OptionsItem, index) => {
-                                                        return html` <div
-                                                          class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                        >
-                                                          <span class="tx_normal">${index + 1}.</span>
-                                                          ${BgWidget.validImageBox({
-                                                            gvc: gvc,
-                                                            image: opt.image,
-                                                            width: 40,
-                                                          })}
-                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                            ${opt.value}
-                                                          </div>
-                                                          ${opt.note
-                                                            ? html` <div class="tx_gray_12">${opt.note}</div> `
-                                                            : ''}
-                                                        </div>`;
-                                                      })
-                                                      .join('');
-                                                  },
-                                                  divCreate: {
-                                                    class: `d-flex py-2 flex-column`,
-                                                    style: `gap:10px;`,
-                                                  },
-                                                };
-                                              })}
-                                            `;
-                                          } catch (e) {
-                                            console.error(e);
-                                            return '';
-                                          }
-                                        },
-                                        divCreate: {
-                                          class: `w-100`,
-                                        },
-                                      };
-                                    })}
-                                  `;
-                                },
-                              };
-                            })
-                          ),
-                        ];
-                      } else {
-                        return [];
-                      }
-                    })(),
+                    ['giveaway', 'add_on_items'].includes(voucherData.reBackType)
+                      ? BgWidget.mainCard(rebackProduct())
+                      : '',
                     BgWidget.mainCard(
                       gvc.bindView(() => {
                         return {
-                          bind: pageVM.conditionId,
+                          bind: pageVM.conditionID,
                           view: () => {
                             const conditionInput = (text: string) => {
                               return BgWidget.editeInput({
@@ -1238,7 +1298,7 @@ export class ShoppingDiscountSetting {
                                 placeHolder: '',
                                 callback: value => {
                                   voucherData.ruleValue = parseInt(value, 10);
-                                  gvc.notifyDataChange(pageVM.conditionId);
+                                  gvc.notifyDataChange(pageVM.conditionID);
                                 },
                                 endText: text,
                               });
@@ -1274,8 +1334,8 @@ export class ShoppingDiscountSetting {
                                   [voucherData.rule],
                                   text => {
                                     voucherData.ruleValue = 0;
-                                    voucherData.rule = text[0] as 'min_price' | 'min_count';
-                                    gvc.notifyDataChange(pageVM.conditionId);
+                                    voucherData.rule = text[0] as Rule;
+                                    gvc.notifyDataChange(pageVM.conditionID);
                                   },
                                   { single: true }
                                 )}`,
@@ -1309,46 +1369,16 @@ export class ShoppingDiscountSetting {
                                   ],
                                   [voucherData.conditionType],
                                   text => {
-                                    voucherData.conditionType = text[0] as 'item' | 'order';
-                                    gvc.notifyDataChange(pageVM.conditionId);
+                                    voucherData.conditionType = text[0] as ConditionType;
+                                    gvc.notifyDataChange(pageVM.conditionID);
                                   },
                                   {
                                     single: true,
                                     readonly: voucherData.reBackType === 'shipment_free',
                                   }
                                 )}`,
-                              html` ${BgWidget.horizontalLine()}
-                                <div class="tx_700">消費金額於其他折扣觸發時機</div>
-                                ${BgWidget.mbContainer(18)}
-                                ${BgWidget.multiCheckboxContainer(
-                                  gvc,
-                                  [
-                                    {
-                                      key: 'before',
-                                      name: '觸發前',
-                                      innerHtml: BgWidget.grayNote(
-                                        '在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'
-                                      ),
-                                    },
-                                    {
-                                      key: 'after',
-                                      name: '觸發後',
-                                      innerHtml: BgWidget.grayNote(
-                                        '將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'
-                                      ),
-                                    },
-                                  ],
-                                  [voucherData.includeDiscount],
-                                  text => {
-                                    voucherData.includeDiscount = text[0] as 'before' | 'after';
-                                    gvc.notifyDataChange(pageVM.conditionId);
-                                  },
-                                  {
-                                    single: true,
-                                  }
-                                )}`,
                               gvc.bindView({
-                                bind: pageVM.countingId,
+                                bind: pageVM.countingID,
                                 view: () => {
                                   if (voucherData.method === 'percent' || voucherData.reBackType === 'shipment_free') {
                                     return '';
@@ -1376,8 +1406,8 @@ export class ShoppingDiscountSetting {
                                       ],
                                       [voucherData.counting],
                                       text => {
-                                        voucherData.counting = text[0] as 'single' | 'each';
-                                        gvc.notifyDataChange(pageVM.conditionId);
+                                        voucherData.counting = text[0] as Counting;
+                                        gvc.notifyDataChange(pageVM.conditionID);
                                       },
                                       {
                                         single: true,
@@ -1386,7 +1416,7 @@ export class ShoppingDiscountSetting {
                                 },
                               }),
                               gvc.bindView({
-                                bind: pageVM.productOffId,
+                                bind: pageVM.productOffID,
                                 view: () => {
                                   if (
                                     !(
@@ -1430,7 +1460,7 @@ export class ShoppingDiscountSetting {
                                           | 'price_asc'
                                           | 'price_desc'
                                           | 'price_all';
-                                        gvc.notifyDataChange(pageVM.productOffId);
+                                        gvc.notifyDataChange(pageVM.productOffID);
                                       },
                                       {
                                         single: true,
@@ -1449,28 +1479,66 @@ export class ShoppingDiscountSetting {
                         return {
                           bind: id,
                           view: () => {
-                            return html` <div class="tx_700">是否與其他優惠券疊加使用</div>
-                              ${BgWidget.mbContainer(18)}
-                              ${BgWidget.multiCheckboxContainer(
-                                gvc,
-                                [
-                                  {
-                                    key: 'false',
-                                    name: '不可疊加',
-                                    innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
+                            function overlay() {
+                              return html` <div class="tx_700">是否與其他優惠券疊加使用</div>
+                                ${BgWidget.mbContainer(18)}
+                                ${BgWidget.multiCheckboxContainer(
+                                  gvc,
+                                  [
+                                    {
+                                      key: 'false',
+                                      name: '不可疊加',
+                                      innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
+                                    },
+                                    {
+                                      key: 'true',
+                                      name: '可以疊加',
+                                    },
+                                  ],
+                                  [voucherData.overlay ? 'true' : 'false'],
+                                  text => {
+                                    voucherData.overlay = text[0] === 'true';
+                                    gvc.notifyDataChange(id);
+                                  },
+                                  { single: true }
+                                )}`;
+                            }
+
+                            function isIncludeDiscount() {
+                              return html` <div class="tx_700">消費金額於其他折扣觸發時機</div>
+                                ${BgWidget.mbContainer(18)}
+                                ${BgWidget.multiCheckboxContainer(
+                                  gvc,
+                                  [
+                                    {
+                                      key: 'before',
+                                      name: '觸發前',
+                                      innerHtml: BgWidget.grayNote(
+                                        '在其他折扣觸發前，訂單的消費金額將做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                      ),
+                                    },
+                                    {
+                                      key: 'after',
+                                      name: '觸發後',
+                                      innerHtml: BgWidget.grayNote(
+                                        '將訂單的消費金額包含其他折扣後，做為達成消費條件的金額，來判斷是否可使用此優惠券'
+                                      ),
+                                    },
+                                  ],
+                                  [voucherData.includeDiscount],
+                                  text => {
+                                    voucherData.includeDiscount = text[0] as IncludeDiscount;
+                                    gvc.notifyDataChange(pageVM.conditionID);
                                   },
                                   {
-                                    key: 'true',
-                                    name: '可以疊加',
-                                  },
-                                ],
-                                [voucherData.overlay ? 'true' : 'false'],
-                                text => {
-                                  voucherData.overlay = text[0] === 'true';
-                                  gvc.notifyDataChange(id);
-                                },
-                                { single: true }
-                              )}`;
+                                    single: true,
+                                  }
+                                )}`;
+                            }
+
+                            return [overlay(), voucherData.overlay ? isIncludeDiscount() : '']
+                              .filter(Boolean)
+                              .join(BgWidget.horizontalLine());
                           },
                         };
                       })
@@ -1478,12 +1546,13 @@ export class ShoppingDiscountSetting {
                     BgWidget.mainCard(
                       gvc.bindView(() => {
                         const id = glitter.getUUID();
+                        const inputStyle = 'display: block; width: 200px;';
+
                         return {
                           bind: id,
                           view: () => {
-                            const inputStyle = 'display: block; width: 200px;';
-                            return [
-                              html` <div class="tx_700">全館總使用次數</div>
+                            function storeUseTimeLimit() {
+                              return html` <div class="tx_700">全館總使用次數</div>
                                 ${BgWidget.mbContainer(18)}
                                 ${BgWidget.multiCheckboxContainer(
                                   gvc,
@@ -1519,8 +1588,11 @@ export class ShoppingDiscountSetting {
                                     }
                                   },
                                   { single: true }
-                                )}`,
-                              html` <div class="tx_700">個人總使用次數</div>
+                                )}`;
+                            }
+
+                            function memberUseTimeLimit() {
+                              return html` <div class="tx_700">個人總使用次數</div>
                                 ${BgWidget.mbContainer(18)}
                                 ${BgWidget.multiCheckboxContainer(
                                   gvc,
@@ -1556,61 +1628,11 @@ export class ShoppingDiscountSetting {
                                     }
                                   },
                                   { single: true }
-                                )}`,
-                              ...(() => {
-                                if (voucherData.reBackType === 'rebate') {
-                                  return [
-                                    [
-                                      `<div class="tx_700">購物金有效天數</div>`,
-                                      BgWidget.multiCheckboxContainer(
-                                        gvc,
-                                        [
-                                          {
-                                            key: 'noEnd',
-                                            name: '無期限',
-                                          },
-                                          {
-                                            key: 'withEnd',
-                                            name: '有效期限',
-                                            innerHtml: html` <div
-                                              class="d-flex mt-0 mt-md-3 ${document.body.clientWidth < 768
-                                                ? 'flex-column'
-                                                : ''}"
-                                              style="gap: 12px"
-                                            >
-                                              <div class="d-flex align-items-center" style="gap:10px;">
-                                                ${BgWidget.editeInput({
-                                                  gvc: gvc,
-                                                  title: '',
-                                                  type: 'number',
-                                                  style: inputStyle,
-                                                  default: `${voucherData.rebateEndDay ?? ''}`,
-                                                  placeHolder: '0則為無期限',
-                                                  callback: text => {
-                                                    voucherData.rebateEndDay = text;
-                                                    gvc.notifyDataChange(id);
-                                                  },
-                                                })}
-                                                <span class="tx_normal me-2">天</span>
-                                              </div>
-                                            </div>`,
-                                          },
-                                        ],
-                                        [parseInt(voucherData.rebateEndDay ?? '0', 10) ? `withEnd` : `noEnd`],
-                                        text => {
-                                          if (text[0] === 'noEnd') {
-                                            voucherData.rebateEndDay = '0';
-                                          }
-                                        },
-                                        { single: true }
-                                      ),
-                                    ].join('<div class="my-2"></div>'),
-                                  ];
-                                } else {
-                                  return [];
-                                }
-                              })(),
-                              html` <div class="tx_700">優惠券有效日期</div>
+                                )}`;
+                            }
+
+                            function startDateTime() {
+                              return html` <div class="tx_700">優惠券有效日期</div>
                                 <div
                                   class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                                   style="gap: 12px"
@@ -1699,17 +1721,72 @@ export class ShoppingDiscountSetting {
                                     }
                                   },
                                   { single: true }
-                                )}`,
+                                )}`;
+                            }
+
+                            function rebateEndDay() {
+                              return [
+                                html`<div class="tx_700">購物金有效天數</div>`,
+                                BgWidget.multiCheckboxContainer(
+                                  gvc,
+                                  [
+                                    {
+                                      key: 'noEnd',
+                                      name: '無期限',
+                                    },
+                                    {
+                                      key: 'withEnd',
+                                      name: '有效期限',
+                                      innerHtml: html` <div
+                                        class="d-flex mt-0 mt-md-3 ${document.body.clientWidth < 768
+                                          ? 'flex-column'
+                                          : ''}"
+                                        style="gap: 12px"
+                                      >
+                                        <div class="d-flex align-items-center" style="gap:10px;">
+                                          ${BgWidget.editeInput({
+                                            gvc: gvc,
+                                            title: '',
+                                            type: 'number',
+                                            style: inputStyle,
+                                            default: `${voucherData.rebateEndDay ?? ''}`,
+                                            placeHolder: '0則為無期限',
+                                            callback: text => {
+                                              voucherData.rebateEndDay = text;
+                                              gvc.notifyDataChange(id);
+                                            },
+                                          })}
+                                          <span class="tx_normal me-2">天</span>
+                                        </div>
+                                      </div>`,
+                                    },
+                                  ],
+                                  [parseInt(voucherData.rebateEndDay ?? '0', 10) ? `withEnd` : `noEnd`],
+                                  text => {
+                                    if (text[0] === 'noEnd') {
+                                      voucherData.rebateEndDay = '0';
+                                    }
+                                  },
+                                  { single: true }
+                                ),
+                              ].join(html`<div class="my-2"></div>`);
+                            }
+
+                            return [
+                              storeUseTimeLimit(),
+                              memberUseTimeLimit(),
+                              voucherData.reBackType === 'rebate' ? rebateEndDay() : '',
+                              startDateTime(),
                             ]
-                              .filter(dd => {
-                                return dd;
-                              })
+                              .filter(Boolean)
                               .join(BgWidget.horizontalLine());
                           },
                         };
                       })
                     ),
-                  ].join(BgWidget.mbContainer(24)),
+                  ]
+                    .filter(Boolean)
+                    .join(BgWidget.mbContainer(24)),
                   ratio: 68,
                 },
                 {
@@ -1722,31 +1799,19 @@ export class ShoppingDiscountSetting {
                         return { obj: voucherData, key };
                       }),
                       view: () => {
-                        return BgWidget.mainCard(
-                          gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            return {
-                              bind: id,
-                              view: () => {
-                                return html`
-                                  <div class="tx_700">摘要</div>
-                                  ${BgWidget.mbContainer(18)}
-                                  <div style="display: flex; gap: 12px; flex-direction: column;">
-                                    ${gvc.map(
-                                      getVoucherTextList().map(text => {
-                                        return html` <div
-                                          class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}"
-                                        >
-                                          ${text}
-                                        </div>`;
-                                      })
-                                    )}
-                                  </div>
-                                `;
-                              },
-                            };
-                          })
-                        );
+                        return BgWidget.mainCard(html`
+                          <div class="tx_700">摘要</div>
+                          ${BgWidget.mbContainer(18)}
+                          <div style="display: flex; gap: 12px; flex-direction: column;">
+                            ${summaryTextList()
+                              .map(text => {
+                                return html` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">
+                                  ${text}
+                                </div>`;
+                              })
+                              .join('')}
+                          </div>
+                        `);
                       },
                       divCreate: {
                         class: 'summary-card p-0',
@@ -1795,6 +1860,7 @@ export class ShoppingDiscountSetting {
                   gvc.event(() => {
                     voucherData.start_ISO_Date = '';
                     voucherData.end_ISO_Date = '';
+
                     glitter.ut.tryMethod([
                       () => {
                         voucherData.start_ISO_Date = new Date(
@@ -1807,7 +1873,7 @@ export class ShoppingDiscountSetting {
                         ).toISOString();
                       },
                     ]);
-                    const dialog = new ShareDialog(gvc.glitter);
+
                     if (obj.type === 'replace') {
                       dialog.dataLoading({ text: '正在更新優惠券', visible: true });
                       ApiShop.putVoucher({

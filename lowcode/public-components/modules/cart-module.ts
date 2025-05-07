@@ -47,7 +47,7 @@ export class CartModule {
       hasFullLengthCart: false,
     };
 
-    const cart = new ApiCart().cart;
+    const cart = new ApiCart(ApiCart.checkoutCart).cart;
 
     await Promise.all([
       // 取得所有物流方式
@@ -60,6 +60,7 @@ export class CartModule {
           limit: 10000,
           status: 'inRange',
           show_hidden: true,
+          productType: 'all',
           id_list: [...new Set(cart.line_items.map(item => item.id))].join(','),
         }).then(d => {
           resolve(d);
@@ -428,6 +429,12 @@ export class CartModule {
 
       .${classPrefix}-price-text {
         color: #ff5353ff;
+      }
+
+      .${classPrefix}-danger-text {
+        color: #ff5353ff;
+        font-size: 14px;
+        font-weight: 500;
       }
 
       .img-106px {

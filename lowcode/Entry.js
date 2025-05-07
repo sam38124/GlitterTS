@@ -21,6 +21,8 @@ import { ApiUser } from './glitter-base/route/user.js';
 import { ApplicationConfig } from './application-config.js';
 export class Entry {
     static onCreate(glitter) {
+        config.url = location.origin;
+        window.glitterBackend = location.origin;
         const originalReplaceState = history.replaceState;
         let last_replace = '';
         window.history.replaceState = function (data, unused, url) {
@@ -144,7 +146,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_20.8.8';
+            glitter.share.editerVersion = 'V_21.3.2';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {
@@ -545,6 +547,19 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
+        ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!r.result) {
+                    GlobalUser.token = '';
+                }
+                else {
+                    GlobalUser.userInfo = r.response;
+                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
+                }
+            }
+            catch (e) {
+            }
+        }));
         glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
         glitter.addMtScript([
             {

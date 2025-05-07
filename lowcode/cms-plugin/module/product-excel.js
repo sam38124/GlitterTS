@@ -20,13 +20,18 @@ export class ProductExcel {
         this.lineName = lineName;
     }
     checkString(value) {
-        if (CheckInput.isEmpty(value)) {
+        try {
+            if (CheckInput.isEmpty(value)) {
+                return '';
+            }
+            if (typeof value === 'string' || typeof value === 'number') {
+                return `${value}`;
+            }
             return '';
         }
-        if (typeof value === 'string' || typeof value === 'number') {
-            return `${value}`;
+        catch (error) {
+            return '';
         }
-        return '';
     }
     checkNumber(value) {
         return CheckInput.isEmpty(value) || !CheckInput.isNumberString(`${value}`) ? 0 : value;
@@ -219,6 +224,8 @@ export class ProductExcel {
             '安全庫存數量',
             '商品條碼',
             '商品簡述',
+            '商品標籤',
+            '管理員標籤',
         ];
     }
     static exampleKitchen() {
@@ -278,6 +285,9 @@ export class ProductExcel {
                 '100',
                 '10',
                 'CODE1230',
+                '簡述內容',
+                '標籤A,標籤B',
+                '標籤C,標籤D',
             ],
             [
                 '',
@@ -515,93 +525,15 @@ export class ProductExcel {
         });
     }
     static exportCommodity(gvc, getFormData) {
-        const rowInitData = {
-            name: '',
-            status: '',
-            category: '',
-            productType: '',
-            img: '',
-            SEO_domain: '',
-            SEO_title: '',
-            SEO_desc: '',
-            spec1: '',
-            spec1Value: '',
-            spec2: '',
-            spec2Value: '',
-            spec3: '',
-            spec3Value: '',
-            sku: '',
-            cost: '',
-            sale_price: '',
-            compare_price: '',
-            benefit: '',
-            shipment_type: '',
-            length: '',
-            width: '',
-            height: '',
-            weight: '',
-            weightUnit: '',
-            stockPolicy: '',
-            stock: '',
-            save_stock: '',
-            barcode: '',
-            sub_title: '',
-        };
+        const rowInitDataKeys = this.rowDataKeys;
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({ visible: true });
         ApiShop.getProduct(getFormData).then(response => {
-            const expo = new ProductExcel(gvc, ProductExcel.exampleHeader(), Object.keys(rowInitData));
-            let exportData = [];
-            response.response.data.forEach((productData) => {
-                const baseRowData = (index) => {
-                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
-                    return ({
-                        id: index === 0 ? productData.content.id || '' : '',
-                        name: index === 0 ? productData.content.title || '未命名商品' : '',
-                        status: index === 0
-                            ? (() => {
-                                var _a;
-                                switch ((_a = productData.content) === null || _a === void 0 ? void 0 : _a.status) {
-                                    case 'draft':
-                                        return '草稿';
-                                    case 'schedule':
-                                        return '期間限定';
-                                    default:
-                                        return '啟用';
-                                }
-                            })()
-                            : '',
-                        category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
-                        productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
-                        img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) ||
-                            productData.content.preview_image[0]),
-                        SEO_domain: index === 0 ? expo.checkString((_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.domain) : '',
-                        SEO_title: index === 0 ? expo.checkString((_d = (_c = productData.content) === null || _c === void 0 ? void 0 : _c.seo) === null || _d === void 0 ? void 0 : _d.title) : '',
-                        SEO_desc: index === 0 ? expo.checkString((_f = (_e = productData.content) === null || _e === void 0 ? void 0 : _e.seo) === null || _f === void 0 ? void 0 : _f.content) : '',
-                        spec1: index === 0 ? expo.checkString((_h = (_g = productData.content) === null || _g === void 0 ? void 0 : _g.specs[0]) === null || _h === void 0 ? void 0 : _h.title) : '',
-                        spec1Value: expo.checkString((_j = productData.content.variants[index]) === null || _j === void 0 ? void 0 : _j.spec[0]),
-                        spec2: index === 0 ? expo.checkString((_l = (_k = productData.content) === null || _k === void 0 ? void 0 : _k.specs[1]) === null || _l === void 0 ? void 0 : _l.title) : '',
-                        spec2Value: expo.checkString((_m = productData.content.variants[index]) === null || _m === void 0 ? void 0 : _m.spec[1]),
-                        spec3: index === 0 ? expo.checkString((_p = (_o = productData.content) === null || _o === void 0 ? void 0 : _o.specs[2]) === null || _p === void 0 ? void 0 : _p.title) : '',
-                        spec3Value: expo.checkString((_q = productData.content.variants[index]) === null || _q === void 0 ? void 0 : _q.spec[2]),
-                        sku: expo.checkString((_r = productData.content.variants[index]) === null || _r === void 0 ? void 0 : _r.sku),
-                        cost: expo.checkNumber((_s = productData.content.variants[index]) === null || _s === void 0 ? void 0 : _s.cost),
-                        sale_price: expo.checkNumber((_t = productData.content.variants[index]) === null || _t === void 0 ? void 0 : _t.sale_price),
-                        compare_price: expo.checkNumber((_u = productData.content.variants[index]) === null || _u === void 0 ? void 0 : _u.compare_price),
-                        benefit: expo.checkNumber((_v = productData.content.variants[index]) === null || _v === void 0 ? void 0 : _v.profit),
-                        shipment_type: getShipmentType((_w = productData.content.variants[index]) === null || _w === void 0 ? void 0 : _w.shipment_type),
-                        length: expo.checkNumber(((_x = productData.content.variants[index]) === null || _x === void 0 ? void 0 : _x.v_length) || 0),
-                        width: expo.checkNumber(((_y = productData.content.variants[index]) === null || _y === void 0 ? void 0 : _y.v_width) || 0),
-                        height: expo.checkNumber(((_z = productData.content.variants[index]) === null || _z === void 0 ? void 0 : _z.v_height) || 0),
-                        weight: expo.checkNumber(((_0 = productData.content.variants[index]) === null || _0 === void 0 ? void 0 : _0.weight) || 0),
-                        weightUnit: expo.checkString(((_1 = productData.content.variants[index]) === null || _1 === void 0 ? void 0 : _1.weightUnit) || 'KG'),
-                        stockPolicy: ((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.show_understocking) === 'true' ? '追蹤' : '不追蹤',
-                        stock: expo.checkNumber((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.stock),
-                        save_stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.save_stock),
-                        barcode: expo.checkString((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.barcode),
-                        sub_title: expo.checkString(productData.content.language_data[Language.getLanguage()].sub_title),
-                    });
-                };
+            const products = response.response.data;
+            const exporter = new ProductExcel(gvc, ProductExcel.exampleHeader(), rowInitDataKeys);
+            const exportData = products.flatMap((productData) => {
+                const product = productData.content;
+                const lang = Language.getLanguage();
                 const getShipmentType = (type) => {
                     switch (type) {
                         case 'volume':
@@ -612,12 +544,59 @@ export class ProductExcel {
                             return '依重量計算';
                     }
                 };
-                productData.content.variants.forEach((variant, index) => {
-                    const rowData = baseRowData(index);
-                    exportData.push(rowData);
-                });
+                const getProductStatus = (status) => {
+                    switch (status) {
+                        case 'draft':
+                            return '草稿';
+                        case 'schedule':
+                            return '期間限定';
+                        default:
+                            return '啟用';
+                    }
+                };
+                const getBaseRowData = (variant, index) => {
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+                    return {
+                        id: index === 0 ? product.id || '' : '',
+                        name: index === 0 ? product.title || '未命名商品' : '',
+                        status: index === 0 ? getProductStatus(product.status) : '',
+                        category: index === 0 ? exporter.checkString((_a = product.collection) === null || _a === void 0 ? void 0 : _a.filter(Boolean).join(', ')) : '',
+                        productType: index === 0 ? exporter.checkString(this.getProductTypeString(product)) : '',
+                        img: exporter.checkString((variant === null || variant === void 0 ? void 0 : variant.preview_image) || ((_b = product.preview_image) === null || _b === void 0 ? void 0 : _b[0])),
+                        SEO_domain: index === 0 ? exporter.checkString((_c = product.seo) === null || _c === void 0 ? void 0 : _c.domain) : '',
+                        SEO_title: index === 0 ? exporter.checkString((_d = product.seo) === null || _d === void 0 ? void 0 : _d.title) : '',
+                        SEO_desc: index === 0 ? exporter.checkString((_e = product.seo) === null || _e === void 0 ? void 0 : _e.content) : '',
+                        spec1: index === 0 ? exporter.checkString((_g = (_f = product.specs) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.title) : '',
+                        spec1Value: exporter.checkString((_h = variant === null || variant === void 0 ? void 0 : variant.spec) === null || _h === void 0 ? void 0 : _h[0]),
+                        spec2: index === 0 ? exporter.checkString((_k = (_j = product.specs) === null || _j === void 0 ? void 0 : _j[1]) === null || _k === void 0 ? void 0 : _k.title) : '',
+                        spec2Value: exporter.checkString((_l = variant === null || variant === void 0 ? void 0 : variant.spec) === null || _l === void 0 ? void 0 : _l[1]),
+                        spec3: index === 0 ? exporter.checkString((_o = (_m = product.specs) === null || _m === void 0 ? void 0 : _m[2]) === null || _o === void 0 ? void 0 : _o.title) : '',
+                        spec3Value: exporter.checkString((_p = variant === null || variant === void 0 ? void 0 : variant.spec) === null || _p === void 0 ? void 0 : _p[2]),
+                        sku: exporter.checkString(variant === null || variant === void 0 ? void 0 : variant.sku),
+                        cost: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.cost),
+                        sale_price: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.sale_price),
+                        compare_price: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.compare_price),
+                        benefit: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.profit),
+                        shipment_type: getShipmentType(variant === null || variant === void 0 ? void 0 : variant.shipment_type),
+                        length: exporter.checkNumber((variant === null || variant === void 0 ? void 0 : variant.v_length) || 0),
+                        width: exporter.checkNumber((variant === null || variant === void 0 ? void 0 : variant.v_width) || 0),
+                        height: exporter.checkNumber((variant === null || variant === void 0 ? void 0 : variant.v_height) || 0),
+                        weight: exporter.checkNumber((variant === null || variant === void 0 ? void 0 : variant.weight) || 0),
+                        weightUnit: exporter.checkString((variant === null || variant === void 0 ? void 0 : variant.weightUnit) || 'KG'),
+                        stockPolicy: (variant === null || variant === void 0 ? void 0 : variant.show_understocking) === 'true' ? '追蹤' : '不追蹤',
+                        stock: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.stock),
+                        save_stock: exporter.checkNumber(variant === null || variant === void 0 ? void 0 : variant.save_stock),
+                        barcode: exporter.checkString(variant === null || variant === void 0 ? void 0 : variant.barcode),
+                        sub_title: index === 0 ? exporter.checkString(((_r = (_q = product.language_data) === null || _q === void 0 ? void 0 : _q[lang]) === null || _r === void 0 ? void 0 : _r.sub_title) || '') : '',
+                        product_general_tag: index === 0
+                            ? exporter.checkString(((_u = (_t = (_s = product.product_tag) === null || _s === void 0 ? void 0 : _s.language) === null || _t === void 0 ? void 0 : _t[lang]) === null || _u === void 0 ? void 0 : _u.filter(Boolean).join(', ')) || '')
+                            : '',
+                        product_customize_tag: index === 0 ? exporter.checkString(((_v = product.product_customize_tag) === null || _v === void 0 ? void 0 : _v.filter(Boolean).join(', ')) || '') : '',
+                    };
+                };
+                return product.variants.map((variant, index) => getBaseRowData(variant, index));
             });
-            expo.export(exportData, `商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`);
+            exporter.export(exportData, `商品列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}`);
             dialog.dataLoading({ visible: false });
         });
     }
@@ -678,7 +657,7 @@ export class ProductExcel {
                                     }
                                 })()
                                 : '',
-                            category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
+                            category: index === 0 ? expo.checkString(productData.content.collection.filter(Boolean).join(', ')) : '',
                             productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
                             img: expo.checkString(productData.content.preview_image[0]),
                             SEO_domain: index === 0 ? expo.checkString((_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.domain) : '',
@@ -723,7 +702,7 @@ export class ProductExcel {
                                     }
                                 })()
                                 : '',
-                            category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
+                            category: index === 0 ? expo.checkString(productData.content.collection.filter(Boolean).join(', ')) : '',
                             productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
                             img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) ||
                                 productData.content.preview_image[0]),
@@ -827,7 +806,10 @@ export class ProductExcel {
                                     status,
                                     collection,
                                     accurate_search_collection }),
-                                checked: Object.assign(Object.assign({}, baseFormData), { id_list: dataArray.map((item) => item.id).join(',') }),
+                                checked: Object.assign(Object.assign({}, baseFormData), { id_list: dataArray
+                                        .map((item) => item.id)
+                                        .filter(Boolean)
+                                        .join(',') }),
                                 all: baseFormData,
                             };
                             return formDataMap[vm.select] || baseFormData;
@@ -1095,13 +1077,15 @@ export class ProductExcel {
                                             keywords: '',
                                         },
                                         template: '',
+                                        product_tag: {
+                                            language: {},
+                                        },
                                     };
                                     productData.id = id_list[postMD.length];
                                     productData.title = this.checkString(row[0]);
-                                    productData.sub_title = this.checkString(row[29]);
                                     productData.status = row[1] == '啟用' ? 'active' : 'draft';
                                     productData.collection = (_b = row[2].split(',')) !== null && _b !== void 0 ? _b : [];
-                                    productData.collection = productData.collection.map((item) => item.replace(/\s+/g, ''));
+                                    productData.collection = productData.collection.map((item) => item.trim().replace(/\s+/g, ''));
                                     productData.collection.forEach((row) => {
                                         let collection = row.replace(/\s+/g, '');
                                         function splitStringIncrementally(input) {
@@ -1142,6 +1126,7 @@ export class ProductExcel {
                                     productData.seo.domain = this.checkString(row[5]);
                                     productData.seo.title = this.checkString(row[6]);
                                     productData.seo.content = this.checkString(row[7]);
+                                    productData.product_category = product_category;
                                     let indices = [8, 10, 12];
                                     indices.forEach(index => {
                                         if (row[index]) {
@@ -1151,6 +1136,25 @@ export class ProductExcel {
                                             });
                                         }
                                     });
+                                    productData.sub_title = this.checkString(row[29]);
+                                    productData.product_tag.language[Language.getLanguage()] = (() => {
+                                        var _a;
+                                        try {
+                                            return (_a = row[30].split(',').map((item) => item.trim().replace(/\s+/g, ''))) !== null && _a !== void 0 ? _a : [];
+                                        }
+                                        catch (error) {
+                                            return [];
+                                        }
+                                    })();
+                                    productData.product_customize_tag = (() => {
+                                        var _a;
+                                        try {
+                                            return (_a = row[31].split(',').map((item) => item.trim().replace(/\s+/g, ''))) !== null && _a !== void 0 ? _a : [];
+                                        }
+                                        catch (error) {
+                                            return [];
+                                        }
+                                    })();
                                 }
                                 let indices = [9, 11, 13];
                                 indices.forEach((rowindex, key) => {
@@ -1362,34 +1366,70 @@ export class ProductExcel {
         }, vm.id);
     }
 }
-ProductExcel.getInitData = () => ({
-    name: '',
-    status: '',
-    category: '',
-    productType: '',
-    img: '',
-    SEO_domain: '',
-    SEO_title: '',
-    SEO_desc: '',
-    spec1: '',
-    spec1Value: '',
-    spec2: '',
-    spec2Value: '',
-    spec3: '',
-    spec3Value: '',
-    sku: '',
-    cost: '',
-    sale_price: '',
-    compare_price: '',
-    benefit: '',
-    shipment_type: '',
-    length: '',
-    width: '',
-    height: '',
-    weight: '',
-    weightUnit: '',
-    stockPolicy: '',
-    stock: '',
-    save_stock: '',
-    barcode: '',
-});
+ProductExcel.getInitData = () => {
+    return {
+        name: '',
+        status: '',
+        category: '',
+        productType: '',
+        img: '',
+        SEO_domain: '',
+        SEO_title: '',
+        SEO_desc: '',
+        spec1: '',
+        spec1Value: '',
+        spec2: '',
+        spec2Value: '',
+        spec3: '',
+        spec3Value: '',
+        sku: '',
+        cost: '',
+        sale_price: '',
+        compare_price: '',
+        benefit: '',
+        shipment_type: '',
+        length: '',
+        width: '',
+        height: '',
+        weight: '',
+        weightUnit: '',
+        stockPolicy: '',
+        stock: '',
+        save_stock: '',
+        barcode: '',
+    };
+};
+ProductExcel.rowDataKeys = [
+    'name',
+    'status',
+    'category',
+    'productType',
+    'img',
+    'SEO_domain',
+    'SEO_title',
+    'SEO_desc',
+    'spec1',
+    'spec1Value',
+    'spec2',
+    'spec2Value',
+    'spec3',
+    'spec3Value',
+    'sku',
+    'cost',
+    'sale_price',
+    'compare_price',
+    'benefit',
+    'shipment_type',
+    'length',
+    'width',
+    'height',
+    'weight',
+    'weightUnit',
+    'stockPolicy',
+    'stock',
+    'save_stock',
+    'barcode',
+    'sub_title',
+    'product_general_tag',
+    'product_customize_tag',
+];

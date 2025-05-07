@@ -135,7 +135,8 @@ class Shopping {
                 updated_time_desc: `ORDER BY updated_time DESC`,
                 updated_time_asc: `ORDER BY updated_time ASC`,
                 sales_desc: `ORDER BY content->>'$.total_sales' DESC , id DESC`,
-                default: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+                sort_weight: `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
+                default: query.is_manger ? `ORDER BY id DESC` : `ORDER BY content->>'$.sort_weight' DESC , id DESC`,
                 stock_desc: '',
                 stock_asc: '',
             };
@@ -423,6 +424,11 @@ class Shopping {
                 return dd.content;
             })
                 .map((product) => {
+                var _a;
+                product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: 'all' };
+                if (product.content.designated_logistics.group === '' && !product.content.designated_logistics.type) {
+                    product.content.designated_logistics = { list: [], type: 'all' };
+                }
                 product.content.collection = Array.from(new Set((() => {
                     var _a;
                     return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
@@ -857,9 +863,9 @@ class Shopping {
         const tagConfig = (_a = (await new user_js_1.User(this.app).getConfigV2({ key: 'product_general_tags', user_id: 'manager' }))) !== null && _a !== void 0 ? _a : (await this.initProductGeneralTagConifg());
         (_b = tagConfig.list) !== null && _b !== void 0 ? _b : (tagConfig.list = {});
         Language_js_1.Language.locationList.map(lang => {
-            var _a;
+            var _a, _b;
             const originList = (_a = tagConfig.list[lang]) !== null && _a !== void 0 ? _a : [];
-            const updateList = add_tags[lang];
+            const updateList = (_b = add_tags[lang]) !== null && _b !== void 0 ? _b : [];
             tagConfig.list[lang] = [...new Set([...originList, ...updateList])];
         });
         await new user_js_1.User(this.app).setConfig({
@@ -922,7 +928,7 @@ class Shopping {
             return status && startDate < now && now < endDate;
         });
         const validVouchers = await Promise.all(allVoucher.map(async (voucher) => {
-            const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+            const isLimited = await this.checkVoucherLimited(userID, Number(voucher.id));
             return isLimited ? voucher : null;
         }));
         return validVouchers.filter(Boolean);
@@ -1452,11 +1458,11 @@ class Shopping {
             const paymentService = new payment_service_js_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
             try {
                 const paymentResult = await paymentService.processPayment(carData, return_url, carData.customer_info.payment_select);
-                console.log("Controller 收到 Payment Result:", paymentResult);
+                console.log('Controller 收到 Payment Result:', paymentResult);
                 return paymentResult;
             }
             catch (error) {
-                console.error("Controller 捕獲到錯誤:", error);
+                console.error('Controller 捕獲到錯誤:', error);
             }
         }
     }
@@ -1835,25 +1841,25 @@ class Shopping {
                 return (userData === null || userData === void 0 ? void 0 : userData.id) && voucher.targetList.includes(userData.userID);
             }
             if (voucher.target === 'levels') {
-                if (userData === null || userData === void 0 ? void 0 : userData.member) {
-                    const trigger = userData.member.find((m) => m.trigger);
-                    return trigger && voucher.targetList.includes(trigger.id);
+                if (userData.member_level) {
+                    return voucher.targetList.includes(userData.member_level.id);
                 }
                 return false;
             }
             return true;
         }
         function setBindProduct(voucher) {
-            var _a;
+            var _a, _b;
             voucher.bind = [];
-            voucher.productOffStart = (_a = voucher.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
+            (_a = voucher.forKey) !== null && _a !== void 0 ? _a : (voucher.forKey = []);
+            voucher.productOffStart = (_b = voucher.productOffStart) !== null && _b !== void 0 ? _b : 'price_all';
             switch (voucher.trigger) {
                 case 'auto':
-                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+                    voucher.bind = switchValidProduct(voucher.for, voucher.forKey.map(k => k.toString()), voucher.productOffStart);
                     break;
                 case 'code':
                     if (voucher.code === `${cart.code}` || (cart.code_array || []).includes(`${voucher.code}`)) {
-                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey, voucher.productOffStart);
+                        voucher.bind = switchValidProduct(voucher.for, voucher.forKey.map(k => k.toString()), voucher.productOffStart);
                     }
                     break;
                 case 'distribution':
@@ -1893,7 +1899,13 @@ class Shopping {
                     });
                 }
                 if (voucher.reBackType === 'shipment_free') {
-                    return cartValue >= ruleValue;
+                    const isSelectShipment = () => {
+                        if (voucher.selectShipment.type === 'all') {
+                            return true;
+                        }
+                        return voucher.selectShipment.list.includes(cart.user_info.shipment);
+                    };
+                    return cart.shipment_fee > 0 && isSelectShipment() && cartValue >= ruleValue;
                 }
                 if (cartValue >= ruleValue) {
                     if (voucher.counting === 'each') {
@@ -2181,7 +2193,9 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+         SET ?
+         WHERE id = ?;
         `, [updateData, origin.id]);
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
@@ -2209,26 +2223,39 @@ class Shopping {
                 app_name: this.app,
             });
             const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
+            const orderCount = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${orderCountingSQL};
         `, [origin.id]);
             if (orderCount[0]) {
                 await this.shareVoucherRebate(orderCount[0]);
             }
             const invoiceCountingConfig = await new user_js_1.User(this.app).getInvoiceCountingModeSQL();
-            const invoiceCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${invoiceCountingConfig.sql_string};
+            const invoiceCount = await database_js_1.default.query(`SELECT *
+         FROM \`${this.app}\`.t_checkout
+         WHERE id = ?
+           AND ${invoiceCountingConfig.sql_string};
         `, [origin.id]);
             if (invoiceCount[0]) {
                 const cart_token = invoiceCount[0].cart_token;
-                const json = {
-                    tag: 'triggerInvoice',
-                    content: JSON.stringify({ cart_token }),
-                    trigger_time: tool_js_1.default.getCurrentDateTime({
-                        inputDate: new Date().toISOString(),
-                        addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
-                    }),
-                    status: 0,
-                };
-                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;`, [json]);
+                const invoice_trigger_exists = await database_js_1.default.query(`select *
+           from \`${this.app}\`.t_triggers
+           where tag = 'triggerInvoice'
+             and content ->>'$.cart_token'='${cart_token}'`, []);
+                if (invoice_trigger_exists.length == 0) {
+                    const json = {
+                        tag: 'triggerInvoice',
+                        content: JSON.stringify({ cart_token }),
+                        trigger_time: tool_js_1.default.getCurrentDateTime({
+                            inputDate: new Date().toISOString(),
+                            addSeconds: invoiceCountingConfig.invoice_mode.afterDays * 86400,
+                        }),
+                        status: 0,
+                    };
+                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers
+             SET ?;`, [json]);
+                }
             }
             return {
                 result: 'success',
@@ -2809,7 +2836,7 @@ class Shopping {
                     resolve({
                         data: data,
                         total: (await database_js_1.default.query(`SELECT count(1)
-                                    FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                 FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                     });
                 }
             });
@@ -3155,7 +3182,8 @@ class Shopping {
                     insertObj.id = originalVariant.id;
                     sourceMap[originalVariant.id] = originalVariant.id;
                 }
-                const insertData = await database_js_1.default.query(`replace INTO \`${this.app}\`.t_variants
+                const insertData = await database_js_1.default.query(`replace
+          INTO \`${this.app}\`.t_variants
            SET ?
           `, [insertObj]);
                 return insertData;
@@ -3593,7 +3621,7 @@ class Shopping {
         });
     }
     async postProduct(content) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         content.seo = (_a = content.seo) !== null && _a !== void 0 ? _a : {};
         content.seo.domain = content.seo.domain || content.title;
         const language = await app_js_1.App.getSupportLanguage(this.app);
@@ -3631,6 +3659,10 @@ class Shopping {
                 content.id,
             ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            await Promise.all([
+                this.setProductCustomizeTagConifg((_c = content.product_customize_tag) !== null && _c !== void 0 ? _c : []),
+                this.setProductGeneralTagConifg((_e = (_d = content.product_tag) === null || _d === void 0 ? void 0 : _d.language) !== null && _e !== void 0 ? _e : []),
+            ]);
             return data.insertId;
         }
         catch (e) {
@@ -3765,8 +3797,7 @@ class Shopping {
             }));
             async function getNextId(app) {
                 var _a, _b;
-                const query = `SELECT MAX(id) AS max_id
-                       FROM \`${app}\`.t_manager_post`;
+                const query = `SELECT MAX(id) AS max_id FROM \`${app}\`.t_manager_post`;
                 try {
                     const result = await database_js_1.default.query(query, []);
                     const maxId = (_b = (_a = result === null || result === void 0 ? void 0 : result[0]) === null || _a === void 0 ? void 0 : _a.max_id) !== null && _b !== void 0 ? _b : 0;
@@ -3775,6 +3806,36 @@ class Shopping {
                 catch (error) {
                     console.error('取得最大 ID 時發生錯誤:', error);
                     return 1;
+                }
+            }
+            function entriesProductsTag(products) {
+                const tempTags = {
+                    general: {},
+                    customize: [],
+                };
+                try {
+                    products.map((product) => {
+                        if (product.product_tag.language) {
+                            Object.entries(product.product_tag.language).map(tag => {
+                                var _a;
+                                tempTags.general[tag[0]] = ((_a = tempTags.general[tag[0]]) !== null && _a !== void 0 ? _a : []).concat(tag[1]);
+                            });
+                        }
+                        if (Array.isArray(product.product_customize_tag)) {
+                            product.product_customize_tag.map((tag) => {
+                                tempTags.customize = tempTags.customize.concat(tag);
+                            });
+                        }
+                    });
+                    Object.keys(tempTags.general).map(key => {
+                        tempTags.general[key] = [...new Set(tempTags.general[key])];
+                    });
+                    tempTags.customize = [...new Set(tempTags.customize)];
+                    return tempTags;
+                }
+                catch (error) {
+                    console.error(error);
+                    return tempTags;
                 }
             }
             let max_id = await getNextId(this.app);
@@ -3788,6 +3849,11 @@ class Shopping {
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
             if (productArray.length) {
+                const tempTags = entriesProductsTag(productArray);
+                await Promise.all([
+                    this.setProductCustomizeTagConifg(tempTags.customize),
+                    this.setProductGeneralTagConifg(tempTags.general),
+                ]);
                 const data = await database_js_1.default.query(`REPLACE
           INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?
           `, [

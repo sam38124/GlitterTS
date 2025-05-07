@@ -11,12 +11,16 @@ import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
 import { ApiUser } from './glitter-base/route/user.js';
 import { ApplicationConfig } from './application-config.js';
+import { TriggerEvent } from './glitterBundle/plugins/trigger-event.js';
 
 export class Entry {
   // 建立初始函式
   public static onCreate(glitter: Glitter) {
-    const originalReplaceState = history.replaceState
-    let last_replace=''
+    //設定後端路徑API
+    config.url=location.origin;
+    (window as any).glitterBackend=location.origin;
+    const originalReplaceState = history.replaceState;
+    let last_replace='';
     window.history.replaceState = function(data: any, unused: string, url?: string | URL | null) {
       if(last_replace!==url){
         last_replace=`${url}`
@@ -146,7 +150,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_20.8.8';
+      glitter.share.editerVersion = 'V_21.3.2';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {
@@ -592,6 +596,17 @@ export class Entry {
 
   // 跳轉至一般頁面
   public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
+    ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
+      try {
+        if (!r.result) {
+          GlobalUser.token = ''
+        } else {
+          GlobalUser.userInfo = r.response
+          GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+         }
+      } catch (e) {
+       }
+    })
     glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
     glitter.addMtScript(
       [

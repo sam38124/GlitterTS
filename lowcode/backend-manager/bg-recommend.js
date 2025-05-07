@@ -18,6 +18,7 @@ import { Tool } from '../modules/tool.js';
 import { BgProduct } from './bg-product.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { ShoppingOrderManager } from '../cms-plugin/shopping-order-manager.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 export class BgRecommend {
     static linkList(gvc, widget) {
         const html = String.raw;
@@ -284,6 +285,7 @@ export class BgRecommend {
             group: { type: 'level', title: '', tag: '' },
             filter: {},
             orderString: 'default',
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.recommendUserFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -343,23 +345,28 @@ export class BgRecommend {
                                                 gvc,
                                                 callback: (value) => {
                                                     vm.queryType = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(fvm.id);
+                                                    gvc.notifyDataChange([vm.tableId, fvm.id]);
                                                 },
                                                 default: vm.queryType || 'name',
                                                 options: FilterOptions.recommendUserSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event(e => {
                                                 vm.query = `${e.value}`.trim();
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(fvm.id);
+                                                gvc.notifyDataChange([vm.tableId, fvm.id]);
                                             }), vm.query || '', '搜尋推薦人'),
+                                            BgWidget.countingFilter({
+                                                gvc,
+                                                callback: value => {
+                                                    vm.listLimit = value;
+                                                    gvc.notifyDataChange([vm.tableId, fvm.id]);
+                                                },
+                                                default: vm.listLimit,
+                                            }),
                                             BgWidget.updownFilter({
                                                 gvc,
                                                 callback: (value) => {
                                                     vm.orderString = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(fvm.id);
+                                                    gvc.notifyDataChange([vm.tableId, fvm.id]);
                                                 },
                                                 default: vm.orderString || 'default',
                                                 options: FilterOptions.recommendUserOrderBy,
@@ -387,10 +394,9 @@ export class BgRecommend {
                                         gvc: gvc,
                                         getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                             vmi = vd;
-                                            const limit = 15;
                                             ApiRecommend.getUsers({
                                                 data: {},
-                                                limit: limit,
+                                                limit: vm.listLimit,
                                                 page: vmi.page - 1,
                                                 token: window.parent.config.token,
                                                 search: vm.query,
@@ -398,7 +404,7 @@ export class BgRecommend {
                                                 orderBy: vm.orderString,
                                             }).then(data => {
                                                 vm.dataList = data.response.data;
-                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                                 vmi.originalData = vm.dataList;
                                                 vmi.tableData = getDatalist();
                                                 vmi.loading = false;

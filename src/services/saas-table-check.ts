@@ -35,6 +35,7 @@ export const SaasScheme = {
   \`base_url\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`req_type\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`cookies\` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`ip\`),
   KEY \`index3\` (\`app_name\`),
@@ -42,7 +43,7 @@ export const SaasScheme = {
   KEY \`index5\` (\`created_time\`),
   KEY \`index6\` (\`req_type\`),
   KEY \`index7\` (\`app_name\`,\`req_type\`)
-) ENGINE=InnoDB AUTO_INCREMENT=3969739 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
       },
       {
         scheme: saasConfig.SAAS_NAME as string,

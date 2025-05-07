@@ -16,6 +16,7 @@ export class OrderDetail {
     spec: string[];
     count: number;
     sale_price: number;
+    custom_price?:any;
     sku: string;
     product_category?: string;
   }[];

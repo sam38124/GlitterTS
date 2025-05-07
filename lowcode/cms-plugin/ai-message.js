@@ -873,7 +873,7 @@ export class AiMessage {
     }
 }
 AiMessage.config = {
-    color: 'linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%)',
+    color: 'linear-gradient(135deg, #ffb400 0%, #ff6c02 100%)',
     head: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png',
     name: '萊恩設計',
     user_data: {

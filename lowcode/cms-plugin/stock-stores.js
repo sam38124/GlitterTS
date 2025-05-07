@@ -7,6 +7,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiStock } from '../glitter-base/route/stock.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class StockStores {
     static main(gvc, isShop) {
@@ -22,6 +23,7 @@ export class StockStores {
             filter: {},
             orderString: '',
             isShop: isShop,
+            listLimit: TableStorage.getLimit(),
         };
         return gvc.bindView({
             bind: vm.id,
@@ -96,8 +98,7 @@ export class StockStores {
                                 gvc,
                                 callback: (value) => {
                                     vm.queryType = value;
-                                    gvc.notifyDataChange(vm.tableId);
-                                    gvc.notifyDataChange(id);
+                                    gvc.notifyDataChange([vm.tableId, id]);
                                 },
                                 default: vm.queryType || 'name',
                                 options: isShop
@@ -111,9 +112,16 @@ export class StockStores {
                             }),
                             BgWidget.searchFilter(gvc.event(e => {
                                 vm.query = `${e.value}`.trim();
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(id);
+                                gvc.notifyDataChange([vm.tableId, id]);
                             }), vm.query || '', isShop ? '搜尋門市名稱' : '搜尋庫存點名稱'),
+                            BgWidget.countingFilter({
+                                gvc,
+                                callback: value => {
+                                    vm.listLimit = value;
+                                    gvc.notifyDataChange([vm.tableId, id]);
+                                },
+                                default: vm.listLimit,
+                            }),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.storesFunnel);
                         return BgListComponent.listBarRWD(filterList, filterTags);
@@ -127,10 +135,9 @@ export class StockStores {
                         gvc: gvc,
                         getData: vd => {
                             vmi = vd;
-                            const limit = 100;
                             function callback(list) {
                                 vm.dataList = list;
-                                vmi.pageSize = Math.ceil(list.length / limit);
+                                vmi.pageSize = Math.ceil(list.length / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getDatalist();
                                 vmi.loading = false;

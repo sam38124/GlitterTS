@@ -169,10 +169,10 @@ export class PaymentPage {
                       ${(() => {
                             if (orderDetail.lineItems.length > 0) {
                                 return orderDetail.lineItems
-                                    .map((data) => {
+                                    .map((data, index) => {
                                     return html `
                                 <div class="d-flex" style="">
-                                  <div class="col-9 col-sm-6 d-flex align-items-center">
+                                  <div class="col-12 col-sm-6 d-flex align-items-center">
                                     <div
                                       class="d-flex flex-column align-items-center justify-content-center"
                                       style="gap:5px;width:75px;"
@@ -200,6 +200,14 @@ export class PaymentPage {
                                     </div>
                                     <div
                                       class="d-flex flex-column py-2"
+                                      onclick="${gvc.event(() => {
+                                        var _a, _b;
+                                        const def = ((_b = (_a = obj.ogOrderData.lineItems) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.count) || 0;
+                                        PosFunction.setMoney(gvc, def, count => {
+                                            obj.ogOrderData.lineItems[index].count = count;
+                                            refreshOrderView();
+                                        }, '更改商品數量');
+                                    })}"
                                       style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
                                     >
                                       <div class="d-flex justify-content-center flex-column" style="gap:5px;">
@@ -208,7 +216,7 @@ export class PaymentPage {
                                             return ``;
                                         }
                                         else {
-                                            return html `<div>${BgWidget.dangerInsignia('需預購')}</div>`;
+                                            return html ` <div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                         }
                                     })()}
                                         ${data.title}
@@ -236,15 +244,90 @@ export class PaymentPage {
                                           </div>`
                                         : ``}
                                     </div>
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="d-sm-none d-flex align-items-center justify-content-center flex-column"
+                                      style="gap:0px;"
+                                      onclick="${gvc.event(() => {
+                                        var _a, _b;
+                                        const n = ((_b = (_a = obj.ogOrderData.lineItems) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.custom_price) || 0;
+                                        PosFunction.setMoney(gvc, n, money => {
+                                            if (money === data.sale_price) {
+                                                delete obj.ogOrderData.lineItems[index].custom_price;
+                                            }
+                                            else {
+                                                obj.ogOrderData.lineItems[index].custom_price = money;
+                                            }
+                                            refreshOrderView();
+                                        }, '更改商品單價');
+                                    })}"
+                                    >
+                                      ${(() => {
+                                        function formatPrice(price) {
+                                            return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                        }
+                                        if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                            return html `
+                                            <span class="text-decoration-line-through"
+                                              >${formatPrice(data.variant_sale_price * data.count)}</span
+                                            >
+                                            <span class="text-danger"
+                                              >${formatPrice(data.sale_price * data.count)}</span
+                                            >
+                                          `;
+                                        }
+                                        return html ` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                    })()}
+                                    </div>
                                   </div>
                                   <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
                                     $${parseInt(data.sale_price, 10).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                        var _a, _b;
+                                        const def = ((_b = (_a = obj.ogOrderData.lineItems) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.count) || 0;
+                                        PosFunction.setMoney(gvc, def, count => {
+                                            obj.ogOrderData.lineItems[index].count = count;
+                                            refreshOrderView();
+                                        }, '更改商品數量');
+                                    })}"
+                                  >
                                     ${Number(data.count).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
-                                    $${parseInt((data.sale_price * data.count), 10).toLocaleString()}
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center  d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                        var _a, _b;
+                                        const def = ((_b = (_a = obj.ogOrderData.lineItems) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.custom_price) || 0;
+                                        PosFunction.setMoney(gvc, def, money => {
+                                            if (money === data.sale_price) {
+                                                delete obj.ogOrderData.lineItems[index].custom_price;
+                                            }
+                                            else {
+                                                obj.ogOrderData.lineItems[index].custom_price = money;
+                                            }
+                                            refreshOrderView();
+                                        }, '更改商品單價');
+                                    })}"
+                                  >
+                                    ${(() => {
+                                        function formatPrice(price) {
+                                            return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                        }
+                                        if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                            return html `
+                                          <span class="text-decoration-line-through"
+                                            >${formatPrice(data.variant_sale_price * data.count)}</span
+                                          >
+                                          <span class="text-danger">${formatPrice(data.sale_price * data.count)}</span>
+                                        `;
+                                        }
+                                        return html ` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                    })()}
                                   </div>
                                 </div>
                               `;
@@ -1259,7 +1342,7 @@ export class PaymentPage {
                                                                 dialog.errorMessage({ text: '此付款金額已結清，無法進行調整' });
                                                                 return;
                                                             }
-                                                            PosFunction.setMoney(gvc, money => {
+                                                            PosFunction.setMoney(gvc, dd.total, money => {
                                                                 dd.total = money || 0;
                                                                 refreshOrderView();
                                                             });
@@ -1350,7 +1433,9 @@ export class PaymentPage {
                                 class="ms-auto"
                                 value="${obj.ogOrderData.pos_info.payment[0].total}"
                                 onclick="${gvc.event(() => {
-                                            PosFunction.setMoney(gvc, money => {
+                                            var _a, _b;
+                                            const def = (_b = (_a = obj.ogOrderData.pos_info.payment) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.total;
+                                            PosFunction.setMoney(gvc, def, money => {
                                                 obj.ogOrderData.pos_info.payment[0].total = money || 0;
                                                 PaymentPage.storeHistory(obj.ogOrderData);
                                                 gvc.notifyDataChange(vm_id);
@@ -1890,7 +1975,6 @@ export class PaymentPage {
                     else {
                         PaymentPage.clearHistory();
                         const glitter = gvc.glitter;
-                        console.log(`res.response.order-data==>`, res.response.data);
                         const invoice = res.response.data.invoice;
                         if (res.response.data.invoice &&
                             (PayConfig.deviceType === 'pos' || ConnectionMode.on_connected_device) &&
@@ -1926,7 +2010,7 @@ export class PaymentPage {
                                             text: '請撕取客戶聯，在列印留存聯',
                                             callback: () => {
                                                 resolve(true);
-                                            }
+                                            },
                                         });
                                     });
                                     yield IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
@@ -2113,11 +2197,16 @@ export class PaymentPage {
                     >
                       <input
                         class="form-control h-100"
-                        style="border: none;"
+                        style="border: none;background: white;"
                         placeholder="請輸入統一編號"
-                        oninput="${gvc.event((e, event) => {
-                                c_vm.value = e.value;
+                        value="${c_vm.value}"
+                        onclick="${gvc.event(() => {
+                                PosFunction.setMoney(gvc, c_vm.value || '0', (text) => {
+                                    c_vm.value = `${text}`;
+                                    gvc.recreateView();
+                                }, '統一編號');
                             })}"
+                        readonly
                       />
                       <div class="flex-fill"></div>
                       <div

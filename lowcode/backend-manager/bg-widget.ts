@@ -6,10 +6,11 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiStock } from '../glitter-base/route/stock.js';
-import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { FormCheck } from '../cms-plugin/module/form-check.js';
 import { Language, LanguageLocation } from '../glitter-base/global/language.js';
+import { FormModule } from '../cms-plugin/module/form-module.js';
+import { FormCheck } from '../cms-plugin/module/form-check.js';
+import { TableStorage } from '../cms-plugin/module/table-storage.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
@@ -55,6 +56,8 @@ type TableV3Filter = {
   option?: boolean;
   event: (data: any) => void;
 };
+
+type ActiveFilterKeys = '' | 'updownFilter' | 'funnelFilter' | 'countingFilter' | 'columnFilter';
 
 interface StockOptionsItem extends OptionsItem {
   stock: number;
@@ -916,6 +919,7 @@ export class BgWidget {
     startText?: string;
     endText?: string;
     oninput?: (text: string) => void;
+    onclick?: (e: Event) => void;
     global_language?: boolean;
   }) {
     obj.title = obj.title ?? '';
@@ -972,6 +976,9 @@ export class BgWidget {
                   }
                   obj.default = e.value;
                   obj.oninput && obj.oninput(e.value);
+                })}"
+                onclick="${obj.gvc.event((e)=>{
+                  obj.onclick && obj.onclick(e)
                 })}"
                 value="${(obj.default ?? '').replace(/"/g, '&quot;')}"
                 ${obj.readonly ? `readonly` : ``}
@@ -3522,77 +3529,146 @@ ${obj.default ?? ''}</textarea
     </div>`;
   }
 
-  static columnFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+  static activeFilter = '';
+
+  static setActiveFilter = (gvc: GVC, key: ActiveFilterKeys) => {
+    const keyList: ActiveFilterKeys[] = ['updownFilter', 'funnelFilter', 'countingFilter'];
+    this.activeFilter = key;
+    gvc.notifyDataChange(keyList);
+  };
+
+  static columnFilter(obj: { gvc: GVC; callback: () => void }) {
+    const id = 'columnFilter';
     return html` <div
-      class="c_funnel"
+      class="c_filter_view"
       onclick="${obj.gvc.event(() => {
-        obj.callback('c_funnel');
+        obj.callback();
+        this.setActiveFilter(obj.gvc, this.activeFilter === id ? '' : id);
       })}"
     >
       <i class="fa-regular fa-columns-3"></i>
     </div>`;
   }
 
-  static funnelFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+  static funnelFilter(obj: { gvc: GVC; callback: () => void }) {
+    const id = 'funnelFilter';
     return html` <div
-      class="c_funnel"
+      class="c_filter_view"
       onclick="${obj.gvc.event(() => {
-        obj.callback('c_funnel');
+        obj.callback();
+        this.setActiveFilter(obj.gvc, this.activeFilter === id ? '' : id);
       })}"
     >
       <i class="fa-regular fa-filter"></i>
     </div>`;
   }
 
-  static updownFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[] }) {
+  static countingFilter(obj: { gvc: GVC; callback: (value: number) => void; default: number }) {
     const vm = {
-      id: obj.gvc.glitter.getUUID(),
+      id: 'countingFilter' as ActiveFilterKeys,
       checkClass: this.getDarkDotClass(obj.gvc),
       show: false,
     };
 
-    return html`<div class="d-flex">
-      <div
-        class="c_updown"
-        onclick="${obj.gvc.event(() => {
-          vm.show = !vm.show;
-          obj.gvc.notifyDataChange(vm.id);
-        })}"
-      >
+    const countingList = TableStorage.limitList.map(n => {
+      return { key: n, value: `顯示 ${n} 個` };
+    });
+
+    return html`<div
+      class="d-flex"
+      onclick="${obj.gvc.event(() => {
+        setTimeout(() => {
+          this.setActiveFilter(obj.gvc, this.activeFilter === vm.id ? '' : vm.id);
+        }, 50);
+      })}"
+    >
+      <div class="c_filter_view">
+        <i class="fa-solid fa-list-ol"></i>
+      </div>
+      ${obj.gvc.bindView({
+        bind: vm.id,
+        view: () => {
+          if (!(this.activeFilter === vm.id)) {
+            return '';
+          }
+          return html` <div class="c_absolute" style="top: 20px; right: 20px;">
+            <div class="form-check d-flex flex-column" style="gap: 16px">
+              ${obj.gvc.map(
+                countingList.map(opt => {
+                  return html` <div>
+                    <input
+                      class="form-check-input ${vm.checkClass}"
+                      type="radio"
+                      id="${opt.key}"
+                      name="radio_${vm.id}"
+                      onclick="${obj.gvc.event(() => {
+                        TableStorage.setLimit(opt.key);
+                        obj.callback(opt.key);
+                        this.setActiveFilter(obj.gvc, '');
+                      })}"
+                      ${obj.default === opt.key ? 'checked' : ''}
+                    />
+                    <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
+                  </div>`;
+                })
+              )}
+            </div>
+          </div>`;
+        },
+        divCreate: {
+          style: 'position: relative;',
+        },
+      })}
+    </div>`;
+  }
+
+  static updownFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[] }) {
+    const vm = {
+      id: 'updownFilter' as ActiveFilterKeys,
+      checkClass: this.getDarkDotClass(obj.gvc),
+      show: false,
+    };
+
+    return html`<div
+      class="d-flex"
+      onclick="${obj.gvc.event(() => {
+        setTimeout(() => {
+          this.setActiveFilter(obj.gvc, this.activeFilter === vm.id ? '' : vm.id);
+        }, 50);
+      })}"
+    >
+      <div class="c_filter_view">
         <i class="fa-regular fa-arrow-up-arrow-down"></i>
       </div>
       ${obj.gvc.bindView({
         bind: vm.id,
         view: () => {
-          if (vm.show) {
-            if (obj.options.length === 0) {
-              return '';
-            }
-            return html` <div class="c_absolute" style="top: 20px; right: 20px;">
-              <div class="form-check d-flex flex-column" style="gap: 16px">
-                ${obj.gvc.map(
-                  obj.options.map(opt => {
-                    return html` <div>
-                      <input
-                        class="form-check-input ${vm.checkClass}"
-                        type="radio"
-                        id="${opt.key}"
-                        name="radio_${vm.id}"
-                        onclick="${obj.gvc.event(e => {
-                          vm.show = !vm.show;
-                          obj.callback(e.id);
-                          obj.gvc.notifyDataChange(vm.id);
-                        })}"
-                        ${obj.default === opt.key ? 'checked' : ''}
-                      />
-                      <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
-                    </div>`;
-                  })
-                )}
-              </div>
-            </div>`;
+          if (!(this.activeFilter === vm.id) || obj.options.length === 0) {
+            return '';
           }
-          return '';
+
+          return html` <div class="c_absolute" style="top: 20px; right: 20px;">
+            <div class="form-check d-flex flex-column" style="gap: 16px">
+              ${obj.gvc.map(
+                obj.options.map(opt => {
+                  return html` <div>
+                    <input
+                      class="form-check-input ${vm.checkClass}"
+                      type="radio"
+                      id="${opt.key}"
+                      name="radio_${vm.id}"
+                      onclick="${obj.gvc.event(e => {
+                        obj.callback(e.id);
+                        this.setActiveFilter(obj.gvc, '');
+                      })}"
+                      ${obj.default === opt.key ? 'checked' : ''}
+                    />
+                    <label class="form-check-label c_updown_label" for="${opt.key}">${opt.value}</label>
+                  </div>`;
+                })
+              )}
+            </div>
+          </div>`;
         },
         divCreate: {
           style: 'position: relative;',

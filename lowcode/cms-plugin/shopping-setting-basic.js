@@ -210,7 +210,7 @@ export class ShoppingSettingBasic {
             html: [
                 BgWidget.mainCard(html `
             <div class="d-flex flex-column guide5-4">
-              <div style="font-weight: 700;" class="">
+              <div style="font-weight: 700;">
                 ${cat_title}名稱 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
               </div>
               ${BgWidget.editeInput({
@@ -360,426 +360,432 @@ export class ShoppingSettingBasic {
                         };
                     }),
                 ].join(BgWidget.mbContainer(12))),
-                BgWidget.mainCard([
-                    obj.gvc.bindView(() => {
-                        const vm_this = vm;
-                        return (() => {
-                            var _a, _b;
-                            const vm = {
-                                id: obj.gvc.glitter.getUUID(),
-                                type: 'product-detail',
-                                loading: true,
-                                documents: [],
-                            };
-                            language_data.content_array = (_a = language_data.content_array) !== null && _a !== void 0 ? _a : [];
-                            language_data.content_json = (_b = language_data.content_json) !== null && _b !== void 0 ? _b : [];
-                            if (!vm_this.content_detail) {
-                                ApiUser.getPublicConfig('text-manager', 'manager').then((data) => {
-                                    vm.documents = data.response.value;
-                                    if (!Array.isArray(vm.documents)) {
-                                        vm.documents = [];
-                                    }
-                                    vm_this.content_detail = vm.documents;
-                                    vm.loading = false;
-                                    gvc.notifyDataChange(vm.id);
-                                });
-                            }
-                            else {
-                                vm.documents = vm_this.content_detail;
-                                vm.loading = false;
-                            }
-                            return {
-                                bind: vm.id,
-                                view: () => __awaiter(this, void 0, void 0, function* () {
-                                    if (vm.loading) {
-                                        return BgWidget.spinner();
-                                    }
-                                    language_data.content_array = language_data.content_array.filter((id) => {
-                                        return vm.documents.some((item) => item.id === id);
-                                    });
-                                    language_data.content_json = language_data.content_json.filter((d) => {
-                                        return vm.documents.some((item) => item.id === d.id);
-                                    });
-                                    function formatRichtext(text, tags, jsonData) {
-                                        var _a, _b, _c;
-                                        let gText = `${text}`;
-                                        if (tags && tags.length > 0) {
-                                            for (const item of tags) {
-                                                const data = jsonData.find(j => j.key === item.key);
-                                                const textImage = data && data.value
-                                                    ? html `<span
-                                    style="font-size: ${(_a = item.font_size) !== null && _a !== void 0 ? _a : '14'}px; color: ${(_b = item.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = item.font_bgr) !== null && _c !== void 0 ? _c : '#fff'}"
-                                    >${data.value}</span
-                                  >`
-                                                    : html `#${item.title}#`;
-                                                const regex = new RegExp(`@{{${item.key}}}`, 'g');
-                                                gText = gText.replace(regex, textImage);
-                                            }
+                obj.postMD.productType.giveaway
+                    ? ''
+                    : BgWidget.mainCard([
+                        obj.gvc.bindView(() => {
+                            const vm_this = vm;
+                            return (() => {
+                                var _a, _b;
+                                const vm = {
+                                    id: obj.gvc.glitter.getUUID(),
+                                    type: 'product-detail',
+                                    loading: true,
+                                    documents: [],
+                                };
+                                language_data.content_array = (_a = language_data.content_array) !== null && _a !== void 0 ? _a : [];
+                                language_data.content_json = (_b = language_data.content_json) !== null && _b !== void 0 ? _b : [];
+                                if (!vm_this.content_detail) {
+                                    ApiUser.getPublicConfig('text-manager', 'manager').then((data) => {
+                                        vm.documents = data.response.value;
+                                        if (!Array.isArray(vm.documents)) {
+                                            vm.documents = [];
                                         }
-                                        return gText;
-                                    }
-                                    return html ` <div class="d-flex align-items-center justify-content-end mb-3">
-                          <div class="d-flex align-items-center gap-2">
-                            <div style="color: #393939; font-weight: 700;">
-                              ${cat_title}詳細描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
-                            </div>
-                          </div>
-                          <div class="flex-fill"></div>
-                          <div
-                            class="cursor_pointer"
-                            onclick="${gvc.event(() => {
-                                        BgWidget.dialog({
-                                            gvc: gvc,
-                                            title: '設定',
-                                            xmark: () => {
-                                                return new Promise(resolve => {
-                                                    gvc.notifyDataChange(vm.id);
-                                                    resolve(true);
-                                                });
-                                            },
-                                            innerHTML: gvc => {
-                                                const id = gvc.glitter.getUUID();
-                                                return gvc.bindView(() => {
-                                                    return {
-                                                        bind: id,
-                                                        view: () => {
-                                                            return vm.documents
-                                                                .map((dd) => {
-                                                                return html ` <li class="w-100 px-2">
-                                              <div class="w-100 d-flex justify-content-between">
-                                                <div class="d-flex justify-content-start align-items-center gap-3">
-                                                  <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
-                                                  <div class="tx_normal">${dd.title}</div>
-                                                </div>
-                                                ${gvc.bindView((() => {
-                                                                    const iconId = gvc.glitter.getUUID();
-                                                                    return {
-                                                                        bind: iconId,
-                                                                        view: () => {
-                                                                            return html ` <i
-                                                          class="${language_data.content_array.includes(dd.id)
-                                                                                ? 'fa-solid fa-eye'
-                                                                                : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
-                                                          onclick="${gvc.event(() => {
-                                                                                if (language_data.content_array.includes(dd.id)) {
-                                                                                    language_data.content_array =
-                                                                                        language_data.content_array.filter((d) => d !== dd.id);
-                                                                                }
-                                                                                else {
-                                                                                    language_data.content_array.push(dd.id);
-                                                                                }
-                                                                                gvc.notifyDataChange(iconId);
-                                                                            })}"
-                                                        ></i>`;
+                                        vm_this.content_detail = vm.documents;
+                                        vm.loading = false;
+                                        gvc.notifyDataChange(vm.id);
+                                    });
+                                }
+                                else {
+                                    vm.documents = vm_this.content_detail;
+                                    vm.loading = false;
+                                }
+                                return {
+                                    bind: vm.id,
+                                    view: () => __awaiter(this, void 0, void 0, function* () {
+                                        if (vm.loading) {
+                                            return BgWidget.spinner();
+                                        }
+                                        language_data.content_array = language_data.content_array.filter((id) => {
+                                            return vm.documents.some((item) => item.id === id);
+                                        });
+                                        language_data.content_json = language_data.content_json.filter((d) => {
+                                            return vm.documents.some((item) => item.id === d.id);
+                                        });
+                                        function formatRichtext(text, tags, jsonData) {
+                                            var _a, _b, _c;
+                                            let gText = `${text}`;
+                                            if (tags && tags.length > 0) {
+                                                for (const item of tags) {
+                                                    const data = jsonData.find(j => j.key === item.key);
+                                                    const textImage = data && data.value
+                                                        ? html `<span
+                                        style="font-size: ${(_a = item.font_size) !== null && _a !== void 0 ? _a : '14'}px; color: ${(_b = item.font_color) !== null && _b !== void 0 ? _b : '#393939'}; background: ${(_c = item.font_bgr) !== null && _c !== void 0 ? _c : '#fff'}"
+                                        >${data.value}</span
+                                      >`
+                                                        : html `#${item.title}#`;
+                                                    const regex = new RegExp(`@{{${item.key}}}`, 'g');
+                                                    gText = gText.replace(regex, textImage);
+                                                }
+                                            }
+                                            return gText;
+                                        }
+                                        return html ` <div class="d-flex align-items-center justify-content-end mb-3">
+                              <div class="d-flex align-items-center gap-2">
+                                <div style="color: #393939; font-weight: 700;">
+                                  ${cat_title}詳細描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
+                                </div>
+                              </div>
+                              <div class="flex-fill"></div>
+                              <div
+                                class="cursor_pointer"
+                                onclick="${gvc.event(() => {
+                                            BgWidget.dialog({
+                                                gvc: gvc,
+                                                title: '設定',
+                                                xmark: () => {
+                                                    return new Promise(resolve => {
+                                                        gvc.notifyDataChange(vm.id);
+                                                        resolve(true);
+                                                    });
+                                                },
+                                                innerHTML: gvc => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return gvc.bindView(() => {
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return vm.documents
+                                                                    .map((dd) => {
+                                                                    return html ` <li class="w-100 px-2">
+                                                  <div class="w-100 d-flex justify-content-between">
+                                                    <div class="d-flex justify-content-start align-items-center gap-3">
+                                                      <i
+                                                        class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"
+                                                      ></i>
+                                                      <div class="tx_normal">${dd.title}</div>
+                                                    </div>
+                                                    ${gvc.bindView((() => {
+                                                                        const iconId = gvc.glitter.getUUID();
+                                                                        return {
+                                                                            bind: iconId,
+                                                                            view: () => {
+                                                                                return html ` <i
+                                                              class="${language_data.content_array.includes(dd.id)
+                                                                                    ? 'fa-solid fa-eye'
+                                                                                    : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
+                                                              onclick="${gvc.event(() => {
+                                                                                    if (language_data.content_array.includes(dd.id)) {
+                                                                                        language_data.content_array =
+                                                                                            language_data.content_array.filter((d) => d !== dd.id);
+                                                                                    }
+                                                                                    else {
+                                                                                        language_data.content_array.push(dd.id);
+                                                                                    }
+                                                                                    gvc.notifyDataChange(iconId);
+                                                                                })}"
+                                                            ></i>`;
+                                                                            },
+                                                                            divCreate: {
+                                                                                class: 'd-flex',
+                                                                            },
+                                                                        };
+                                                                    })())}
+                                                  </div>
+                                                </li>`;
+                                                                })
+                                                                    .join('');
+                                                            },
+                                                            divCreate: {
+                                                                elem: 'ul',
+                                                                class: 'w-100 my-2 d-flex flex-column gap-4',
+                                                            },
+                                                            onCreate: () => {
+                                                                if (!vm.loading) {
+                                                                    gvc.glitter.addMtScript([
+                                                                        {
+                                                                            src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                                                         },
-                                                                        divCreate: {
-                                                                            class: 'd-flex',
-                                                                        },
-                                                                    };
-                                                                })())}
-                                              </div>
-                                            </li>`;
-                                                            })
-                                                                .join('');
-                                                        },
-                                                        divCreate: {
-                                                            elem: 'ul',
-                                                            class: 'w-100 my-2 d-flex flex-column gap-4',
-                                                        },
-                                                        onCreate: () => {
-                                                            if (!vm.loading) {
-                                                                gvc.glitter.addMtScript([
-                                                                    {
-                                                                        src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-                                                                    },
-                                                                ], () => { }, () => { });
-                                                                const interval = setInterval(() => {
-                                                                    if (window.Sortable) {
-                                                                        try {
-                                                                            gvc.addStyle(`
+                                                                    ], () => { }, () => { });
+                                                                    const interval = setInterval(() => {
+                                                                        if (window.Sortable) {
+                                                                            try {
+                                                                                gvc.addStyle(`
                                                   ul {
                                                     list-style: none;
                                                     padding: 0;
                                                   }
                                                 `);
-                                                                            function swapArr(arr, t1, t2) {
-                                                                                const data = arr[t1];
-                                                                                arr.splice(t1, 1);
-                                                                                arr.splice(t2, 0, data);
+                                                                                function swapArr(arr, t1, t2) {
+                                                                                    const data = arr[t1];
+                                                                                    arr.splice(t1, 1);
+                                                                                    arr.splice(t2, 0, data);
+                                                                                }
+                                                                                let startIndex = 0;
+                                                                                Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                                                    group: id,
+                                                                                    animation: 100,
+                                                                                    handle: '.dragItem',
+                                                                                    onEnd: (evt) => {
+                                                                                        swapArr(vm.documents, startIndex, evt.newIndex);
+                                                                                        ApiUser.setPublicConfig({
+                                                                                            key: 'text-manager',
+                                                                                            user_id: 'manager',
+                                                                                            value: vm.documents,
+                                                                                        }).then(result => {
+                                                                                            if (!result.response.result) {
+                                                                                                dialog.errorMessage({ text: '設定失敗' });
+                                                                                            }
+                                                                                        });
+                                                                                    },
+                                                                                    onStart: (evt) => {
+                                                                                        startIndex = evt.oldIndex;
+                                                                                    },
+                                                                                });
                                                                             }
-                                                                            let startIndex = 0;
-                                                                            Sortable.create(gvc.getBindViewElem(id).get(0), {
-                                                                                group: id,
-                                                                                animation: 100,
-                                                                                handle: '.dragItem',
-                                                                                onEnd: (evt) => {
-                                                                                    swapArr(vm.documents, startIndex, evt.newIndex);
-                                                                                    ApiUser.setPublicConfig({
-                                                                                        key: 'text-manager',
-                                                                                        user_id: 'manager',
-                                                                                        value: vm.documents,
-                                                                                    }).then(result => {
-                                                                                        if (!result.response.result) {
-                                                                                            dialog.errorMessage({ text: '設定失敗' });
-                                                                                        }
-                                                                                    });
-                                                                                },
-                                                                                onStart: (evt) => {
-                                                                                    startIndex = evt.oldIndex;
-                                                                                },
-                                                                            });
+                                                                            catch (e) { }
+                                                                            clearInterval(interval);
                                                                         }
-                                                                        catch (e) { }
-                                                                        clearInterval(interval);
-                                                                    }
-                                                                }, 100);
-                                                            }
-                                                        },
-                                                    };
-                                                });
-                                            },
-                                        });
-                                    })}"
-                          >
-                            設定<i class="fa-regular fa-gear ms-1"></i>
-                          </div>
-                        </div>
-                        <div class="my-3">
-                          ${gvc.bindView((() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return html ` <div
-                                    class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                    style="cursor: pointer;"
-                                    onclick="${gvc.event(() => {
-                                                    const originContent = `${language_data.content}`;
-                                                    BgWidget.fullDialog({
-                                                        gvc: gvc,
-                                                        title: gvc2 => {
-                                                            return html `<div class="d-flex align-items-center" style="gap:10px;">
-                                            ${`${cat_title}描述` +
-                                                                BgWidget.aiChatButton({
+                                                                    }, 100);
+                                                                }
+                                                            },
+                                                        };
+                                                    });
+                                                },
+                                            });
+                                        })}"
+                              >
+                                設定<i class="fa-regular fa-gear ms-1"></i>
+                              </div>
+                            </div>
+                            <div class="my-3">
+                              ${gvc.bindView((() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html ` <div
+                                        class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                        style="cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                                        const originContent = `${language_data.content}`;
+                                                        BgWidget.fullDialog({
+                                                            gvc: gvc,
+                                                            title: gvc2 => {
+                                                                return html `<div class="d-flex align-items-center" style="gap:10px;">
+                                                ${`${cat_title}描述` +
+                                                                    BgWidget.aiChatButton({
+                                                                        gvc: gvc2,
+                                                                        select: 'writer',
+                                                                        click: () => {
+                                                                            ProductAi.generateRichText(gvc, text => {
+                                                                                language_data.content += text;
+                                                                                gvc.notifyDataChange(vm.id);
+                                                                                gvc2.recreateView();
+                                                                            });
+                                                                        },
+                                                                    })}
+                                              </div>`;
+                                                            },
+                                                            innerHTML: gvc2 => {
+                                                                return html ` <div>
+                                                ${EditorElem.richText({
                                                                     gvc: gvc2,
-                                                                    select: 'writer',
-                                                                    click: () => {
-                                                                        ProductAi.generateRichText(gvc, text => {
-                                                                            language_data.content += text;
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                            gvc2.recreateView();
+                                                                    def: language_data.content,
+                                                                    setHeight: '100vh',
+                                                                    hiddenBorder: true,
+                                                                    insertImageEvent: editor => {
+                                                                        const mark = `{{${Tool.randomString(8)}}}`;
+                                                                        editor.selection.setAtEnd(editor.$el.get(0));
+                                                                        editor.html.insert(mark);
+                                                                        editor.undo.saveStep();
+                                                                        imageLibrary.selectImageLibrary(gvc, urlArray => {
+                                                                            if (urlArray.length > 0) {
+                                                                                const imgHTML = urlArray
+                                                                                    .map(url => {
+                                                                                    return html ` <img src="${url.data}" />`;
+                                                                                })
+                                                                                    .join('');
+                                                                                editor.html.set(editor.html
+                                                                                    .get(0)
+                                                                                    .replace(mark, html ` <div class="d-flex flex-column">${imgHTML}</div>`));
+                                                                                editor.undo.saveStep();
+                                                                            }
+                                                                            else {
+                                                                                dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                            }
+                                                                        }, html ` <div
+                                                        class="d-flex flex-column"
+                                                        style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                      >
+                                                        圖片庫
+                                                      </div>`, {
+                                                                            mul: true,
+                                                                            cancelEvent: () => {
+                                                                                editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                editor.undo.saveStep();
+                                                                            },
                                                                         });
                                                                     },
+                                                                    callback: text => {
+                                                                        language_data.content = text;
+                                                                    },
+                                                                    rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
                                                                 })}
-                                          </div>`;
-                                                        },
-                                                        innerHTML: gvc2 => {
-                                                            return html ` <div>
-                                            ${EditorElem.richText({
-                                                                gvc: gvc2,
-                                                                def: language_data.content,
-                                                                setHeight: '100vh',
-                                                                hiddenBorder: true,
-                                                                insertImageEvent: editor => {
-                                                                    const mark = `{{${Tool.randomString(8)}}}`;
-                                                                    editor.selection.setAtEnd(editor.$el.get(0));
-                                                                    editor.html.insert(mark);
-                                                                    editor.undo.saveStep();
-                                                                    imageLibrary.selectImageLibrary(gvc, urlArray => {
-                                                                        if (urlArray.length > 0) {
-                                                                            const imgHTML = urlArray
-                                                                                .map(url => {
-                                                                                return html ` <img src="${url.data}" />`;
-                                                                            })
-                                                                                .join('');
-                                                                            editor.html.set(editor.html
-                                                                                .get(0)
-                                                                                .replace(mark, html ` <div class="d-flex flex-column">${imgHTML}</div>`));
-                                                                            editor.undo.saveStep();
-                                                                        }
-                                                                        else {
-                                                                            dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                                                        }
-                                                                    }, html ` <div
-                                                    class="d-flex flex-column"
-                                                    style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                  >
-                                                    圖片庫
-                                                  </div>`, {
-                                                                        mul: true,
-                                                                        cancelEvent: () => {
-                                                                            editor.html.set(editor.html.get(0).replace(mark, ''));
-                                                                            editor.undo.saveStep();
-                                                                        },
-                                                                    });
-                                                                },
-                                                                callback: text => {
-                                                                    language_data.content = text;
-                                                                },
-                                                                rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
-                                                            })}
-                                          </div>`;
-                                                        },
-                                                        footer_html: (gvc2) => {
-                                                            return [
-                                                                BgWidget.cancel(gvc2.event(() => {
-                                                                    language_data.content = originContent;
-                                                                    gvc2.closeDialog();
-                                                                })),
-                                                                BgWidget.save(gvc2.event(() => {
-                                                                    gvc2.closeDialog();
-                                                                    gvc.notifyDataChange(id);
-                                                                })),
-                                                            ].join('');
-                                                        },
-                                                        closeCallback: () => {
-                                                            language_data.content = originContent;
-                                                        },
-                                                    });
-                                                })}"
-                                  >
-                                    ${(() => {
-                                                    const text = gvc.glitter.utText.removeTag(language_data.content);
-                                                    return BgWidget.richTextView(Tool.truncateString(text, 100));
-                                                })()}
-                                  </div>`;
-                                            },
-                                        };
-                                    })())}
-                        </div>
-                        ${(vm.documents || [])
-                                        .filter((item) => {
-                                        return language_data.content_array.includes(item.id);
-                                    })
-                                        .map((item, index) => {
-                                        return BgWidget.openBoxContainer({
-                                            gvc,
-                                            tag: 'content_array',
-                                            title: item.title,
-                                            insideHTML: (() => {
-                                                if (item.data.tags && item.data.tags.length > 0) {
-                                                    const id = obj.gvc.glitter.getUUID();
-                                                    return html ` <div
-                                      class="cursor_pointer text-end me-1 mb-2"
-                                      onclick="${gvc.event(() => {
-                                                        const originJson = JSON.parse(JSON.stringify(language_data.content_json));
-                                                        BgWidget.settingDialog({
-                                                            gvc: gvc,
-                                                            title: '設定',
-                                                            innerHTML: gvc => {
-                                                                return html ` <div>
-                                              ${item.data.tags
-                                                                    .map((tag) => {
-                                                                    return html ` <div>
-                                                    ${BgWidget.editeInput({
-                                                                        gvc,
-                                                                        title: tag.title,
-                                                                        default: (() => {
-                                                                            const docIndex = language_data.content_json.findIndex((c) => c.id === item.id);
-                                                                            if (docIndex === -1) {
-                                                                                return '';
-                                                                            }
-                                                                            if (language_data.content_json[docIndex].list === undefined) {
-                                                                                return '';
-                                                                            }
-                                                                            const keyIndex = language_data.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
-                                                                            if (keyIndex === -1) {
-                                                                                return '';
-                                                                            }
-                                                                            return language_data.content_json[docIndex].list[keyIndex]
-                                                                                .value;
-                                                                        })(),
-                                                                        callback: text => {
-                                                                            const docIndex = language_data.content_json.findIndex((c) => c.id === item.id);
-                                                                            if (docIndex === -1) {
-                                                                                language_data.content_json.push({
-                                                                                    id: item.id,
-                                                                                    list: [
-                                                                                        {
-                                                                                            key: tag.key,
-                                                                                            value: text,
-                                                                                        },
-                                                                                    ],
-                                                                                });
-                                                                                return;
-                                                                            }
-                                                                            if (language_data.content_json[docIndex].list === undefined) {
-                                                                                language_data.content_json[docIndex].list = [
-                                                                                    {
-                                                                                        key: tag.key,
-                                                                                        value: text,
-                                                                                    },
-                                                                                ];
-                                                                                return;
-                                                                            }
-                                                                            const keyIndex = language_data.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
-                                                                            if (keyIndex === -1) {
-                                                                                language_data.content_json[docIndex].list.push({
-                                                                                    key: tag.key,
-                                                                                    value: text,
-                                                                                });
-                                                                                return;
-                                                                            }
-                                                                            language_data.content_json[docIndex].list[keyIndex].value =
-                                                                                text;
-                                                                        },
-                                                                        placeHolder: '輸入文本標籤',
-                                                                    })}
-                                                  </div>`;
-                                                                })
-                                                                    .join(BgWidget.mbContainer(12))}
-                                            </div>`;
+                                              </div>`;
                                                             },
                                                             footer_html: (gvc2) => {
                                                                 return [
                                                                     BgWidget.cancel(gvc2.event(() => {
-                                                                        language_data.content_json = originJson;
+                                                                        language_data.content = originContent;
                                                                         gvc2.closeDialog();
                                                                     })),
                                                                     BgWidget.save(gvc2.event(() => {
                                                                         gvc2.closeDialog();
-                                                                        gvc.notifyDataChange(`${id}-${index}`);
+                                                                        gvc.notifyDataChange(id);
                                                                     })),
                                                                 ].join('');
                                                             },
                                                             closeCallback: () => {
-                                                                language_data.content_json = originJson;
+                                                                language_data.content = originContent;
                                                             },
                                                         });
                                                     })}"
+                                      >
+                                        ${(() => {
+                                                        const text = gvc.glitter.utText.removeTag(language_data.content);
+                                                        return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                    })()}
+                                      </div>`;
+                                                },
+                                            };
+                                        })())}
+                            </div>
+                            ${(vm.documents || [])
+                                            .filter((item) => {
+                                            return language_data.content_array.includes(item.id);
+                                        })
+                                            .map((item, index) => {
+                                            return BgWidget.openBoxContainer({
+                                                gvc,
+                                                tag: 'content_array',
+                                                title: item.title,
+                                                insideHTML: (() => {
+                                                    if (item.data.tags && item.data.tags.length > 0) {
+                                                        const id = obj.gvc.glitter.getUUID();
+                                                        return html ` <div
+                                          class="cursor_pointer text-end me-1 mb-2"
+                                          onclick="${gvc.event(() => {
+                                                            const originJson = JSON.parse(JSON.stringify(language_data.content_json));
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc,
+                                                                title: '設定',
+                                                                innerHTML: gvc => {
+                                                                    return html ` <div>
+                                                  ${item.data.tags
+                                                                        .map((tag) => {
+                                                                        return html ` <div>
+                                                        ${BgWidget.editeInput({
+                                                                            gvc,
+                                                                            title: tag.title,
+                                                                            default: (() => {
+                                                                                const docIndex = language_data.content_json.findIndex((c) => c.id === item.id);
+                                                                                if (docIndex === -1) {
+                                                                                    return '';
+                                                                                }
+                                                                                if (language_data.content_json[docIndex].list === undefined) {
+                                                                                    return '';
+                                                                                }
+                                                                                const keyIndex = language_data.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
+                                                                                if (keyIndex === -1) {
+                                                                                    return '';
+                                                                                }
+                                                                                return language_data.content_json[docIndex].list[keyIndex]
+                                                                                    .value;
+                                                                            })(),
+                                                                            callback: text => {
+                                                                                const docIndex = language_data.content_json.findIndex((c) => c.id === item.id);
+                                                                                if (docIndex === -1) {
+                                                                                    language_data.content_json.push({
+                                                                                        id: item.id,
+                                                                                        list: [
+                                                                                            {
+                                                                                                key: tag.key,
+                                                                                                value: text,
+                                                                                            },
+                                                                                        ],
+                                                                                    });
+                                                                                    return;
+                                                                                }
+                                                                                if (language_data.content_json[docIndex].list === undefined) {
+                                                                                    language_data.content_json[docIndex].list = [
+                                                                                        {
+                                                                                            key: tag.key,
+                                                                                            value: text,
+                                                                                        },
+                                                                                    ];
+                                                                                    return;
+                                                                                }
+                                                                                const keyIndex = language_data.content_json[docIndex].list.findIndex((l) => l.key === tag.key);
+                                                                                if (keyIndex === -1) {
+                                                                                    language_data.content_json[docIndex].list.push({
+                                                                                        key: tag.key,
+                                                                                        value: text,
+                                                                                    });
+                                                                                    return;
+                                                                                }
+                                                                                language_data.content_json[docIndex].list[keyIndex].value =
+                                                                                    text;
+                                                                            },
+                                                                            placeHolder: '輸入文本標籤',
+                                                                        })}
+                                                      </div>`;
+                                                                    })
+                                                                        .join(BgWidget.mbContainer(12))}
+                                                </div>`;
+                                                                },
+                                                                footer_html: (gvc2) => {
+                                                                    return [
+                                                                        BgWidget.cancel(gvc2.event(() => {
+                                                                            language_data.content_json = originJson;
+                                                                            gvc2.closeDialog();
+                                                                        })),
+                                                                        BgWidget.save(gvc2.event(() => {
+                                                                            gvc2.closeDialog();
+                                                                            gvc.notifyDataChange(`${id}-${index}`);
+                                                                        })),
+                                                                    ].join('');
+                                                                },
+                                                                closeCallback: () => {
+                                                                    language_data.content_json = originJson;
+                                                                },
+                                                            });
+                                                        })}"
+                                        >
+                                          標籤設值
+                                        </div>
+                                        ${gvc.bindView((() => {
+                                                            return {
+                                                                bind: `${id}-${index}`,
+                                                                view: () => {
+                                                                    const content = item.data.content || '';
+                                                                    const tags = item.data.tags;
+                                                                    const jsonData = language_data.content_json.find((c) => c.id === item.id);
+                                                                    return html ` <div
+                                                  style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;"
+                                                >
+                                                  ${tags
+                                                                        ? formatRichtext(content, tags, jsonData ? jsonData.list : [])
+                                                                        : content}
+                                                </div>`;
+                                                                },
+                                                            };
+                                                        })())}`;
+                                                    }
+                                                    return html ` <div
+                                      style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px"
                                     >
-                                      標籤設值
-                                    </div>
-                                    ${gvc.bindView((() => {
-                                                        return {
-                                                            bind: `${id}-${index}`,
-                                                            view: () => {
-                                                                const content = item.data.content || '';
-                                                                const tags = item.data.tags;
-                                                                const jsonData = language_data.content_json.find((c) => c.id === item.id);
-                                                                return html ` <div
-                                              style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;"
-                                            >
-                                              ${tags
-                                                                    ? formatRichtext(content, tags, jsonData ? jsonData.list : [])
-                                                                    : content}
-                                            </div>`;
-                                                            },
-                                                        };
-                                                    })())}`;
-                                                }
-                                                return html ` <div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
-                                  ${item.data.content || ''}
-                                </div>`;
-                                            })(),
-                                        });
-                                    })
-                                        .join(BgWidget.mbContainer(8))}`;
-                                }),
-                            };
-                        })();
-                    }),
-                ].join(BgWidget.mbContainer(12))),
+                                      ${item.data.content || ''}
+                                    </div>`;
+                                                })(),
+                                            });
+                                        })
+                                            .join(BgWidget.mbContainer(8))}`;
+                                    }),
+                                };
+                            })();
+                        }),
+                    ].join(BgWidget.mbContainer(12))),
                 BgWidget.mainCard(html `
             <div
               class="d-flex align-items-center justify-content-between"
@@ -978,7 +984,7 @@ export class ShoppingSettingBasic {
                                             ${dd.language_title[sel_lan()] || dd.title}
                                           </div>
                                           ${(() => {
-                                                                        let returnHTML = ``;
+                                                                        let returnHTML = '';
                                                                         dd.option.map((opt, index) => {
                                                                             var _a;
                                                                             opt.language_title = ((_a = opt.language_title) !== null && _a !== void 0 ? _a : {});
@@ -1081,7 +1087,7 @@ export class ShoppingSettingBasic {
                                                                 ],
                                                                 view: () => {
                                                                     var _a;
-                                                                    let returnHTML = html ``;
+                                                                    let returnHTML = '';
                                                                     let specs_in_line = [];
                                                                     temp.option = (_a = temp.option) !== null && _a !== void 0 ? _a : [];
                                                                     specs_in_line.push(html ` <div class="d-flex flex-column w-100">
@@ -1175,7 +1181,7 @@ export class ShoppingSettingBasic {
                                                     divCreate: { class: `w-100 position-relative` },
                                                 }),
                                                 innerHtml: (gvc) => {
-                                                    return ``;
+                                                    return '';
                                                 },
                                                 editTitle: `編輯規格`,
                                                 draggable: editSpectPage[specIndex].type === 'show',
@@ -1364,7 +1370,7 @@ export class ShoppingSettingBasic {
                           <div
                             class="d-flex flex-column"
                             style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id
-                                    ? ``
+                                    ? ''
                                     : `margin-bottom: 10px;`}"
                           >
                             組合費用
@@ -1444,7 +1450,7 @@ export class ShoppingSettingBasic {
                                 <div
                                   class="d-flex flex-column"
                                   style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id
-                                                ? ``
+                                                ? ''
                                                 : `margin-bottom: 10px;`}"
                                 >
                                   組合費用 ${BgWidget.grayNote('如未輸入庫存數量則不追蹤庫存')}
@@ -1497,7 +1503,7 @@ export class ShoppingSettingBasic {
                         return BgWidget.mainCard(html `
                     <div
                       style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id
-                            ? ``
+                            ? ''
                             : `margin-bottom: 18px;`}"
                     >
                       <span class="me-2">規格設定</span>
@@ -1506,7 +1512,7 @@ export class ShoppingSettingBasic {
                             : ''}
                     </div>
                     <div
-                      class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                      class="w-100 ${postMD.shopee_id ? '' : `d-none`}"
                       style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;"
                     >
                       此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
@@ -1822,7 +1828,7 @@ export class ShoppingSettingBasic {
                                                   style="margin-bottom:18px;padding: 0px 20px;gap:18px;color:#393939;"
                                                 >
                                                   ${(() => {
-                                                                                    let arrayHTML = ``;
+                                                                                    let arrayHTML = '';
                                                                                     postMD.specs[0].option.map((option) => {
                                                                                         option.sortQueue.map((data) => {
                                                                                             var _a;
@@ -2270,7 +2276,7 @@ export class ShoppingSettingBasic {
                                                       </div>
                                                     </div>
                                                   `
-                                                                        : ``}
+                                                                        : ''}
                                             </div>
                                           </div>
                                         `;
@@ -2293,20 +2299,38 @@ export class ShoppingSettingBasic {
                                                                     gvc.notifyDataChange([variantsViewID]);
                                                                 })}"
                                           ></i>
-                                          <div style="width:40%;font-size: 16px;font-weight: 400;">規格</div>
+                                          <div
+                                            style="width:calc(35% - ${document.body.clientWidth > 800
+                                                                    ? 46
+                                                                    : 0}px);font-size: 16px;font-weight: 400;"
+                                          >
+                                            規格
+                                          </div>
                                           ${document.body.clientWidth < 768
                                                                     ? html ` <div
-                                                style="color:#393939;font-size: 16px;font-weight: 400;"
-                                                class="me-3"
-                                              >
-                                                售價*
-                                              </div>`
-                                                                    : `${['售價*', '庫存數量*', '運費計算方式']
+                                                  class="text-center"
+                                                  style="width: 20%;color:#393939;font-size: 16px;font-weight: 400;"
+                                                >
+                                                  顯示
+                                                </div>
+                                                <div
+                                                  class="text-center"
+                                                  style="width: 35%;color:#393939;font-size: 16px;font-weight: 400;"
+                                                >
+                                                  售價
+                                                </div>`
+                                                                    : `${[
+                                                                        { title: '顯示', width: 10 },
+                                                                        { title: '售價', width: 15 },
+                                                                        { title: '庫存數量', width: 15 },
+                                                                        { title: '運費計算方式', width: 20 },
+                                                                    ]
                                                                         .map(dd => {
                                                                         return html ` <div
-                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
+                                                    class="text-center"
+                                                    style="color:#393939;font-size: 16px;font-weight: 400;width: ${dd.width}%;"
                                                   >
-                                                    ${dd}
+                                                    ${dd.title}
                                                   </div>`;
                                                                     })
                                                                         .join('')}`}
@@ -2384,7 +2408,9 @@ export class ShoppingSettingBasic {
                                                                             })}"
                                                   ></i>
                                                   <div
-                                                    style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center; gap:${document
+                                                    style="width: calc(35% - ${document.body.clientWidth > 800
+                                                                                ? 52
+                                                                                : -10}px);font-size: 16px;font-weight: 400;display: flex;align-items: center; gap:${document
                                                                                 .body.clientWidth < 800
                                                                                 ? 10
                                                                                 : 24}px;"
@@ -2437,6 +2463,45 @@ export class ShoppingSettingBasic {
                                                                                 : html ` <i class="fa-regular fa-chevron-down"></i>`}
                                                     </div>
                                                   </div>
+                                                  ${gvc.bindView((() => {
+                                                                                const id = gvc.glitter.getUUID();
+                                                                                return {
+                                                                                    bind: id,
+                                                                                    view: () => {
+                                                                                        return postMD.variants
+                                                                                            .filter(v => v.spec.includes(spec.title))
+                                                                                            .every(v => v.invisible)
+                                                                                            ? html `<i
+                                                                class="fa-solid fa-eye-slash cursor_pointer"
+                                                                onclick="${obj.gvc.event(() => {
+                                                                                                postMD.variants.map(data => {
+                                                                                                    if (data.spec.includes(spec.title)) {
+                                                                                                        data.invisible = false;
+                                                                                                    }
+                                                                                                    return data;
+                                                                                                });
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            })}"
+                                                              ></i>`
+                                                                                            : html `<i
+                                                                class="fa-regular fa-eye cursor_pointer"
+                                                                onclick="${obj.gvc.event(() => {
+                                                                                                postMD.variants.map(data => {
+                                                                                                    if (data.spec.includes(spec.title)) {
+                                                                                                        data.invisible = true;
+                                                                                                    }
+                                                                                                    return data;
+                                                                                                });
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            })}"
+                                                              ></i>`;
+                                                                                    },
+                                                                                    divCreate: {
+                                                                                        class: 'text-center',
+                                                                                        style: 'width: 10%;',
+                                                                                    },
+                                                                                };
+                                                                            })())}
                                                   ${[
                                                                                 {
                                                                                     title: '統一設定價格',
@@ -2470,20 +2535,13 @@ export class ShoppingSettingBasic {
                                                                                     dd.title = `${stock}`;
                                                                                 }
                                                                                 return html ` <div
+                                                        class="px-1"
                                                         style="color:#393939;font-size: 16px;font-weight: 400;width:  ${document
                                                                                     .body.clientWidth > 800
-                                                                                    ? `20%;`
-                                                                                    : 'auto;max-width:140px;'}padding-right: ${document.body
-                                                                                    .clientWidth > 768
-                                                                                    ? `10px`
-                                                                                    : '0px'};"
+                                                                                    ? `17.5%;`
+                                                                                    : 'auto;max-width:140px;'}"
                                                       >
-                                                        <input
-                                                          style="height: 40px;width:100%;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 13px;"
-                                                          placeholder="${dd.title}"
-                                                          type="number"
-                                                          ${dd.key == 'stock' ? `readonly` : ``}
-                                                          min="0"
+                                                        <div
                                                           onclick="${gvc.event(() => {
                                                                                     if (index === 1) {
                                                                                         ProductSetting.showBatchEditDialog({
@@ -2496,17 +2554,30 @@ export class ShoppingSettingBasic {
                                                                                         });
                                                                                     }
                                                                                 })}"
-                                                          onchange="${gvc.event(e => {
-                                                                                    postMD.variants
-                                                                                        .filter(dd => {
-                                                                                        return dd.spec[0] === spec.title;
-                                                                                    })
-                                                                                        .map(d1 => {
-                                                                                        d1[dd.key] = e.value;
-                                                                                    });
-                                                                                    gvc.notifyDataChange(vm.id);
-                                                                                })}"
-                                                        />
+                                                        >
+                                                          ${BgWidget.editeInput({
+                                                                                    gvc,
+                                                                                    title: '',
+                                                                                    default: '',
+                                                                                    placeHolder: dd.title,
+                                                                                    callback: value => {
+                                                                                        const n = parseInt(`${value}`, 10);
+                                                                                        postMD.variants
+                                                                                            .filter(dd => {
+                                                                                            return dd.spec[0] === spec.title;
+                                                                                        })
+                                                                                            .map(d1 => {
+                                                                                            d1[dd.key] = isNaN(n) ? 0 : n;
+                                                                                        });
+                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                    },
+                                                                                    type: 'number',
+                                                                                    readonly: dd.key == 'stock',
+                                                                                    divStyle: document.body.clientWidth > 800
+                                                                                        ? ''
+                                                                                        : 'max-width: 130px;',
+                                                                                })}
+                                                        </div>
                                                       </div>`;
                                                                             })
                                                                                 .join('')}
@@ -2608,10 +2679,11 @@ export class ShoppingSettingBasic {
                                                                                         }
                                                                                         return html `
                                                           <div
+                                                            class="w-100"
                                                             style="background-color: white;position:relative;display: flex;padding: 8px 0px;align-items: center;border-radius: 10px;width:100%;"
                                                           >
                                                             <div
-                                                              style="flex:1 0 0;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;padding-left: ${postMD
+                                                              style="width: 40%;flex:1 0 0;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;padding-left: ${postMD
                                                                                             .specs.length > 1 && document.body.clientWidth > 768
                                                                                             ? `32px`
                                                                                             : `12px`};"
@@ -2652,6 +2724,33 @@ export class ShoppingSettingBasic {
                                                                 >
                                                               </div>
                                                             </div>
+                                                            ${gvc.bindView((() => {
+                                                                                            const id = gvc.glitter.getUUID();
+                                                                                            return {
+                                                                                                bind: id,
+                                                                                                view: () => {
+                                                                                                    return Boolean(data.invisible)
+                                                                                                        ? html `<i
+                                                                          class="fa-solid fa-eye-slash cursor_pointer"
+                                                                          onclick="${obj.gvc.event(() => {
+                                                                                                            data.invisible = false;
+                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                        })}"
+                                                                        ></i>`
+                                                                                                        : html `<i
+                                                                          class="fa-regular fa-eye cursor_pointer"
+                                                                          onclick="${obj.gvc.event(() => {
+                                                                                                            data.invisible = true;
+                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                        })}"
+                                                                        ></i>`;
+                                                                                                },
+                                                                                                divCreate: {
+                                                                                                    class: 'text-center',
+                                                                                                    style: 'width: 10%;',
+                                                                                                },
+                                                                                            };
+                                                                                        })())}
                                                             ${['sale_price', 'stock']
                                                                                             .filter(dd => {
                                                                                             return (dd === 'sale_price' || document.body.clientWidth > 768);
@@ -2659,19 +2758,17 @@ export class ShoppingSettingBasic {
                                                                                             .map((dd, index) => {
                                                                                             var _a;
                                                                                             return html ` <div
+                                                                  class="text-center px-1"
                                                                   style="color:#393939;font-size: 16px;font-weight: 400;width:   ${document
                                                                                                 .body.clientWidth > 800
-                                                                                                ? `20%;`
-                                                                                                : 'auto;max-width:140px;'}padding-right: ${document
-                                                                                                .body.clientWidth > 800
-                                                                                                ? `12px`
-                                                                                                : '0px'};"
+                                                                                                ? `17.5%;`
+                                                                                                : 'auto;max-width:140px;'}"
                                                                 >
                                                                   <input
                                                                     style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                     value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
                                                                     min="0"
-                                                                    ${index === 1 ? `readonly` : ``}
+                                                                    ${index === 1 ? `readonly` : ''}
                                                                     onclick="${gvc.event(() => {
                                                                                                 if (index === 1) {
                                                                                                     ProductSetting.showBatchEditDialog({
@@ -2716,19 +2813,19 @@ export class ShoppingSettingBasic {
                                                               >
                                                                 <option
                                                                   value="none"
-                                                                  ${data.shipment_type == 'none' ? `selected` : ``}
+                                                                  ${data.shipment_type == 'none' ? `selected` : ''}
                                                                 >
                                                                   無運費
                                                                 </option>
                                                                 <option
                                                                   value="volume"
-                                                                  ${data.shipment_type == 'volume' ? `selected` : ``}
+                                                                  ${data.shipment_type == 'volume' ? `selected` : ''}
                                                                 >
                                                                   依材積
                                                                 </option>
                                                                 <option
                                                                   value="weight"
-                                                                  ${data.shipment_type == 'weight' ? `selected` : ``}
+                                                                  ${data.shipment_type == 'weight' ? `selected` : ''}
                                                                 >
                                                                   依重量
                                                                 </option>
@@ -2738,7 +2835,7 @@ export class ShoppingSettingBasic {
                                                         `;
                                                                                     },
                                                                                     divCreate: {
-                                                                                        class: `w-100 ${viewID} ${index === 0 && postMD.specs.length > 1 ? `border-top` : ``}`,
+                                                                                        class: `w-100 ${viewID} ${index === 0 && postMD.specs.length > 1 ? `border-top` : ''}`,
                                                                                     },
                                                                                 });
                                                                             })
@@ -2764,7 +2861,7 @@ export class ShoppingSettingBasic {
                                 };
                             }));
                     })()
-                    : ``,
+                    : '',
                 BgWidget.mainCard(obj.gvc.bindView(() => {
                     var _a;
                     postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
@@ -2782,7 +2879,7 @@ export class ShoppingSettingBasic {
                         搜尋引擎列表 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
                       </div>
                       ${[
-                                    html ` <div class="tx_normal fw-normal mb-2" style="">${cat_title}網址</div>`,
+                                    html ` <div class="tx_normal fw-normal mb-2">${cat_title}網址</div>`,
                                     html ` <div
                           style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
@@ -2855,7 +2952,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                     };
                 })),
             ]
-                .filter(str => str.length > 0)
+                .filter(Boolean)
                 .join(BgWidget.mbContainer(18)),
             ratio: 77,
         }, {

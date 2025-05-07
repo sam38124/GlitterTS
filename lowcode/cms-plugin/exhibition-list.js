@@ -7,6 +7,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiStock } from '../glitter-base/route/stock.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 function getTimeState(startDate, endDate) {
     const now = new Date();
@@ -32,6 +33,7 @@ export class ExhibitionManager {
             filter: {},
             orderString: '',
             storeData: {},
+            listLimit: TableStorage.getLimit(),
         };
         return gvc.bindView({
             bind: vm.id,
@@ -136,6 +138,14 @@ export class ExhibitionManager {
                                 gvc.notifyDataChange(vm.tableId);
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋展場名稱'),
+                            BgWidget.countingFilter({
+                                gvc,
+                                callback: value => {
+                                    vm.listLimit = value;
+                                    gvc.notifyDataChange([vm.tableId, id]);
+                                },
+                                default: vm.listLimit,
+                            }),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.exhibitionFunnel);
                         return BgListComponent.listBarRWD(filterList, filterTags);
@@ -149,10 +159,9 @@ export class ExhibitionManager {
                         gvc: gvc,
                         getData: vd => {
                             vmi = vd;
-                            const limit = 100;
                             function callback(list) {
                                 vm.dataList = list;
-                                vmi.pageSize = Math.ceil(list.length / limit);
+                                vmi.pageSize = Math.ceil(list.length / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getDatalist();
                                 vmi.loading = false;

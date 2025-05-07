@@ -1598,13 +1598,17 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                     return {
                                                                         bind: subVM.id,
                                                                         view: () => {
+                                                                            var _a;
+                                                                            var _b;
                                                                             if (subVM.loading) {
                                                                                 return BgWidget.spinner();
                                                                             }
+                                                                            (_a = (_b = vm.data.content).relative_data) !== null && _a !== void 0 ? _a : (_b.relative_data = []);
+                                                                            const relativeCloneData = structuredClone(vm.data.content.relative_data);
                                                                             return html `
                                               <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                 <div
-                                                  class="d-flex align-items-center gray-bottom-line-18 "
+                                                  class="d-flex align-items-center gray-bottom-line-18"
                                                   style="gap: 24px; justify-content: space-between;"
                                                 >
                                                   <div class="form-check-label c_updown_label">
@@ -1613,29 +1617,23 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                   ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                                 BgProduct.productsDialog({
                                                                                     gvc: gvc,
-                                                                                    default: vm.data.content.relative_data.map((dd) => {
-                                                                                        return `${dd.product_id}-${dd.variant.spec.join('-')}`;
-                                                                                    }),
+                                                                                    default: relativeCloneData.map((dd) => `${dd.product_id}-${dd.variant.spec.join('-')}`),
                                                                                     with_variants: true,
                                                                                     filter_visible: page_tab === 'hidden' ? 'false' : 'true',
-                                                                                    callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                                        var _a;
-                                                                                        vm.data.content.relative_data =
-                                                                                            (_a = vm.data.content.relative_data) !== null && _a !== void 0 ? _a : [];
-                                                                                        vm.data.content.relative_data =
-                                                                                            vm.data.content.relative_data.concat(value.map((dd) => {
-                                                                                                return {
-                                                                                                    variant: {
-                                                                                                        spec: dd
-                                                                                                            .split('-')
-                                                                                                            .filter((_, index) => index > 0),
-                                                                                                    },
-                                                                                                    product_id: dd.split('-')[0],
-                                                                                                };
-                                                                                            }));
+                                                                                    callback: specArray => {
+                                                                                        vm.data.content.relative_data = specArray.map((spec) => {
+                                                                                            return {
+                                                                                                variant: {
+                                                                                                    spec: spec
+                                                                                                        .split('-')
+                                                                                                        .filter((_, index) => index > 0),
+                                                                                                },
+                                                                                                product_id: spec.split('-')[0],
+                                                                                            };
+                                                                                        });
                                                                                         subVM.loading = true;
                                                                                         gvc.notifyDataChange(subVM.id);
-                                                                                    }),
+                                                                                    },
                                                                                 });
                                                                             }), { textStyle: 'font-weight: 400;' })}
                                                 </div>
@@ -1646,7 +1644,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                         class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                       >
                                                         <span class="tx_normal" style="min-width: 20px;"
-                                                          >${index + 1} .</span
+                                                          >${index + 1}.</span
                                                         >
                                                         ${BgWidget.validImageBox({
                                                                                     gvc: gvc,

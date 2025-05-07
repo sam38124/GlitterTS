@@ -33,11 +33,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                     widget[dd].data.refer_app = widget.data.refer_app;
                 });
             }
-            const app_editor = (['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application);
+            const app_editor = ['index-app'].includes(gvc.glitter.getUrlParameter('page')) || ApplicationConfig.is_application;
             initialReferData(widget);
             let viewConfig = undefined;
             const html = String.raw;
-            const view_container_id = widget.id;
             return {
                 view: () => {
                     if (app_editor) {
@@ -128,8 +127,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             });
                                             function getFormData(ref) {
                                                 var _a, _b;
-                                                ref =
-                                                    window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref;
+                                                ref = (() => {
+                                                    if (window.glitter.getUrlParameter('select_widget') === 'true') {
+                                                        return ref;
+                                                    }
+                                                    else {
+                                                        return (window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref);
+                                                    }
+                                                })();
                                                 let formData = JSON.parse(JSON.stringify(ref || {}));
                                                 if (widget.data.refer_app) {
                                                     GlobalWidget.initialShowCaseData({
@@ -174,8 +179,18 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                 const ref = widget.data.refer_app
                                                     ? widget.data.refer_form_data || data.page_config.formData
                                                     : data.page_config.formData;
-                                                window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
-                                                    ref;
+                                                try {
+                                                    if (window.parent.glitter.share._global_component
+                                                        .map((dd) => {
+                                                        return `${dd.appName}_${dd.tag}`;
+                                                    })
+                                                        .includes(`${page_request_config.appName}_${tag}`)) {
+                                                        window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] =
+                                                            ref;
+                                                    }
+                                                }
+                                                catch (e) {
+                                                }
                                                 viewConfig.formData = getFormData(ref);
                                                 const view = getView();
                                                 window.parent.glitter.share.loading_dialog.dataLoading({ visible: true });
@@ -806,23 +821,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                 return;
                                                                                                                             }
                                                                                                                             const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id);
-                                                                                                                            if (select_.container_cf) {
-                                                                                                                                const gvc_ = gvc.glitter.document.querySelector('.iframe_view')
-                                                                                                                                    .contentWindow.glitter.pageConfig[0].gvc;
-                                                                                                                                gvc_.glitter.htmlGenerate.selectWidget({
-                                                                                                                                    widget: select_.container_cf,
-                                                                                                                                    widgetComponentID: select_.container_cf.id,
-                                                                                                                                    gvc: gvc_,
-                                                                                                                                    scroll_to_hover: true,
-                                                                                                                                    glitter: glitter,
-                                                                                                                                });
-                                                                                                                            }
-                                                                                                                            else {
-                                                                                                                                Storage.lastSelect = '';
-                                                                                                                                gvc.glitter.share.editorViewModel.selectItem =
-                                                                                                                                    undefined;
-                                                                                                                                gvc.glitter.share.selectEditorItem();
-                                                                                                                            }
+                                                                                                                            Storage.lastSelect = '';
+                                                                                                                            gvc.glitter.share.editorViewModel.selectItem =
+                                                                                                                                undefined;
+                                                                                                                            gvc.glitter.share.selectEditorItem();
                                                                                                                         }),
                                                                                                                     },
                                                                                                                 ],
@@ -1456,7 +1458,7 @@ font-weight: 700;"
                                                                                                     gvc.glitter.getModule(new URL(gvc.glitter.root_path + `public-components/headers/header-mobile.js`).href, res => {
                                                                                                         resolve(res.editor({
                                                                                                             gvc: gvc,
-                                                                                                            widget: widget
+                                                                                                            widget: widget,
                                                                                                         }));
                                                                                                     });
                                                                                                 });

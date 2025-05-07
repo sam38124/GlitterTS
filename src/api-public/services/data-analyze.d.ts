@@ -10,7 +10,7 @@ export declare class DataAnalyze {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -117,16 +117,16 @@ export declare class DataAnalyze {
         countArrayWeb: any[];
     }>;
     getActiveRecentYear(): Promise<{
-        count_array: number[];
+        count_array: any[];
     }>;
     getActiveRecentWeek(): Promise<{
-        count_array: number[];
+        count_array: any[];
     }>;
     getActiveRecentMonth(): Promise<{
-        count_array: number[];
+        count_array: any[];
     }>;
     getActiveRecentCustom(query: string): Promise<{
-        count_array: number[];
+        count_array: any[];
     }>;
     getRegisterMonth(): Promise<{
         countArray: any[];

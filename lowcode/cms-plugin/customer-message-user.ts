@@ -206,8 +206,34 @@ export class CustomerMessageUser {
                                             style="background-color: ${config
                                                 .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
                                             onclick="${gvc.event(() => {
+                                              if(document.body.clientWidth<800){
+                                                if (!GlobalUser.token) {
+                                                  gvc.glitter.href = '/login';
+                                                }
+                                                const userID = (() => {
+                                                  if (GlobalUser.token) {
+                                                    return GlobalUser.parseJWT(GlobalUser.token).payload.userID;
+                                                  } else {
+                                                    return gvc.glitter.macAddress;
+                                                  }
+                                                })();
+                                                gvc.glitter.getModule(
+                                                  new URL('./cms-plugin/customer-message-user.js', gvc.glitter.root_path).href,
+                                                  cl => {
+                                                    cl.mobileChat({
+                                                      gvc: gvc,
+                                                      chat: {
+                                                        chat_id: [`${userID}`, 'manager'].sort().join('-'),
+                                                        type: 'user',
+                                                      },
+                                                      user_id: `${userID}`,
+                                                    });
+                                                  }
+                                                );
+                                              }else{
                                                 open = !open;
-                                                gvc.notifyDataChange(viewId);
+                                                gvc.notifyDataChange(viewId); 
+                                              }
                                             })}"
                                         >
                                             <i class="${open ? `fa-sharp fa-regular fa-xmark` : `fa-solid fa-message-dots `}"
@@ -331,6 +357,7 @@ export class CustomerMessageUser {
         close?: () => void,
         hideBar?: boolean
     }) {
+
         const gvc = cf.gvc;
         const document = cf.document;
         const css = String.raw;
@@ -374,6 +401,7 @@ export class CustomerMessageUser {
                                             return ``;
                                         }
                                         return new Promise(async (resolve, reject) => {
+
                                             const chatRoom = (
                                                 await Chat.getChatRoom({
                                                     page: 0,

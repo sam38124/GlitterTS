@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const manager_js_1 = require("./api-public/services/manager.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -284,6 +286,7 @@ class SeoConfig {
             })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${FBCode.pixel}');
             fbq('track', 'PageView');
+            window.fb_pixel_id = '${FBCode.pixel}';
           </script>
           <noscript
             ><img
@@ -411,7 +414,7 @@ class SeoConfig {
                     key: 'login_config',
                     user_id: 'manager',
                 }),
-                user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip)),
+                user_js_1.User.ipInfo(monitor_js_1.Monitor.userIP(req)),
             ]);
             const language = await SeoConfig.language(store_info, req);
             monitor_js_1.Monitor.insertHistory({
@@ -655,7 +658,7 @@ class SeoConfig {
                     })
                         .join(';\n')}
                             </script>
-                            ${[
+          ${[
                         { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
                         { src: 'glitterBundle/module/html-generate.js', type: 'module' },
                         { src: 'glitterBundle/html-component/widget.js', type: 'module' },
@@ -679,7 +682,7 @@ class SeoConfig {
                     })
                         .map((dd) => html ` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`)
                         .join('')}
-                            ${(() => {
+            ${(() => {
                         if (req.query.type === 'editor') {
                             return ``;
                         }
@@ -697,7 +700,9 @@ class SeoConfig {
                                 .join('\n')}
                                 `;
                         }
-                    })()}`,
+                    })()}
+
+`
                 ].join('');
                 return {
                     head: head,
@@ -764,7 +769,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -773,7 +777,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

@@ -13,6 +13,7 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Currency } from '../glitter-base/global/currency.js';
 import { FilterOptions } from './filter-options.js';
 import { LanguageBackend } from './language-backend.js';
+import { ShoppingFinanceSetting } from './shopping-finance-setting.js';
 const html = String.raw;
 export class PosConfigSetting {
     static main(gvc) {
@@ -226,6 +227,52 @@ ${BgWidget.customButton({
                         }),
                     }));
                 }
+                function createProductCardLayout(title, description) {
+                    var _a;
+                    vm.data.pos_support_finction = (_a = vm.data.pos_support_finction) !== null && _a !== void 0 ? _a : [];
+                    return createRow(title, description, BgWidget.customButton({
+                        button: { color: 'snow', size: 'md' },
+                        text: { name: '編輯' },
+                        event: gvc.event(() => {
+                            var _a;
+                            vm.data.prdouct_card_layout = (_a = vm.data.prdouct_card_layout) !== null && _a !== void 0 ? _a : '16:9';
+                            BgWidget.settingDialog({
+                                gvc,
+                                title,
+                                width: 600,
+                                innerHTML: gvc => {
+                                    return BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: '卡片比例',
+                                        default: vm.data.prdouct_card_layout,
+                                        placeHolder: '請輸入卡片比例，範例: 16:9',
+                                        callback: (text) => {
+                                            if (text.split(':').map((dd) => {
+                                                return Number.isFinite(Number(dd));
+                                            }).length === 2) {
+                                                vm.data.prdouct_card_layout = text;
+                                            }
+                                        },
+                                    });
+                                },
+                                footer_html: gvc => {
+                                    return [
+                                        BgWidget.cancel(gvc.event(() => {
+                                            gvc.closeDialog();
+                                        })),
+                                        BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                            dialog.dataLoading({ visible: true });
+                                            yield vm.save_info();
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.successMessage({ text: '儲存成功' });
+                                            gvc.closeDialog();
+                                        }))),
+                                    ].join('');
+                                },
+                            });
+                        }),
+                    }));
+                }
                 function createCheckoutModeDialog(title, description) {
                     return createRow(title, description, BgWidget.customButton({
                         button: { color: 'snow', size: 'md' },
@@ -307,33 +354,40 @@ ${BgWidget.customButton({
                 const typeMap = {
                     function: () => {
                         var _a;
-                        return BgWidget.mainCard(html `
-              <div class="d-flex flex-column gap-2">
-                ${createSection('POS功能', '系統將根據您勾選的項目，開放相對應的功能')}
-                ${BgWidget.inlineCheckBox({
-                            title: '',
-                            gvc,
-                            def: (_a = vm.data.pos_support_finction) !== null && _a !== void 0 ? _a : [],
-                            array: [
-                                { title: '列印明細', value: 'print_order_detail' },
-                                { title: '列印留存聯', value: 'print_order_receipt' },
-                                { title: '發票開立', value: 'print_invoice' },
-                                { title: '桌號設定', value: 'table_select' },
-                            ],
-                            callback: (array) => {
-                                vm.data.pos_support_finction = array;
-                            },
-                            type: 'multiple',
-                        })}
-                ${createPickUpModeDialog('叫號取餐', `針對特店取餐功能，會自動遞增取餐號碼。`)}
-              </div>
-            `);
+                        return [
+                            BgWidget.mainCard(html `
+                <div class="d-flex flex-column gap-2">
+                  ${createSection('POS功能', '系統將根據您勾選的項目，開放相對應的功能')}
+                  ${BgWidget.inlineCheckBox({
+                                title: '',
+                                gvc,
+                                def: (_a = vm.data.pos_support_finction) !== null && _a !== void 0 ? _a : [],
+                                array: [
+                                    { title: '列印明細', value: 'print_order_detail' },
+                                    { title: '列印留存聯', value: 'print_order_receipt' },
+                                    { title: '發票開立', value: 'print_invoice' },
+                                    { title: '桌號設定', value: 'table_select' },
+                                ],
+                                callback: (array) => {
+                                    vm.data.pos_support_finction = array;
+                                },
+                                type: 'multiple',
+                            })}
+                  ${createPickUpModeDialog('叫號取餐', `針對特店取餐功能，會自動遞增取餐號碼。`)}
+                  ${createProductCardLayout('商品比例', `設定POS商品卡片顯示比例。`)}
+                </div>
+              `),
+                        ].join('');
+                    },
+                    finance: () => {
+                        return ShoppingFinanceSetting.main(gvc, true);
                     },
                 };
                 return BgWidget.container(html `
           <div class="title-container">${BgWidget.title('全站設定')}</div>
           ${BgWidget.tab([
                     { title: '功能管理', key: 'function' },
+                    { title: '金流設定', key: 'finance' },
                 ], gvc, vm.type, text => {
                     vm.type = text;
                 })}

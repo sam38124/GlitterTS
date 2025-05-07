@@ -67,7 +67,7 @@ export class ProductService {
         {
           check: (data: LanguageData) => !data.seo.domain,
           errorMessage: '未設定商品連結',
-        },
+        }
         // {
         //   check: (data: LanguageData) => !CheckInput.isChineseEnglishNumberHyphen(data.seo.domain),
         //   errorMessage: '連結僅限使用中英文數字與連接號',
@@ -77,8 +77,9 @@ export class ProductService {
       // 遍歷支持的語言並進行驗證
       for (const languageCode of supportedLanguages) {
         const currentLanguageData = languageData[languageCode];
-
+        currentLanguageData.seo.domain = currentLanguageData.seo.domain.replace(/\+/g, '');
         for (const rule of validationRules) {
+
           if (rule.check(currentLanguageData)) {
             vm.language = languageCode;
             refresh();

@@ -27,116 +27,117 @@ import { PageCodeSetting } from '../editor/page-code-setting.js';
 import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
-import { BgGuide } from "../backend-manager/bg-guide.js";
-import { ApiShop } from "../glitter-base/route/shopping.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
-import { SearchIdea } from "../editor/search-idea.js";
-import { AiMessage } from "../cms-plugin/ai-message.js";
-import { GlobalWidget } from "../glitterBundle/html-component/global-widget.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { BaseApi } from "../glitterBundle/api/base.js";
-import { GlobalUser } from "../glitter-base/global/global-user.js";
-import { Article } from "../glitter-base/route/article.js";
-import { AiChat } from "../glitter-base/route/ai-chat.js";
-import { SaasViewModel } from "../view-model/saas-view-model.js";
+import { BgGuide } from '../backend-manager/bg-guide.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { SearchIdea } from '../editor/search-idea.js';
+import { AiMessage } from '../cms-plugin/ai-message.js';
+import { GlobalWidget } from '../glitterBundle/html-component/global-widget.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { BaseApi } from '../glitterBundle/api/base.js';
+import { GlobalUser } from '../glitter-base/global/global-user.js';
+import { Article } from '../glitter-base/route/article.js';
+import { AiChat } from '../glitter-base/route/ai-chat.js';
+import { SaasViewModel } from '../view-model/saas-view-model.js';
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-    glitter.share.loading_dialog = (new ShareDialog(gvc.glitter));
+    glitter.share.loading_dialog = new ShareDialog(gvc.glitter);
     const css = String.raw;
     gvc.addStyle(css `
+    .hoverHidden div {
+      display: none;
+    }
 
-        .hoverHidden div {
-            display: none;
-        }
+    .hoverHidden:hover div {
+      display: flex;
+    }
 
-        .hoverHidden:hover div {
-            display: flex;
-        }
+    .tooltip {
+      z-index: 99999 !important;
+    }
 
-        .tooltip {
-            z-index: 99999 !important;
-        }
+    .scroll-in {
+      animation: slideInFromLeft 0.3s ease-out forwards;
+    }
 
-        .scroll-in {
-            animation: slideInFromLeft 0.3s ease-out forwards;
-        }
+    .scroll-out {
+      left: 0%; /* 將元素移到畫面外 */
+      animation: slideOutFromLeft 0.3s ease-out forwards;
+    }
 
-        .scroll-out {
-            left: 0%; /* 將元素移到畫面外 */
-            animation: slideOutFromLeft 0.3s ease-out forwards;
-        }
-
-        /* @keyframes 定義動畫 */
-        @keyframes slideInFromLeft {
-            0% {
-                left: -120%; /* 起始位置在畫面外 */
-            }
-            100% {
-                left: 0; /* 結束位置在畫面內 */
-            }
-        }
-        /* @keyframes 定義動畫 */
-        @keyframes slideOutFromLeft {
-            0% {
-                left: 0; /* 起始位置在畫面外 */
-            }
-            100% {
-                left: -120%; /* 結束位置在畫面內 */
-            }
-        }
-    `);
+    /* @keyframes 定義動畫 */
+    @keyframes slideInFromLeft {
+      0% {
+        left: -120%; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: 0; /* 結束位置在畫面內 */
+      }
+    }
+    /* @keyframes 定義動畫 */
+    @keyframes slideOutFromLeft {
+      0% {
+        left: 0; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: -120%; /* 結束位置在畫面內 */
+      }
+    }
+  `);
     gvc.addStyle(css `
-        .parent_ {
-            position: relative; /* 确保子元素相对于父元素定位 */
-        }
+    .parent_ {
+      position: relative; /* 确保子元素相对于父元素定位 */
+    }
 
-        .child_ {
-            display: none; /* 默认隐藏子元素 */
-            position: absolute; /* 可选：使子元素定位 */
-            top: 100%; /* 可选：根据需要调整子元素的位置 */
-            left: 0;
-            background-color: lightgrey; /* 可选：子元素背景颜色 */
-            padding: 10px; /* 可选：子元素内边距 */
-            border: 1px solid #ccc; /* 可选：子元素边框 */
-        }
+    .child_ {
+      display: none; /* 默认隐藏子元素 */
+      position: absolute; /* 可选：使子元素定位 */
+      top: 100%; /* 可选：根据需要调整子元素的位置 */
+      left: 0;
+      background-color: lightgrey; /* 可选：子元素背景颜色 */
+      padding: 10px; /* 可选：子元素内边距 */
+      border: 1px solid #ccc; /* 可选：子元素边框 */
+    }
 
-        .parent_:hover .child_ {
-            display: block; /* 当父元素被 hover 时显示子元素 */
-        }
+    .parent_:hover .child_ {
+      display: block; /* 当父元素被 hover 时显示子元素 */
+    }
 
-        .scroll-right-in {
-            right: -120%; /* 將元素移到畫面外 */
-            animation: slideInRight 0.3s ease-out forwards;
-        }
+    .scroll-right-in {
+      right: -120%; /* 將元素移到畫面外 */
+      animation: slideInRight 0.3s ease-out forwards;
+    }
 
-        .scroll-right-out {
-            right: 0; /* 將元素移到畫面外 */
-            animation: slideOutRight 0.3s ease-out forwards;
-        }
+    .scroll-right-out {
+      right: 0; /* 將元素移到畫面外 */
+      animation: slideOutRight 0.3s ease-out forwards;
+    }
 
-        /* @keyframes 定義動畫 */
-        @keyframes slideInRight {
-            0% {
-                right: -120%; /* 起始位置在畫面外 */
-            }
-            100% {
-                right: 0; /* 結束位置在畫面內 */
-            }
-        }
-        /* @keyframes 定義動畫 */
-        @keyframes slideOutRight {
-            0% {
-                right: 0; /* 起始位置在畫面外 */
-            }
-            100% {
-                right: -120%; /* 結束位置在畫面內 */
-            }
-        }
-    `);
+    /* @keyframes 定義動畫 */
+    @keyframes slideInRight {
+      0% {
+        right: -120%; /* 起始位置在畫面外 */
+      }
+      100% {
+        right: 0; /* 結束位置在畫面內 */
+      }
+    }
+    /* @keyframes 定義動畫 */
+    @keyframes slideOutRight {
+      0% {
+        right: 0; /* 起始位置在畫面外 */
+      }
+      100% {
+        right: -120%; /* 結束位置在畫面內 */
+      }
+    }
+  `);
     glitter.share.is_blog_editor = () => {
-        return glitter.getUrlParameter('page').startsWith('pages/') || glitter.getUrlParameter('page').startsWith('hidden/') || glitter.getUrlParameter('page').startsWith('shop/');
+        return (glitter.getUrlParameter('page').startsWith('pages/') ||
+            glitter.getUrlParameter('page').startsWith('hidden/') ||
+            glitter.getUrlParameter('page').startsWith('shop/'));
     };
     Storage.lastSelect = '';
     const viewModel = {
@@ -186,24 +187,26 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             if (parseInt(glitter.share.top_inset, 10)) {
                 gvc.addStyle(css `
-                .scroll-in {
-                    padding-top: ${glitter.share.top_inset}px;
-                }
+        .scroll-in {
+          padding-top: ${glitter.share.top_inset}px;
+        }
 
-                .scroll-right-in {
-                    padding-top: ${glitter.share.top_inset}px;
-                }
-            `);
+        .scroll-right-in {
+          padding-top: ${glitter.share.top_inset}px;
+        }
+      `);
             }
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
-                    if ((EditorConfig.backend_page() === 'backend-manger') && !(gvc.glitter.getUrlParameter('tab'))) {
+                    if (EditorConfig.backend_page() === 'backend-manger' && !gvc.glitter.getUrlParameter('tab')) {
                         gvc.glitter.setUrlParameter('tab', 'home_page');
                     }
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        ApiPageConfig.getAppConfig().then((res) => {
+                        ApiPageConfig.getAppConfig().then(res => {
                             viewModel.app_config_original = res.response.result[0];
-                            if (EditorConfig.backend_page() === 'backend-manger' && ((viewModel.app_config_original.refer_app) && (viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName))) {
+                            if (EditorConfig.backend_page() === 'backend-manger' &&
+                                viewModel.app_config_original.refer_app &&
+                                viewModel.app_config_original.refer_app !== viewModel.app_config_original.appName) {
                                 glitter.setUrlParameter('appName', viewModel.app_config_original.refer_app);
                                 location.reload();
                                 return;
@@ -219,16 +222,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         viewModel.data = yield new Promise((resolve, reject) => {
                             ApiPageConfig.getPage({
                                 tag: glitter.getUrlParameter('page'),
-                                appName: gBundle.appName
-                            }).then((d2) => {
+                                appName: gBundle.appName,
+                            }).then(d2 => {
                                 if (glitter.share.is_blog_editor()) {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
-                                        id: glitter.getUrlParameter('page-id')
+                                        id: glitter.getUrlParameter('page-id'),
                                     }).then((data) => __awaiter(this, void 0, void 0, function* () {
                                         const content = data.response.data[0].content;
-                                        if (content.language_data && content.language_data[glitter.getUrlParameter('language')] && content.language_data[glitter.getUrlParameter('language')].config) {
+                                        if (content.language_data &&
+                                            content.language_data[glitter.getUrlParameter('language')] &&
+                                            content.language_data[glitter.getUrlParameter('language')].config) {
                                             content.config = content.language_data[glitter.getUrlParameter('language')].config;
                                         }
                                         d2.response.result[0].config = content.config;
@@ -313,7 +318,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         },
                                     ].concat(viewModel.initialJS);
                                     for (const a of glitter.share.globalJsList) {
-                                        yield new Promise((resolve) => {
+                                        yield new Promise(resolve => {
                                             glitter.addMtScript([
                                                 {
                                                     src: TriggerEvent.getLink(a.src.official),
@@ -334,7 +339,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         else {
                             resolve(false);
                         }
-                    })).then((data) => {
+                    })).then(data => {
                         return data;
                     });
                 }),
@@ -342,13 +347,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             let count = 0;
             let result = yield new Promise((resolve, reject) => {
                 for (const a of waitGetData) {
-                    a().then((result) => {
+                    a().then(result => {
                         if (result) {
                             count++;
                         }
                         else {
                             resolve(false);
-                            console.log(`falseIn`, waitGetData.findIndex((dd) => {
+                            console.log(`falseIn`, waitGetData.findIndex(dd => {
                                 return dd === a;
                             }));
                         }
@@ -364,14 +369,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             dialog.dataLoading({ visible: false });
             viewModel.loading = false;
-            gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+            gvc.glitter.runJsInterFace('getFireBaseToken', {}, response => {
                 if (response.token) {
                     ApiUser.registerFCM(viewModel.app_config_original.user, response.token, window.glitterBase);
                 }
             }, {
                 webFunction(data, callback) {
                     callback({});
-                }
+                },
             });
             gvc.notifyDataChange(editorContainerID);
         });
@@ -428,7 +433,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         Article.get({
                                             page: 0,
                                             limit: 1,
-                                            id: glitter.getUrlParameter('page-id')
+                                            id: glitter.getUrlParameter('page-id'),
                                         }).then((data) => __awaiter(this, void 0, void 0, function* () {
                                             var _a;
                                             const content = data.response.data[0].content;
@@ -442,7 +447,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                         keywords: '',
                                                     },
                                                     text: '',
-                                                    config: ''
+                                                    config: '',
                                                 };
                                             }
                                             content.language_data = (_a = content.language_data) !== null && _a !== void 0 ? _a : {
@@ -452,11 +457,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     name: content.name,
                                                     seo: content.seo,
                                                     text: content.text,
-                                                    config: content.config
-                                                }
+                                                    config: content.config,
+                                                },
                                             };
                                             content.language_data[glitter.getUrlParameter('language')].config = config;
-                                            Article.put(data.response.data[0]).then((response) => {
+                                            Article.put(data.response.data[0]).then(response => {
                                                 resolve(response && response.result);
                                             });
                                         }));
@@ -473,7 +478,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             page_type: viewModel.data.page_type,
                                             preview_image: viewModel.data.preview_image,
                                             favorite: viewModel.data.favorite,
-                                        }).then((api) => {
+                                        }).then(api => {
                                             resolve(result && api.result);
                                         });
                                     }
@@ -516,7 +521,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                 });
             }
-            saveEvent().then((r) => {
+            saveEvent().then(r => {
                 callback && callback();
             });
         };
@@ -556,10 +561,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);
-                            view.push(doc.create(html `
-                                        <div class="d-flex overflow-hidden border-end guide-user-editor-1"
-                                             style="height:100vh;background:white;">
-                                            ${gvc.bindView(() => {
+                            view.push(doc.create(html ` <div
+                    class="d-flex overflow-hidden border-end guide-user-editor-1"
+                    style="height:100vh;background:white;"
+                  >
+                    ${gvc.bindView(() => {
                                 return {
                                     bind: 'left_sm_bar',
                                     view: () => {
@@ -572,15 +578,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             {
                                                 src: `fa-sharp fa-regular fa-globe guide-user-editor-11-icon`,
                                                 index: 'color',
-                                                hint: '全站樣式'
+                                                hint: '全站樣式',
                                             },
                                             {
                                                 src: `fa-regular fa-grid-2 design-guide-1-icon`,
                                                 index: 'widget',
-                                                hint: '設計元件'
-                                            }
+                                                hint: '設計元件',
+                                            },
                                         ]
-                                            .filter((dd) => {
+                                            .filter(dd => {
                                             if (gvc.glitter.getUrlParameter('device') === 'mobile') {
                                                 return dd.index !== 'widget';
                                             }
@@ -590,36 +596,40 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         })
                                             .map((da) => {
                                             return html `<i
-                                                                            class=" ${da.src} fs-5 fw-bold   p-2 rounded"
-                                                                            data-bs-toggle="tooltip"
-                                                                            data-bs-placement="top"
-                                                                            data-bs-custom-class="custom-tooltip"
-                                                                            data-bs-title="${da.hint}"
-                                                                            style="cursor:pointer;
-${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+                                class=" ${da.src} fs-5 fw-bold   p-2 rounded"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="${da.hint}"
+                                style="cursor:pointer;
+${Storage.page_setting_item === `${da.index}`
+                                                ? `background:${EditorConfig.editor_layout.btn_background};color:white;`
+                                                : ``}
 "
-                                                                            onclick="${gvc.event(() => {
+                                onclick="${gvc.event(() => {
                                                 viewModel.waitCopy = undefined;
                                                 viewModel.selectItem = undefined;
                                                 Storage.page_setting_item = da.index;
-                                                gvc.notifyDataChange(["MainEditorLeft", "left_sm_bar"]);
+                                                gvc.notifyDataChange(['MainEditorLeft', 'left_sm_bar']);
                                             })}"
-                                                                    ></i>`;
+                              ></i>`;
                                         })
                                             .join('')}`;
                                     },
                                     divCreate: {
                                         style: `width:60px;gap:20px;padding-top: 15px;min-width:60px;`,
-                                        class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`,
+                                        class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor'
+                                            ? ``
+                                            : `d-none`} h-120 border-end d-flex flex-column align-items-center`,
                                     },
                                     onCreate: () => {
                                         $('.tooltip').remove();
                                         $('[data-bs-toggle="tooltip"]').tooltip();
-                                    }
+                                    },
                                 };
                             })}
-                                            <div
-                                                    class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
+                    <div
+                      class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
                                 switch (Storage.select_function) {
                                     case 'backend-manger':
                                     case 'server-manager':
@@ -630,10 +640,13 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         return `p-0`;
                                 }
                             })()}"
-                                                    style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - ${(document.body.clientWidth < 800 || document.body.clientWidth > 1200) ? 56 : (parseInt(glitter.share.top_inset, 10) + 56)}px);"
-                                            >
-                                                <div class="h-120">
-                                                    ${gvc.bindView(() => {
+                      style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - ${document.body.clientWidth < 800 ||
+                                document.body.clientWidth > 1200
+                                ? 56
+                                : parseInt(glitter.share.top_inset, 10) + 56}px);"
+                    >
+                      <div class="h-120">
+                        ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
                                     view: () => __awaiter(void 0, void 0, void 0, function* () {
@@ -646,7 +659,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                 case 'page-editor':
                                                 case 'user-editor':
                                                     if (Storage.select_function === 'user-editor') {
-                                                        if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
+                                                        if (!viewModel.data.page_config ||
+                                                            viewModel.data.page_config.support_editor !== 'true') {
                                                             console.log(glitter.root_path);
                                                         }
                                                     }
@@ -673,10 +687,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                     },
                                 };
                             })}
-                                                </div>
-                                                <div class="swiper-scrollbar end-0"></div>
-                                            </div>
-                                        </div>`, gvc.bindView({
+                      </div>
+                      <div class="swiper-scrollbar end-0"></div>
+                    </div>
+                  </div>`, gvc.bindView({
                                 bind: 'MainEditorRight',
                                 view: () => {
                                     return ``;
@@ -723,7 +737,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                     else {
                                     }
                                 }
-                                (ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).then((res) => {
+                                ApiUser.getSaasUserData(GlobalUser.saas_token, 'me').then(res => {
                                     const userData = res.response;
                                     if (!userData.userData.name || !userData.userData.contact_phone) {
                                         SaasViewModel.setContactInfo(gvc);
@@ -742,20 +756,19 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                 },
             });
         },
-        onCreate: () => {
-        },
+        onCreate: () => { },
         onResume: () => {
             setTimeout(() => {
                 gvc.notifyDataChange('MainEditorLeft');
             }, 100);
-        }
+        },
     };
 });
 function initialEditor(gvc, viewModel) {
     var _a;
     const glitter = gvc.glitter;
     setTimeout(() => {
-        if (EditorConfig.backend_page() === 'backend-manger' && (glitter.getUrlParameter('page') !== 'cms')) {
+        if (EditorConfig.backend_page() === 'backend-manger' && glitter.getUrlParameter('page') !== 'cms') {
             setTimeout(() => {
                 glitter.setUrlParameter('page', 'cms');
             }, 100);
@@ -768,13 +781,13 @@ function initialEditor(gvc, viewModel) {
         dialog.dataLoading({ visible: true });
         AiChat.generateHtml({
             app_name: window.appName,
-            text: message
-        }).then((res) => {
+            text: message,
+        }).then(res => {
             if (res.result && res.response.data.usage === 0) {
                 dialog.dataLoading({ visible: false });
                 dialog.errorMessage({ text: `很抱歉你的AI代幣不足，請先前往加值` });
             }
-            else if (res.result && (!res.response.data.obj.result)) {
+            else if (res.result && !res.response.data.obj.result) {
                 dialog.dataLoading({ visible: false });
                 dialog.errorMessage({ text: `AI無法理解你的需求，請給出具體一點的描述` });
             }
@@ -785,112 +798,113 @@ function initialEditor(gvc, viewModel) {
             else {
                 res.response.data.obj.html;
                 AddComponent.addWidget(gvc, {
-                    "id": "s7scs2s9s3s5s8sc",
-                    "js": "./official_view_component/official.js",
-                    "css": { "class": {}, "style": {} },
-                    "data": {
-                        "refer_app": "shop_template_black_style",
-                        "tag": "custom-code",
-                        "list": [],
-                        "carryData": {},
-                        "_style_refer_global": { "index": "0" },
-                        "_style_refer": "custom",
-                        "elem": "div",
-                        "inner": "",
-                        "attr": [],
-                        "_padding": {},
-                        "_margin": {},
-                        "_border": {},
-                        "_max_width": "1200",
-                        "_gap": "",
-                        "_background": "",
-                        "_other": {},
-                        "_radius": "",
-                        "_reverse": "false",
-                        "_hor_position": "center",
-                        "_background_setting": { "type": "none" },
-                        "refer_form_data": {
-                            "code": res.response.data.obj.html,
-                            "width": { "unit": "px", "value": "0px", "number": "0" },
-                            "height": {
-                                "unit": "px",
-                                "value": "50px",
-                                "number": "50"
+                    id: 's7scs2s9s3s5s8sc',
+                    js: './official_view_component/official.js',
+                    css: { class: {}, style: {} },
+                    data: {
+                        refer_app: 'shop_template_black_style',
+                        tag: 'custom-code',
+                        list: [],
+                        carryData: {},
+                        _style_refer_global: { index: '0' },
+                        _style_refer: 'custom',
+                        elem: 'div',
+                        inner: '',
+                        attr: [],
+                        _padding: {},
+                        _margin: {},
+                        _border: {},
+                        _max_width: '1200',
+                        _gap: '',
+                        _background: '',
+                        _other: {},
+                        _radius: '',
+                        _reverse: 'false',
+                        _hor_position: 'center',
+                        _background_setting: { type: 'none' },
+                        refer_form_data: {
+                            code: res.response.data.obj.html,
+                            width: { unit: 'px', value: '0px', number: '0' },
+                            height: {
+                                unit: 'px',
+                                value: '50px',
+                                number: '50',
                             },
-                            "with_bg": "false",
-                            "background": {
-                                "id": "custom-background",
-                                "title": "#030303",
-                                "content": "#000000",
-                                "sec-title": "#000000",
-                                "background": "#ffffff",
-                                "sec-background": "#FFFFFF",
-                                "solid-button-bg": "#000000",
-                                "border-button-bg": "#000000",
-                                "solid-button-text": "#ffffff",
-                                "border-button-text": "#000000"
-                            }
-                        }
+                            with_bg: 'false',
+                            background: {
+                                id: 'custom-background',
+                                title: '#030303',
+                                content: '#000000',
+                                'sec-title': '#000000',
+                                background: '#ffffff',
+                                'sec-background': '#FFFFFF',
+                                'solid-button-bg': '#000000',
+                                'border-button-bg': '#000000',
+                                'solid-button-text': '#ffffff',
+                                'border-button-text': '#000000',
+                            },
+                        },
                     },
-                    "type": "component",
-                    "class": "w-100",
-                    "index": 0,
-                    "label": "自定義HTML代碼",
-                    "style": "",
-                    "bundle": {},
-                    "global": [],
-                    "toggle": true,
-                    "stylist": [],
-                    "dataType": "static",
-                    "style_from": "code",
-                    "classDataType": "static",
-                    "preloadEvenet": {},
-                    "share": {},
-                    "formData": {},
-                    "refreshAllParameter": {},
-                    "editor_bridge": {},
-                    "refreshComponentParameter": {},
-                    "list": [],
-                    "version": "v2",
-                    "storage": {},
-                    "mobile": {
-                        "id": "s7scs2s9s3s5s8sc",
-                        "js": "./official_view_component/official.js",
-                        "css": { "class": {}, "style": {} },
-                        "data": { "refer_app": "shop_template_black_style" },
-                        "type": "component",
-                        "class": "w-100",
-                        "index": 0,
-                        "label": "自定義HTML代碼",
-                        "style": "",
-                        "global": [],
-                        "toggle": true,
-                        "stylist": [],
-                        "dataType": "static",
-                        "style_from": "code",
-                        "classDataType": "static",
-                        "preloadEvenet": {},
-                        "refreshAllParameter": {},
-                        "editor_bridge": {},
-                        "refreshComponentParameter": {},
-                        "list": [],
-                        "version": "v2",
-                        "mobile_editable": [],
-                        "desktop_editable": [],
-                        "container_fonts": 0,
-                        "visible": true,
-                        "refer": "custom"
+                    type: 'component',
+                    class: 'w-100',
+                    index: 0,
+                    label: '自定義HTML代碼',
+                    style: '',
+                    bundle: {},
+                    global: [],
+                    toggle: true,
+                    stylist: [],
+                    dataType: 'static',
+                    style_from: 'code',
+                    classDataType: 'static',
+                    preloadEvenet: {},
+                    share: {},
+                    formData: {},
+                    refreshAllParameter: {},
+                    editor_bridge: {},
+                    refreshComponentParameter: {},
+                    list: [],
+                    version: 'v2',
+                    storage: {},
+                    mobile: {
+                        id: 's7scs2s9s3s5s8sc',
+                        js: './official_view_component/official.js',
+                        css: { class: {}, style: {} },
+                        data: { refer_app: 'shop_template_black_style' },
+                        type: 'component',
+                        class: 'w-100',
+                        index: 0,
+                        label: '自定義HTML代碼',
+                        style: '',
+                        global: [],
+                        toggle: true,
+                        stylist: [],
+                        dataType: 'static',
+                        style_from: 'code',
+                        classDataType: 'static',
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        editor_bridge: {},
+                        refreshComponentParameter: {},
+                        list: [],
+                        version: 'v2',
+                        mobile_editable: [],
+                        desktop_editable: [],
+                        container_fonts: 0,
+                        visible: true,
+                        refer: 'custom',
                     },
-                    "mobile_editable": [],
-                    "desktop": {
-                        "data": {
-                            "refer_app": "shop_template_black_style",
-                            "refer_form_data": {}
-                        }, "refer": "custom"
+                    mobile_editable: [],
+                    desktop: {
+                        data: {
+                            refer_app: 'shop_template_black_style',
+                            refer_form_data: {},
+                        },
+                        refer: 'custom',
                     },
-                    "desktop_editable": [],
-                    "container_fonts": 0,
-                    "visible": true
+                    desktop_editable: [],
+                    container_fonts: 0,
+                    visible: true,
                 });
                 dialog.successMessage({ text: `AI生成完畢，使用了『${res.response.data.usage}』點 AI Points.` });
             }
@@ -904,12 +918,14 @@ function initialEditor(gvc, viewModel) {
             backGroundColor: `transparent;`,
             carry_search: [
                 {
-                    key: 'device', value: device
+                    key: 'device',
+                    value: device,
                 },
                 {
-                    key: 'function', value: 'user-editor'
-                }
-            ]
+                    key: 'function',
+                    value: 'user-editor',
+                },
+            ],
         });
     };
     glitter.share.subscription = (title) => __awaiter(this, void 0, void 0, function* () {
@@ -923,11 +939,11 @@ function initialEditor(gvc, viewModel) {
                 email: '',
                 invoice_type: 'me',
                 company: '',
-                gui_number: ''
+                gui_number: '',
             },
-            customer_info: {}
+            customer_info: {},
         };
-        const dd = (yield ApiUser.getPublicConfig('ai-points-store', 'manager'));
+        const dd = yield ApiUser.getPublicConfig('ai-points-store', 'manager');
         if (dd.response.value) {
             vm.user_info = dd.response.value;
         }
@@ -949,15 +965,17 @@ function initialEditor(gvc, viewModel) {
             page: 0,
             searchType: 'sku',
             search: sku,
-            app_name: window.parent.glitterBase
+            app_name: window.parent.glitterBase,
         });
-        vm.line_items = [{
+        vm.line_items = [
+            {
                 id: product.response.data[0].id,
                 spec: product.response.data[0].content.variants.find((dd) => {
                     return dd.sku === sku;
                 }).spec,
-                count: 1
-            }];
+                count: 1,
+            },
+        ];
         BgWidget.settingDialog({
             gvc: gvc,
             title: title,
@@ -967,52 +985,62 @@ function initialEditor(gvc, viewModel) {
                         gvc: gvc,
                         title: `發票寄送電子信箱`,
                         placeHolder: '請輸入發票寄送電子信箱',
-                        callback: (text) => {
+                        callback: text => {
                             vm.user_info.email = text;
                         },
                         type: 'email',
-                        default: vm.user_info.email
+                        default: vm.user_info.email,
                     }),
                     `<div class="tx_normal fw-normal" >發票開立方式</div>`,
                     BgWidget.select({
-                        gvc: gvc, callback: (text) => {
+                        gvc: gvc,
+                        callback: text => {
                             vm.user_info.invoice_type = text;
                             gvc.recreateView();
-                        }, options: [
+                        },
+                        options: [
                             { key: 'me', value: '個人單位' },
-                            { key: 'company', value: '公司行號' }
-                        ], default: vm.user_info.invoice_type
+                            { key: 'company', value: '公司行號' },
+                        ],
+                        default: vm.user_info.invoice_type,
                     }),
                     ...(() => {
                         if (vm.user_info.invoice_type === 'company') {
                             return [
                                 BgWidget.editeInput({
-                                    gvc: gvc, title: `發票抬頭`, placeHolder: '請輸入發票抬頭', callback: (text) => {
+                                    gvc: gvc,
+                                    title: `發票抬頭`,
+                                    placeHolder: '請輸入發票抬頭',
+                                    callback: text => {
                                         vm.user_info.company = text;
-                                    }, type: 'text', default: `${vm.user_info.company}`
+                                    },
+                                    type: 'text',
+                                    default: `${vm.user_info.company}`,
                                 }),
                                 BgWidget.editeInput({
                                     gvc: gvc,
                                     title: `公司統一編號`,
                                     placeHolder: '請輸入統一編號',
-                                    callback: (text) => {
+                                    callback: text => {
                                         vm.user_info.gui_number = text;
                                     },
                                     type: 'number',
-                                    default: `${vm.user_info.gui_number}`
-                                })
+                                    default: `${vm.user_info.gui_number}`,
+                                }),
                             ];
                         }
                         else {
                             return [];
                         }
-                    })()
+                    })(),
                 ].join(`<div class="my-2"></div>`)}</div>`;
             },
             footer_html: (gvc) => {
-                return [BgWidget.cancel(gvc.event(() => {
+                return [
+                    BgWidget.cancel(gvc.event(() => {
                         gvc.closeDialog();
-                    })), BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                    })),
+                    BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                         if (vm.user_info.invoice_type !== 'company') {
                             vm.user_info.company = '';
                             vm.user_info.gui_number = '';
@@ -1044,10 +1072,10 @@ function initialEditor(gvc, viewModel) {
                             user_id: 'manager',
                         });
                         vm.note = {
-                            invoice_data: vm.user_info
+                            invoice_data: vm.user_info,
                         };
                         vm.customer_info = {
-                            "payment_select": "ecPay"
+                            payment_select: 'ecPay',
                         };
                         vm.user_info.appName = window.parent.appName;
                         BaseApi.create({
@@ -1056,7 +1084,7 @@ function initialEditor(gvc, viewModel) {
                             headers: {
                                 'Content-Type': 'application/json',
                                 'g-app': 'shopnex',
-                                'Authorization': GlobalUser.saas_token,
+                                Authorization: GlobalUser.saas_token,
                             },
                             data: JSON.stringify(vm),
                         }).then((res) => __awaiter(this, void 0, void 0, function* () {
@@ -1064,14 +1092,16 @@ function initialEditor(gvc, viewModel) {
                             if (res.response.form) {
                                 const id = gvc.glitter.getUUID();
                                 if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                                    gvc.glitter.runJsInterFace("toCheckout", {
-                                        form: res.response.form
+                                    gvc.glitter.runJsInterFace('toCheckout', {
+                                        form: res.response.form,
                                     }, () => {
                                         window.parent.location.reload();
                                     });
                                 }
                                 else {
-                                    window.$('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    window
+                                        .$('body')
+                                        .append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     window.document.querySelector(`#${id} #submit`).click();
                                 }
                                 gvc.closeDialog();
@@ -1080,8 +1110,9 @@ function initialEditor(gvc, viewModel) {
                                 dialog.errorMessage({ text: '發生錯誤' });
                             }
                         }));
-                    })))].join('');
-            }
+                    }))),
+                ].join('');
+            },
         });
     });
     if (gvc.glitter.getUrlParameter('device') === 'mobile') {
@@ -1095,8 +1126,7 @@ function initialEditor(gvc, viewModel) {
     glitter.share.swal = swal;
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
-            swal.nextStep(`請先複製元件`, () => {
-            }, 'error');
+            swal.nextStep(`請先複製元件`, () => { }, 'error');
             return;
         }
         let copy = JSON.parse(glitter.share.copycomponent);
@@ -1195,7 +1225,7 @@ function initialEditor(gvc, viewModel) {
         Storage.lastSelect = data.id;
         glitter.htmlGenerate.hover_items = [Storage.lastSelect];
         data.data._style_refer_global = {
-            index: `0`
+            index: `0`,
         };
         console.log('viewModel.selectContainer==>', viewModel.selectContainer);
         console.log('viewModel.selectContainer.container_config==>', viewModel.selectContainer.container_config);
@@ -1203,8 +1233,7 @@ function initialEditor(gvc, viewModel) {
             try {
                 viewModel.selectContainer.container_config.getElement().recreateView();
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
         else {
             $(viewModel.selectContainer.container_config.getElement()).append(glitter.htmlGenerate.renderWidgetSingle({
@@ -1237,7 +1266,9 @@ function initialEditor(gvc, viewModel) {
                     glitter.share.loading_dialog.dataLoading({ visible: false });
                 }, 1000);
             }, 100);
-            viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
+            viewModel.selectContainer &&
+                viewModel.selectContainer.rerenderReplaceElem &&
+                viewModel.selectContainer.rerenderReplaceElem();
         }
         AddComponent.toggle(false);
     };
@@ -1292,9 +1323,20 @@ function initialEditor(gvc, viewModel) {
             }, 1000);
         }, 100);
         AddComponent.toggle(false);
-        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
+        viewModel.selectContainer &&
+            viewModel.selectContainer.rerenderReplaceElem &&
+            viewModel.selectContainer.rerenderReplaceElem();
     };
     shortCutKey(gvc);
+    ApiPageConfig.getPageTemplate({
+        template_from: 'all',
+        page: '0',
+        limit: '3000',
+        type: 'module',
+        tag: '標頭元件,商品卡片,頁腳元件',
+    }).then(res => {
+        glitter.share._global_component = res.response.result.data;
+    });
 }
 function shortCutKey(gvc) {
     document.addEventListener('keydown', function (event) {

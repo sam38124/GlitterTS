@@ -20,7 +20,7 @@ export class BgProduct {
         return window.parent.glitter.innerDialog((gvc) => {
             return html `
         <div class="bg-white shadow rounded-3">
-          <div class="px-3" style="max-height: calc(100vh - 100px);overflow-y: auto;">
+          <div class="px-3" style="max-height: calc(100vh - 100px); overflow-y: auto;">
             ${StockList.main(gvc, {
                 title: '選擇商品',
                 select_data: add_items,
@@ -82,7 +82,7 @@ export class BgProduct {
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main p-3" style="gap: 12px; min-height: 480px; max-height: 480px;">
+                  <div class="c_dialog_main p-3" style="gap: 12px; min-height: 480px; max-height: 500px;">
                     <div class="d-flex mb-2" style="gap: 6px;">
                       ${BgWidget.selectFilter({
                         gvc,
@@ -116,11 +116,8 @@ export class BgProduct {
                         return !obj.filter || obj.filter(dd);
                     })
                         .map((opt, index) => {
-                        const id = gvc.glitter.getUUID();
-                        vm.ids.push({
-                            key: opt.key,
-                            id: id,
-                        });
+                        const id = `ProductsDialog${index}`;
+                        vm.ids.push({ key: opt.key, id: id });
                         function call() {
                             if (obj.single) {
                                 const tempArray = JSON.parse(JSON.stringify(obj.default));
@@ -147,77 +144,100 @@ export class BgProduct {
                             }
                             gvc.notifyDataChange(id);
                         }
-                        return (gvc.bindView(() => {
-                            return {
-                                bind: id,
-                                view: () => {
-                                    var _a;
-                                    return html `<input
-                                        class="form-check-input mt-0 ${vm.checkClass} cursor_pointer"
-                                        type="checkbox"
-                                        id="${opt.key}"
-                                        name="radio_${vm.id}_${index}"
-                                        onclick="${gvc.event(() => call())}"
-                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                      />
-                                      <div class="d-flex align-items-center justify-content-between w-100">
-                                        <div>
-                                          <div
-                                            class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                            style="max-width: ${document.body.clientWidth > 768 ? 500 : 220}px;"
-                                          >
-                                            ${BgWidget.validImageBox({
-                                        gvc: gvc,
-                                        image: opt.image,
-                                        width: 40,
-                                        class: 'cursor_pointer',
-                                        events: [
-                                            {
-                                                key: 'onclick',
-                                                value: gvc.event(() => call()),
-                                            },
-                                        ],
-                                    })}
-                                            <div class="d-flex flex-column">
-                                              <div
-                                                class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2 cursor_pointer"
-                                                style="text-wrap: auto;"
-                                                onclick="${gvc.event(() => call())}"
-                                              >
-                                                ${obj.show_product_type
-                                        ? BgWidget.infoInsignia(ProductConfig.getName(opt.content))
-                                        : ''}${opt.value}
-                                              </div>
-                                              ${opt.sub_title
-                                        ? html `
-                                                    <div class="fw-500" style="color:grey;font-size:13px;">
-                                                      ${opt.sub_title}
-                                                    </div>
-                                                  `
-                                        : ''}
+                        return (gvc.bindView({
+                            bind: id,
+                            view: () => {
+                                return html `<input
+                                      class="form-check-input mt-0 ${vm.checkClass} cursor_pointer"
+                                      type="checkbox"
+                                      id="${opt.key}"
+                                      name="radio_${vm.id}_${index}"
+                                      onclick="${gvc.event(() => call())}"
+                                      ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                    />
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                      <div>
+                                        <div
+                                          class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                          style="max-width: ${document.body.clientWidth > 768 ? 500 : 220}px;"
+                                        >
+                                          ${BgWidget.validImageBox({
+                                    gvc: gvc,
+                                    image: opt.image,
+                                    width: 40,
+                                    class: 'cursor_pointer',
+                                    events: [
+                                        {
+                                            key: 'onclick',
+                                            value: gvc.event(() => call()),
+                                        },
+                                    ],
+                                })}
+                                          <div class="d-flex flex-column">
+                                            <div
+                                              class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex gap-2 cursor_pointer"
+                                              style="text-wrap: auto;"
+                                              onclick="${gvc.event(() => call())}"
+                                            >
+                                              ${opt.value}
                                             </div>
+                                            ${opt.sub_title
+                                    ? html `
+                                                  <div class="fw-500" style="color: grey; font-size: 13px;">
+                                                    ${opt.sub_title}
+                                                  </div>
+                                                `
+                                    : ''}
                                           </div>
+                                        </div>
+                                        ${(() => {
+                                    var _a, _b;
+                                    const isVisibleProduct = opt.content.visible === 'false' && !obj.show_product_type
+                                        ? BgWidget.warningInsignia('隱形商品', { size: 'sm' })
+                                        : '';
+                                    const productCategory = obj.show_product_type
+                                        ? BgWidget.infoInsignia(ProductConfig.getName(opt.content), {
+                                            size: 'sm',
+                                        })
+                                        : '';
+                                    const collections = (_b = (_a = opt.content) === null || _a === void 0 ? void 0 : _a.collection) === null || _b === void 0 ? void 0 : _b.filter(Boolean).map((col) => BgWidget.normalInsignia(col, { size: 'sm' })).join('');
+                                    const renderString = `${isVisibleProduct}${productCategory}${collections}`;
+                                    return renderString
+                                        ? html `<div class="d-flex flex-wrap gap-1 mt-2">${renderString}</div>`
+                                        : '';
+                                })()}
+                                      </div>
+                                      <div class="text-end">
+                                        <div class="tx_normal_14">
                                           ${(() => {
-                                        var _a, _b;
-                                        const collections = (_b = (_a = opt.content) === null || _a === void 0 ? void 0 : _a.collection) === null || _b === void 0 ? void 0 : _b.filter(Boolean).map((col) => BgWidget.normalInsignia(col, { size: 'sm' })).join('');
-                                        return collections
-                                            ? html `<div class="d-flex flex-wrap gap-1 mt-2">${collections}</div>`
-                                            : '';
-                                    })()}
+                                    const contentMap = {
+                                        price: () => {
+                                            var _a, _b;
+                                            return html `$${parseInt(`${(_a = opt.content[vm.orderString || 'min_price']) !== null && _a !== void 0 ? _a : opt.content.variants[(_b = opt.variant_index) !== null && _b !== void 0 ? _b : 0].sale_price}`, 10).toLocaleString()}`;
+                                        },
+                                        stock: () => {
+                                            var _a, _b;
+                                            const variant = opt.content.variants[(_a = opt.variant_index) !== null && _a !== void 0 ? _a : 0];
+                                            if (variant.show_understocking === 'false') {
+                                                return '不追蹤庫存';
+                                            }
+                                            const n = Number(opt.content.variants[(_b = opt.variant_index) !== null && _b !== void 0 ? _b : 0].stock);
+                                            return html `庫存 ${(isNaN(n) ? 0 : n).toLocaleString()} 個`;
+                                        },
+                                    };
+                                    return (obj.right_element_type
+                                        ? contentMap[obj.right_element_type]
+                                        : contentMap.price)();
+                                })()}
                                         </div>
-                                        <div class="text-end">
-                                          <div class="tx_normal_14">
-                                            $${parseInt(`${(_a = opt.content[vm.orderString || 'min_price']) !== null && _a !== void 0 ? _a : opt.content.variants[0].sale_price}`, 10).toLocaleString()}
-                                          </div>
-                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                        </div>
-                                      </div>`;
-                                },
-                                divCreate: {
-                                    class: 'd-flex align-items-center',
-                                    style: 'gap: 24px',
-                                },
-                            };
+                                        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                      </div>
+                                    </div>`;
+                            },
+                            divCreate: {
+                                class: 'd-flex align-items-center',
+                                style: `gap: ${document.body.clientWidth > 800 ? 24 : 12}px`,
+                            },
                         }) + BgWidget.horizontalLine({ margin: 0.15 }));
                     }))
                         .trim() ||
@@ -269,18 +289,14 @@ export class BgProduct {
                             data.response.data.map((product) => {
                                 var _a;
                                 const image = (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL;
-                                const value = [
-                                    product.content.visible === 'false' ? BgWidget.warningInsignia('隱形商品') : '',
-                                    product.content.title,
-                                ]
-                                    .filter(Boolean)
-                                    .join('');
+                                const title = product.content.title;
                                 if (obj.with_variants) {
-                                    product.content.variants.map((variant) => {
+                                    product.content.variants.map((variant, index) => {
                                         vm.options.push({
                                             key: `${product.content.id}-${variant.spec.join('-')}`,
                                             sub_title: variant.spec.join('-') ? `規格:${variant.spec.join('-')}` : '',
-                                            value: value,
+                                            variant_index: index,
+                                            value: title,
                                             content: product.content,
                                             image: image,
                                         });
@@ -289,7 +305,7 @@ export class BgProduct {
                                 else {
                                     vm.options.push({
                                         key: product.content.id,
-                                        value: value,
+                                        value: title,
                                         content: product.content,
                                         image: image,
                                     });

@@ -40,10 +40,18 @@ export class PaymentConfig {
     },
     {
       key: 'ut_credit_card',
-      name: '聯合信用卡',
+      name: '高鉅信用卡支付',
       type: 'pos',
-      img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg',
+      img: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAgCAMAAADZqYNOAAAALVBMVEXzmB5HcEzzmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB5P11V9AAAAD3RSTlP/AEsrpvPHDhwH2XGJYTqdn/9qAAAA4UlEQVQokX3TSQLDIAgFUBBBTTT3P26BTK1a/6KDzxJFC5hoTMEzgAHGsBwL1exLdf6vkJdal7otlUk1hy7bzUF1zK1tqvLsaabbStvw3BblzrMoX/P37HG/iPt8v82V5ih+ChjndZNr5hnG6/SPZ4QlXtnzcHMkjz19tTyDpZTz7dXzSVUkYGMO+pH5Vb9m/sXOgW2j9dVq6rs7bKVVZ/SVGbTP9ZrV8Fe12hGtwdYEwU4jcAp+VysAdVo2/UFiK70D507JV66ly5eyxbR60Wavt2I6o+3JRNYiomT/Wx34AAcuBkbh8b8BAAAAAElFTkSuQmCC',
     },
+    // {
+    //   key: 'my_pay',
+    //   name: '高鉅信用卡支付',
+    //   type: 'pos',
+    //   img: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAgCAMAAADZqYNOAAAALVBMVEXzmB5HcEzzmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB7zmB5P11V9AAAAD3RSTlP/AEsrpvPHDhwH2XGJYTqdn/9qAAAA4UlEQVQokX3TSQLDIAgFUBBBTTT3P26BTK1a/6KDzxJFC5hoTMEzgAHGsBwL1exLdf6vkJdal7otlUk1hy7bzUF1zK1tqvLsaabbStvw3BblzrMoX/P37HG/iPt8v82V5ih+ChjndZNr5hnG6/SPZ4QlXtnzcHMkjz19tTyDpZTz7dXzSVUkYGMO+pH5Vb9m/sXOgW2j9dVq6rs7bKVVZ/SVGbTP9ZrV8Fe12hGtwdYEwU4jcAp+VysAdVo2/UFiK70D507JV66ly5eyxbR60Wavt2I6o+3JRNYiomT/Wx34AAcuBkbh8b8BAAAAAElFTkSuQmCC',
+    // },
+
+
   ];
 
   public static defalutOfflinePay = [

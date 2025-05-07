@@ -178,6 +178,12 @@ export class Private_config {
           SECRET_KEY: '',
         };
       }
+      // 高鉅科技
+      if(!keyData.my_pay){
+        keyData.my_pay = {
+          STORE_ID: ''
+        }
+      }
       ['paypal', 'newWebPay', 'ecPay'].map(dd => {
         if (keyData[dd].toggle) {
           keyData.TYPE = dd;

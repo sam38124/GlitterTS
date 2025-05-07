@@ -27,3 +27,4 @@ try {
 } catch (e) {
     console.log(e);
 }
+//widget.bundle.form_config['input_style']

@@ -1801,10 +1801,14 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                             if (subVM.loading) {
                                               return BgWidget.spinner();
                                             }
+
+                                            vm.data.content.relative_data ??= [];
+                                            const relativeCloneData = structuredClone(vm.data.content.relative_data);
+
                                             return html`
                                               <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                 <div
-                                                  class="d-flex align-items-center gray-bottom-line-18 "
+                                                  class="d-flex align-items-center gray-bottom-line-18"
                                                   style="gap: 24px; justify-content: space-between;"
                                                 >
                                                   <div class="form-check-label c_updown_label">
@@ -1815,27 +1819,22 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                     gvc.event(() => {
                                                       BgProduct.productsDialog({
                                                         gvc: gvc,
-                                                        default: vm.data.content.relative_data.map((dd: any) => {
-                                                          return `${dd.product_id}-${dd.variant.spec.join('-')}`;
-                                                        }),
+                                                        default: relativeCloneData.map(
+                                                          (dd: any) => `${dd.product_id}-${dd.variant.spec.join('-')}`
+                                                        ),
                                                         with_variants: true,
                                                         filter_visible: page_tab === 'hidden' ? 'false' : 'true',
-                                                        callback: async value => {
-                                                          vm.data.content.relative_data =
-                                                            vm.data.content.relative_data ?? [];
-                                                          vm.data.content.relative_data =
-                                                            vm.data.content.relative_data.concat(
-                                                              value.map((dd: any) => {
-                                                                return {
-                                                                  variant: {
-                                                                    spec: dd
-                                                                      .split('-')
-                                                                      .filter((_: any, index: number) => index > 0),
-                                                                  },
-                                                                  product_id: dd.split('-')[0],
-                                                                };
-                                                              })
-                                                            );
+                                                        callback: specArray => {
+                                                          vm.data.content.relative_data = specArray.map((spec: any) => {
+                                                            return {
+                                                              variant: {
+                                                                spec: spec
+                                                                  .split('-')
+                                                                  .filter((_: any, index: number) => index > 0),
+                                                              },
+                                                              product_id: spec.split('-')[0],
+                                                            };
+                                                          });
 
                                                           subVM.loading = true;
                                                           gvc.notifyDataChange(subVM.id);
@@ -1852,7 +1851,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                         class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                       >
                                                         <span class="tx_normal" style="min-width: 20px;"
-                                                          >${index + 1} .</span
+                                                          >${index + 1}.</span
                                                         >
                                                         ${BgWidget.validImageBox({
                                                           gvc: gvc,

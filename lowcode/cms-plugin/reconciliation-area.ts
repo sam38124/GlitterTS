@@ -20,6 +20,7 @@ import { POSSetting } from './POS-setting.js';
 import { PosFunction } from './pos-pages/pos-function.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { OrderInfo } from '../public-models/order-info.js';
+import { TableStorage } from './module/table-storage.js';
 
 const html = String.raw;
 
@@ -43,6 +44,7 @@ interface ViewModel {
   apiJSON: any;
   checkedData: any[];
   headerConfig: string[];
+  listLimit: number;
 }
 
 //共用樣式
@@ -147,6 +149,7 @@ export class ReconciliationArea {
       apiJSON: {},
       checkedData: [],
       headerConfig: [],
+      listLimit: TableStorage.getLimit(),
     };
     return gvc.bindView(() => {
       const id = gvc.glitter.getUUID();
@@ -443,6 +446,14 @@ export class ReconciliationArea {
                                     vm.query || '',
                                     '搜尋訂單'
                                   ),
+                                  BgWidget.countingFilter({
+                                    gvc,
+                                    callback: value => {
+                                      vm.listLimit = value;
+                                      gvc.notifyDataChange(vm.id);
+                                    },
+                                    default: vm.listLimit,
+                                  }),
                                   BgWidget.funnelFilter({
                                     gvc,
                                     callback: () => {
@@ -471,10 +482,9 @@ export class ReconciliationArea {
                             defPage: ReconciliationArea.vm.page,
                             getData: vmi => {
                               ReconciliationArea.vm.page = vmi.page;
-                              const limit = 20;
                               vm.apiJSON = {
                                 page: vmi.page - 1,
-                                limit: limit,
+                                limit: vm.listLimit,
                                 search: vm.query || undefined,
                                 searchType: vm.queryType || 'cart_token',
                                 orderString: vm.orderString,
@@ -583,7 +593,7 @@ export class ReconciliationArea {
                                 }
 
                                 vm.dataList = data.response.data;
-                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                 vmi.originalData = vm.dataList;
                                 vmi.tableData = getDatalist();
                                 vmi.loading = false;

@@ -91,6 +91,7 @@ export class PosSummary {
                         onclick="${gvc.event((e, event) => {
                           PosFunction.setMoney(
                             gvc,
+                            dd.real,
                             response => {
                               dd.real = response || 0;
                               e.value = response || 0;
@@ -133,6 +134,7 @@ export class PosSummary {
               onclick="${gvc.event((e, event) => {
                 PosFunction.setMoney(
                   gvc,
+                  money,
                   response => {
                     e.value = `${response}`;
                     money = response || 0;
@@ -483,9 +485,10 @@ export class PosSummary {
                     text: html`${PosWidget.fontBold('要從錢箱匯出的金額')}
                       <input
                         class="form-control mt-2"
-                        onclick="${gvc.event((e, event) => {
+                        onclick="${gvc.event(e => {
                           PosFunction.setMoney(
                             gvc,
+                            money,
                             response => {
                               if (response > min_) {
                                 dialog.errorMessage({ text: '錢箱金額不足' });

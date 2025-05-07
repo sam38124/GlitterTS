@@ -202,10 +202,10 @@ export class PaymentPage {
                       ${(() => {
                         if (orderDetail.lineItems.length > 0) {
                           return orderDetail.lineItems
-                            .map((data: any) => {
+                            .map((data: any, index: number) => {
                               return html`
                                 <div class="d-flex" style="">
-                                  <div class="col-9 col-sm-6 d-flex align-items-center">
+                                  <div class="col-12 col-sm-6 d-flex align-items-center">
                                     <div
                                       class="d-flex flex-column align-items-center justify-content-center"
                                       style="gap:5px;width:75px;"
@@ -234,6 +234,19 @@ export class PaymentPage {
                                     </div>
                                     <div
                                       class="d-flex flex-column py-2"
+                                      onclick="${gvc.event(() => {
+                                        const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+
+                                        PosFunction.setMoney(
+                                          gvc,
+                                          def,
+                                          count => {
+                                            obj.ogOrderData.lineItems[index].count = count;
+                                            refreshOrderView();
+                                          },
+                                          '更改商品數量'
+                                        );
+                                      })}"
                                       style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
                                     >
                                       <div class="d-flex justify-content-center flex-column" style="gap:5px;">
@@ -241,7 +254,7 @@ export class PaymentPage {
                                           if (!data.pre_order) {
                                             return ``;
                                           } else {
-                                            return html`<div>${BgWidget.dangerInsignia('需預購')}</div>`;
+                                            return html` <div>${BgWidget.dangerInsignia('需預購')}</div>`;
                                           }
                                         })()}
                                         ${data.title}
@@ -269,15 +282,107 @@ export class PaymentPage {
                                           </div>`
                                         : ``}
                                     </div>
+                                    <div class="flex-fill"></div>
+                                    <div
+                                      class="d-sm-none d-flex align-items-center justify-content-center flex-column"
+                                      style="gap:0px;"
+                                      onclick="${gvc.event(() => {
+                                        const n = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+
+                                        PosFunction.setMoney(
+                                          gvc,
+                                          n,
+                                          money => {
+                                            if (money === data.sale_price) {
+                                              delete obj.ogOrderData.lineItems[index].custom_price;
+                                            } else {
+                                              obj.ogOrderData.lineItems[index].custom_price = money;
+                                            }
+                                            refreshOrderView();
+                                          },
+                                          '更改商品單價'
+                                        );
+                                      })}"
+                                    >
+                                      ${(() => {
+                                        function formatPrice(price: any) {
+                                          return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                        }
+
+                                        if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                          return html`
+                                            <span class="text-decoration-line-through"
+                                              >${formatPrice(data.variant_sale_price * data.count)}</span
+                                            >
+                                            <span class="text-danger"
+                                              >${formatPrice(data.sale_price * data.count)}</span
+                                            >
+                                          `;
+                                        }
+
+                                        return html` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                      })()}
+                                    </div>
                                   </div>
                                   <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
                                     $${parseInt(data.sale_price as any, 10).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                      const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        def,
+                                        count => {
+                                          obj.ogOrderData.lineItems[index].count = count;
+                                          refreshOrderView();
+                                        },
+                                        '更改商品數量'
+                                      );
+                                    })}"
+                                  >
                                     ${Number(data.count as any).toLocaleString()}
                                   </div>
-                                  <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
-                                    $${parseInt((data.sale_price * data.count) as any, 10).toLocaleString()}
+                                  <div
+                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center  d-none d-sm-flex"
+                                    style="gap:10px;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                      const def = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+
+                                      PosFunction.setMoney(
+                                        gvc,
+                                        def,
+                                        money => {
+                                          if (money === data.sale_price) {
+                                            delete obj.ogOrderData.lineItems[index].custom_price;
+                                          } else {
+                                            obj.ogOrderData.lineItems[index].custom_price = money;
+                                          }
+                                          refreshOrderView();
+                                        },
+                                        '更改商品單價'
+                                      );
+                                    })}"
+                                  >
+                                    ${(() => {
+                                      function formatPrice(price: any) {
+                                        return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                      }
+
+                                      if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                        return html`
+                                          <span class="text-decoration-line-through"
+                                            >${formatPrice(data.variant_sale_price * data.count)}</span
+                                          >
+                                          <span class="text-danger">${formatPrice(data.sale_price * data.count)}</span>
+                                        `;
+                                      }
+
+                                      return html` <span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                    })()}
                                   </div>
                                 </div>
                               `;
@@ -1349,7 +1454,7 @@ export class PaymentPage {
                                                 dialog.errorMessage({ text: '此付款金額已結清，無法進行調整' });
                                                 return;
                                               }
-                                              PosFunction.setMoney(gvc, money => {
+                                              PosFunction.setMoney(gvc, dd.total, money => {
                                                 dd.total = money || 0;
                                                 refreshOrderView();
                                               });
@@ -1462,7 +1567,8 @@ export class PaymentPage {
                                 class="ms-auto"
                                 value="${obj.ogOrderData.pos_info.payment[0].total}"
                                 onclick="${gvc.event(() => {
-                                  PosFunction.setMoney(gvc, money => {
+                                  const def = obj.ogOrderData.pos_info.payment?.[0]?.total;
+                                  PosFunction.setMoney(gvc, def, money => {
                                     obj.ogOrderData.pos_info.payment[0].total = money || 0;
                                     PaymentPage.storeHistory(obj.ogOrderData);
                                     gvc.notifyDataChange(vm_id);
@@ -2045,7 +2151,6 @@ export class PaymentPage {
         } else {
           PaymentPage.clearHistory();
           const glitter = gvc.glitter;
-          console.log(`res.response.order-data==>`, res.response.data);
           const invoice = res.response.data.invoice;
           if (
             res.response.data.invoice &&
@@ -2075,25 +2180,24 @@ export class PaymentPage {
             PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') ||
             PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
           ) {
-
             if (PayConfig.deviceType === 'pos') {
               //客戶聯
-              await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+              await IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
               //如果需要收執聯的話
-              if(
+              if (
                 PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') &&
                 PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
-              ){
+              ) {
                 await new Promise(resolve => {
-                  const dialog=new ShareDialog(glitter)
+                  const dialog = new ShareDialog(glitter);
                   dialog.infoMessage({
-                    text:'請撕取客戶聯，在列印留存聯',
-                    callback:()=>{
-                      resolve(true)
-                    }
-                  })
-                })
-                await IminModule.printTransactionDetails(res.response.data.orderID,invoice,glitter.share.staff_title);
+                    text: '請撕取客戶聯，在列印留存聯',
+                    callback: () => {
+                      resolve(true);
+                    },
+                  });
+                });
+                await IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
               }
             } else {
               ConnectionMode.sendCommand({
@@ -2286,11 +2390,16 @@ export class PaymentPage {
                     >
                       <input
                         class="form-control h-100"
-                        style="border: none;"
+                        style="border: none;background: white;"
                         placeholder="請輸入統一編號"
-                        oninput="${gvc.event((e, event) => {
-                          c_vm.value = e.value;
+                        value="${c_vm.value}"
+                        onclick="${gvc.event(() => {
+                          PosFunction.setMoney(gvc,c_vm.value || '0',(text)=>{
+                            c_vm.value=`${text}`
+                            gvc.recreateView()
+                          },'統一編號')
                         })}"
+                        readonly
                       />
                       <div class="flex-fill"></div>
                       <div

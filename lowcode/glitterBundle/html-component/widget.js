@@ -749,22 +749,9 @@ export const widgetComponent = {
                                                             if (vm.type === 'editor') {
                                                                 return;
                                                             }
-                                                            const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id);
-                                                            if (select_.container_cf) {
-                                                                const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc;
-                                                                gvc_.glitter.htmlGenerate.selectWidget({
-                                                                    widget: select_.container_cf,
-                                                                    widgetComponentID: select_.container_cf.id,
-                                                                    gvc: gvc_,
-                                                                    scroll_to_hover: true,
-                                                                    glitter: glitter,
-                                                                });
-                                                            }
-                                                            else {
-                                                                Storage.lastSelect = '';
-                                                                gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                gvc.glitter.share.selectEditorItem();
-                                                            }
+                                                            Storage.lastSelect = '';
+                                                            gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                            gvc.glitter.share.selectEditorItem();
                                                         })
                                                     }]
                                             }

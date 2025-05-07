@@ -180,7 +180,7 @@ export class HeaderClass {
               gvc.glitter.recreateView('.js-cart-count');
               gvc.glitter.recreateView('.shopping-cart');
               gvc.notifyDataChange(vm.id);
-            }, 200);
+            }, 100);
           }
 
           function goToCheckoutButton(id: string) {
@@ -203,7 +203,7 @@ export class HeaderClass {
                 if (vm.loading) {
                   return html` <div class="w-100 vh-100 bg-white">${this.spinner()}</div>`;
                 }
-                return html` <div class="" style="position: relative;">
+                return html` <div class="position-relative">
                   <div class="${classPrefix}-cart-container align-items-center">
                     <div
                       class="d-flex align-items-center justify-content-center fs-5 py-3 px-2"
@@ -234,18 +234,20 @@ export class HeaderClass {
                     } else {
                       return vm.dataList
                         .map(item => {
+                          function trashEvent() {
+                            new ApiCart().setCart(cartItem => {
+                              cartItem.line_items = cartItem.line_items.filter(dd => {
+                                return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                              });
+                              refreshView();
+                            });
+                          }
+
                           return html` <div class="d-flex align-items-center px-3 position-relative" style="gap: 12px;">
                             <div
                               class="position-absolute"
                               style="right:13px;top:0px;cursor:pointer;"
-                              onclick="${gvc.event(() => {
-                                new ApiCart().setCart(cartItem => {
-                                  cartItem.line_items = cartItem.line_items.filter(dd => {
-                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                  });
-                                  refreshView();
-                                });
-                              })}"
+                              onclick="${gvc.event(() => trashEvent())}"
                             >
                               <i class="fa-regular fa-trash-can"></i>
                             </div>
@@ -253,21 +255,14 @@ export class HeaderClass {
                               <i
                                 class="fa-solid fa-xmark-large"
                                 style="cursor: pointer;"
-                                onclick="${gvc.event(() => {
-                                  new ApiCart().setCart(cartItem => {
-                                    cartItem.line_items = cartItem.line_items.filter(dd => {
-                                      return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                    });
-                                    refreshView();
-                                  });
-                                })}"
+                                onclick="${gvc.event(() => trashEvent())}"
                               ></i>
                             </div>
-                            <div class="d-flex" style="">
+                            <div class="d-flex">
                               <img src="${item.image}" class="${classPrefix}-wh rounded-3" />
                             </div>
                             <div class="d-flex flex-column gap-1 flex-fill">
-                              <div class="${classPrefix}-title pe-3" style="">${item.title}</div>
+                              <div class="${classPrefix}-title pe-3">${item.title}</div>
                               <div class="${classPrefix}-spec ">
                                 ${(() => {
                                   const spec: any = (() => {
@@ -333,6 +328,7 @@ export class HeaderClass {
             onCreate: () => {
               if (vm.loading) {
                 const cart = new ApiCart().cart;
+                vm.dataList = [];
 
                 Promise.all([
                   new Promise(resolve => {

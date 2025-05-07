@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
 import axios from 'axios';
 interface KeyData {
@@ -142,6 +141,7 @@ export declare class PayPal {
         approveLink: any;
     }>;
     createOrderPage(accessToken: string, orderData: {
+        discount: number;
         lineItems: {
             id: string;
             spec: string[];

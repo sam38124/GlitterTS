@@ -112,34 +112,37 @@ export class PaymentFunction {
                         {
                             amount: `${total}`,
                             memo: `訂單ID:${orderDetail.orderID}`,
+                            orderID:orderDetail.orderID,
                             pwd: pwd,
                         },
                         (res: any) => {
-                            if (res.result) {
+                           const response=JSON.parse(res.result.data);
+                            if (response.code === "250" ) {
                                 gvc.closeDialog();
                                 callback(true);
                             } else {
                                 gvc.closeDialog();
-                                callback(false);
-                                dialog.errorMessage({ text: '交易失敗' });
+                                // callback(false);
+                                dialog.errorMessage({ text: `交易失敗，失敗原因:${response.msg ?? ''}` });
                             }
                         }
                     );
                 } else if (ConnectionMode.on_connected_device) {
                     gvc.glitter.share.credit_card_callback = (res: any) => {
-                        if (res.result) {
-                            gvc.closeDialog();
-                            callback(true);
-                        } else {
-                            gvc.closeDialog();
-                            callback(false);
-                            dialog.errorMessage({ text: '交易失敗' });
-                        }
+                      const response=JSON.parse(res.result.data);
+                      if (response.code === "250" ) {
+                        gvc.closeDialog();
+                        callback(true);
+                      } else {
+                        gvc.closeDialog();
+                        dialog.errorMessage({ text: `交易失敗，失敗原因:${response.msg ?? ''}` });
+                      }
                     };
                     ConnectionMode.sendCommand({
                         cmd: 'credit_card',
                         amount: `${total}`,
                         memo: `訂單ID:${orderDetail.orderID}`,
+                        orderID:orderDetail.orderID,
                         pwd: pwd,
                     });
                 } else {

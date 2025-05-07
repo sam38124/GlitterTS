@@ -12,7 +12,7 @@ class Monitor {
         var _a;
         try {
             const req = obj.req;
-            if (['::ffff:172.17.0.1', 'ffff:127.0.0.1'].includes((req.headers['x-real-ip'] || req.ip))) {
+            if (['::ffff:172.17.0.1', 'ffff:127.0.0.1', '::ffff:127.0.0.1'].includes(Monitor.userIP(req))) {
                 return;
             }
             let mac_address = req.cookies.mac_address;
@@ -22,17 +22,21 @@ class Monitor {
             }
             await database_1.default.query(`insert into \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor set ?`, [
                 {
-                    ip: req.headers['x-real-ip'] || req.ip,
+                    ip: Monitor.userIP(req),
                     app_name: req.get('g-app') || 'unknown',
                     user_id: obj.token ? obj.token.userID : 'guest',
                     mac_address: req.get('mac_address') || mac_address,
                     base_url: req.baseUrl,
-                    req_type: obj.req_type
+                    req_type: obj.req_type,
+                    cookies: JSON.stringify(req.cookies),
                 }
             ]);
         }
         catch (e) {
         }
+    }
+    static userIP(req) {
+        return req.headers['cf-connecting-ip'] || (req.headers['x-real-ip'] || req.ip) || '';
     }
 }
 exports.Monitor = Monitor;

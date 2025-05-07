@@ -1,18 +1,5 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductCard02 {
     static main(gvc, widget, subData) {
@@ -206,52 +193,7 @@ export class ProductCard02 {
         })}"
         />
       </div>
-      <div
-        class="wishBt wish-button ${window.store_info.wishlist === false ? 'd-none' : 'd-flex'}"
-        onclick="${gvc.event((_, event) => {
-            event.stopPropagation();
-            if (CheckInput.isEmpty(GlobalUser.token)) {
-                changePage('login', 'page', {});
-                return;
-            }
-            if (vm.wishStatus) {
-                ApiShop.deleteWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
-                    PdClass.jumpAlert({
-                        gvc,
-                        text: Language.text('delete_success'),
-                        justify: 'top',
-                        align: 'center',
-                    });
-                    vm.wishStatus = !vm.wishStatus;
-                    gvc.notifyDataChange(wishId);
-                }));
-            }
-            else {
-                ApiShop.postWishList(`${prod.id}`).then(() => __awaiter(this, void 0, void 0, function* () {
-                    PdClass.jumpAlert({
-                        gvc,
-                        text: Language.text('add_success'),
-                        justify: 'top',
-                        align: 'center',
-                    });
-                    vm.wishStatus = !vm.wishStatus;
-                    gvc.notifyDataChange(wishId);
-                }));
-            }
-        })}"
-      >
-        ${gvc.bindView({
-            bind: wishId,
-            view: () => {
-                if (vm.wishStatus) {
-                    return html ` <i class="fa-solid fa-heart" style="color: #da1313"></i>`;
-                }
-                else {
-                    return html ` <i class="fa-regular fa-heart"></i>`;
-                }
-            },
-        })}
-      </div>
+      
       <div class="card-collapse-parent">
         <div class="d-flex card-title-container justify-content-between align-items-center">
           <div class="row gx-0 mb-1" style="max-width:calc(100% - 50px);">

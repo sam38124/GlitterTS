@@ -510,14 +510,31 @@ export class CheckoutEvent {
               }
 
               if (variant && item.count > 0) {
+                const sale_price = (() => {
+                  //POS允許自訂價格
+                  if (checkOutType === 'POS' && (item as any).custom_price) {
+                    return (item as any).custom_price;
+                  } else {
+                    return variant.sale_price;
+                  }
+                })();
+                const origin_price = (() => {
+                  //POS如果有自訂價格，則比較金額改成和原售價相比
+                  if (checkOutType === 'POS' && (item as any).custom_price) {
+                    return variant.sale_price;
+                  } else {
+                    return variant.origin_price;
+                  }
+                })();
                 Object.assign(item, {
                   specs: content.specs,
                   language_data: content.language_data,
                   product_category: content.product_category,
                   preview_image: variant.preview_image || content.preview_image[0],
                   title: content.title,
-                  sale_price: variant.sale_price,
-                  origin_price: variant.origin_price,
+                  sale_price: sale_price,
+                  variant_sale_price: variant.sale_price,
+                  origin_price: origin_price,
                   collection: content.collection,
                   sku: variant.sku,
                   stock: variant.stock,
@@ -578,7 +595,7 @@ export class CheckoutEvent {
                   if (content.productType.giveaway) {
                     variant.sale_price = 0;
                   } else {
-                    carData.total += variant.sale_price * item.count;
+                    carData.total += sale_price * item.count;
                   }
                 }
               }
@@ -761,11 +778,28 @@ export class CheckoutEvent {
 
       checkPoint('set max product');
 
-      carData.shipment_fee = this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
+      // 商家設定物流達免運費條件之判斷
+      carData.select_shipment_setting = data?.user_info?.shipment
+        ? await userClass.getConfigV2({
+            key: 'shipment_config_' + data.user_info.shipment,
+            user_id: 'manager',
+          })
+        : {};
+      const freeShipmnetNum = carData.select_shipment_setting?.cartSetting?.freeShipmnetTarget ?? 0;
+      const isFreeShipment = freeShipmnetNum > 0 && carData.total >= freeShipmnetNum;
+
+      // 計算運費
+      carData.shipment_fee = isFreeShipment
+        ? 0
+        : this.shopping.getShipmentFee(data.user_info, carData.lineItems, shipment);
       carData.total += carData.shipment_fee;
+
+      // 驗證購物金
       const f_rebate = await this.shopping.formatUseRebate(carData.total, carData.use_rebate);
       carData.useRebateInfo = f_rebate;
       carData.use_rebate = f_rebate.point;
+
+      // 調整總金額
       carData.total -= carData.use_rebate;
       carData.code = data.code;
       carData.voucherList = [];
@@ -839,7 +873,8 @@ export class CheckoutEvent {
         // 處理每個贈品
         gift_product.forEach(dd => {
           const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
-          if (dd.count <= max_count) {
+          if (max_count) {
+            dd.count = max_count;
             for (let a = 0; a < dd.count; a++) {
               can_add_gift = can_add_gift.filter(d1 => !d1.includes(dd.id)); // 移除已添加的贈品
             }
@@ -922,6 +957,7 @@ export class CheckoutEvent {
 
       // 防止帶入購物金時，總計小於0
       let subtotal = 0;
+
       carData.lineItems.map(item => {
         if (item.is_gift) {
           item.sale_price = 0;
@@ -1066,6 +1102,10 @@ export class CheckoutEvent {
           includeDiscount: 'before',
           device: ['normal'],
           productOffStart: 'price_all',
+          rebateEndDay: '30',
+          macroLimited: 0,
+          microLimited: 0,
+          selectShipment: { type: 'all', list: [] },
         };
         carData.discount = data.discount;
         carData.voucherList = [tempVoucher];
@@ -1155,18 +1195,23 @@ export class CheckoutEvent {
           (carData as any).orderStatus = '1';
           (carData as any).progress = 'finish';
         }
+
+        if (data.invoice_select !== 'nouse') {
+          // POS 結帳者，不考慮發票開立時機設定，直接開立
+          try {
+            (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
+              carData,
+              carData.user_info.send_type !== 'carrier'
+            );
+          }catch (e) {
+
+          }
+        }
         await OrderEvent.insertOrder({
           cartData: carData,
           status: data.pay_status as any,
           app: this.app,
         });
-        if (data.invoice_select !== 'nouse') {
-          // POS 結帳者，不考慮發票開立時機設定，直接開立
-          (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
-            carData,
-            carData.user_info.send_type !== 'carrier'
-          );
-        }
         await trans.commit();
         await trans.release();
         await Promise.all(saveStockArray.map(dd => dd()));

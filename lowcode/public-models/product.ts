@@ -21,6 +21,7 @@ export interface Variant {
   show_understocking: string;
   type: string;
   checked?: any;
+  invisible?: boolean;
 }
 
 export interface LanguageData {

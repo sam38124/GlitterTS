@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var _a;
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
@@ -20,9 +21,10 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 const html = String.raw;
 export class OrderExcel {
     static optionsView(gvc, callback) {
-        let columnList = new Set();
-        const randomString = BgWidget.getCheckedClass(gvc);
-        const checkbox = (checked, name, toggle) => html `
+        return __awaiter(this, void 0, void 0, function* () {
+            let columnList = new Set();
+            const randomString = BgWidget.getCheckedClass(gvc);
+            const checkbox = (checked, name, toggle) => html `
       <div class="form-check">
         <input
           class="form-check-input cursor_pointer ${randomString}"
@@ -41,47 +43,61 @@ export class OrderExcel {
         </label>
       </div>
     `;
-        const checkboxContainer = (items) => html `
+            const checkboxContainer = (items) => html `
       <div class="row w-100">
         ${Object.entries(items)
-            .map(([category, fields]) => {
-            const bindId = Tool.randomString(5);
-            return gvc.bindView({
-                bind: bindId,
-                view: () => {
-                    const allChecked = fields.every(item => columnList.has(item));
-                    return html `
+                .map(([category, fields]) => {
+                const bindId = Tool.randomString(5);
+                return gvc.bindView({
+                    bind: bindId,
+                    view: () => {
+                        const allChecked = fields.every(item => columnList.has(item));
+                        return html `
                   ${checkbox(allChecked, category, () => {
-                        if (allChecked) {
-                            fields.forEach(item => columnList.delete(item));
-                        }
-                        else {
-                            fields.forEach(item => columnList.add(item));
-                        }
-                        callback(Array.from(columnList));
-                        gvc.notifyDataChange(bindId);
-                    })}
+                            if (allChecked) {
+                                fields.forEach(item => columnList.delete(item));
+                            }
+                            else {
+                                fields.forEach(item => columnList.add(item));
+                            }
+                            callback(Array.from(columnList));
+                            gvc.notifyDataChange(bindId);
+                        })}
                   <div class="d-flex position-relative my-2">
                     ${BgWidget.leftLineBar()}
                     <div class="ms-4 w-100 flex-fill">
                       ${fields
-                        .map(item => checkbox(columnList.has(item), item, () => {
-                        columnList.has(item) ? columnList.delete(item) : columnList.add(item);
-                        callback(Array.from(columnList));
-                        gvc.notifyDataChange(bindId);
-                    }))
-                        .join('')}
+                            .map(item => checkbox(columnList.has(item), item, () => {
+                            columnList.has(item) ? columnList.delete(item) : columnList.add(item);
+                            callback(Array.from(columnList));
+                            gvc.notifyDataChange(bindId);
+                        }))
+                            .join('')}
                     </div>
                   </div>
                 `;
-                },
-                divCreate: { class: 'col-12 col-md-4 mb-3' },
-            });
-        })
-            .join('')}
+                    },
+                    divCreate: {
+                        class: (() => {
+                            let maxLength = Math.max(...fields.map(field => field.length));
+                            switch (true) {
+                                case maxLength < 12:
+                                    return 'col-12 col-md-4 mb-3';
+                                case maxLength >= 12 && maxLength < 20:
+                                    return 'col-12 col-md-6 mb-3';
+                                case maxLength > 20:
+                                    return 'col-12 col-md-12 mb-3';
+                            }
+                        })(),
+                    },
+                });
+            })
+                .join('')}
       </div>
     `;
-        return checkboxContainer(this.headerColumn);
+            const getColumn = yield this.headerColumn();
+            return checkboxContainer(getColumn);
+        });
     }
     static export(gvc, apiJSON, column) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -93,22 +109,23 @@ export class OrderExcel {
             const XLSX = yield Excel.loadXLSX(gvc);
             const [shipment_methods, payment_methods] = yield Promise.all([
                 ShipmentConfig.shipmentMethod({
-                    type: 'all'
+                    type: 'all',
                 }),
                 PaymentConfig.getSupportPayment(true),
             ]);
-            const showLineItems = this.headerColumn['商品'].some(a => column.includes(a));
+            const getColumn = yield this.headerColumn();
+            const showLineItems = getColumn['商品'].some(a => column.includes(a));
             const formatDate = (date) => date ? gvc.glitter.ut.dateFormat(new Date(date), 'yyyy-MM-dd hh:mm') : '';
-            const getStatusLabel = (status, mapping, defaultLabel = '未知') => { var _a, _b; return (_b = mapping[(_a = status === null || status === void 0 ? void 0 : status.toString()) !== null && _a !== void 0 ? _a : '']) !== null && _b !== void 0 ? _b : defaultLabel; };
-            const findMethodName = (key, methods) => { var _a, _b; return (_b = (_a = methods.find(m => m.key === key)) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '未知'; };
+            const getStatusLabel = (status, mapping, defaultLabel = '未知') => { var _b, _c; return (_c = mapping[(_b = status === null || status === void 0 ? void 0 : status.toString()) !== null && _b !== void 0 ? _b : '']) !== null && _c !== void 0 ? _c : defaultLabel; };
+            const findMethodName = (key, methods) => { var _b, _c; return (_c = (_b = methods.find(m => m.key === key)) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '未知'; };
             const formatJSON = (obj) => Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
             const getOrderJSON = (order, orderData) => {
-                var _a, _b, _c, _d, _e, _f;
+                var _b, _c, _d, _e, _f, _g;
                 return formatJSON({
                     訂單編號: order.cart_token,
                     訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
                     訂單建立時間: formatDate(order.created_time),
-                    會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : 'no-email',
+                    會員信箱: (_b = order.email) !== null && _b !== void 0 ? _b : 'no-email',
                     訂單處理狀態: getStatusLabel(orderData.orderStatus, { '-1': '已取消', '1': '已完成', '0': '處理中' }, '處理中'),
                     付款狀態: getStatusLabel(order.status, { '1': '已付款', '-1': '付款失敗', '-2': '已退款', '0': '未付款' }, '未付款'),
                     出貨狀態: getStatusLabel(orderData.progress, {
@@ -121,27 +138,27 @@ export class OrderExcel {
                     }, '未出貨'),
                     訂單小計: orderData.total + orderData.discount - orderData.shipment_fee + orderData.use_rebate,
                     訂單運費: orderData.shipment_fee,
-                    訂單使用優惠券: ((_b = orderData.voucherList) === null || _b === void 0 ? void 0 : _b.map((v) => v.title).join(', ')) || '無',
+                    訂單使用優惠券: ((_c = orderData.voucherList) === null || _c === void 0 ? void 0 : _c.map((v) => v.title).join(', ')) || '無',
                     訂單折扣: orderData.discount,
                     訂單使用購物金: orderData.use_rebate,
                     訂單總計: orderData.total,
-                    分銷連結代碼: (_d = (_c = orderData.distribution_info) === null || _c === void 0 ? void 0 : _c.code) !== null && _d !== void 0 ? _d : '',
-                    分銷連結名稱: (_f = (_e = orderData.distribution_info) === null || _e === void 0 ? void 0 : _e.title) !== null && _f !== void 0 ? _f : '',
+                    分銷連結代碼: (_e = (_d = orderData.distribution_info) === null || _d === void 0 ? void 0 : _d.code) !== null && _e !== void 0 ? _e : '',
+                    分銷連結名稱: (_g = (_f = orderData.distribution_info) === null || _f === void 0 ? void 0 : _f.title) !== null && _g !== void 0 ? _g : '',
                 });
             };
             const getProductJSON = (item) => {
-                var _a;
+                var _b;
                 return formatJSON({
                     商品名稱: item.title,
                     商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
-                    商品SKU: (_a = item.sku) !== null && _a !== void 0 ? _a : '',
+                    商品SKU: (_b = item.sku) !== null && _b !== void 0 ? _b : '',
                     商品購買數量: item.count,
                     商品價格: item.sale_price,
                     商品折扣: item.discount_price,
                 });
             };
             const getUserJSON = (order, orderData) => {
-                var _a, _b, _c, _d, _e, _f;
+                var _b, _c, _d, _e, _f, _g;
                 return formatJSON({
                     顧客姓名: orderData.customer_info.name,
                     顧客手機: orderData.customer_info.phone,
@@ -155,19 +172,19 @@ export class OrderExcel {
                         .filter(Boolean)
                         .join(''),
                     代收金額: orderData.customer_info.payment_select === 'cash_on_delivery' ? orderData.total : 0,
-                    出貨單號碼: (_a = orderData.user_info.shipment_number) !== null && _a !== void 0 ? _a : '',
+                    出貨單號碼: (_b = orderData.user_info.shipment_number) !== null && _b !== void 0 ? _b : '',
                     出貨單日期: formatDate(orderData.user_info.shipment_date),
-                    發票號碼: (_b = order.invoice_number) !== null && _b !== void 0 ? _b : '',
-                    會員等級: (_e = (_d = (_c = order.user_data) === null || _c === void 0 ? void 0 : _c.member_level) === null || _d === void 0 ? void 0 : _d.tag_name) !== null && _e !== void 0 ? _e : '',
-                    備註: (_f = orderData.user_info.note) !== null && _f !== void 0 ? _f : '無備註',
+                    發票號碼: (_c = order.invoice_number) !== null && _c !== void 0 ? _c : '',
+                    會員等級: (_f = (_e = (_d = order.user_data) === null || _d === void 0 ? void 0 : _d.member_level) === null || _e === void 0 ? void 0 : _e.tag_name) !== null && _f !== void 0 ? _f : '',
+                    備註: (_g = orderData.user_info.note) !== null && _g !== void 0 ? _g : '無備註',
                 });
             };
             const getReconciliationJSON = (order) => {
-                var _a;
+                var _b;
                 return formatJSON({
                     對帳狀態: (() => {
-                        var _a;
-                        const received_c = ((_a = order.total_received) !== null && _a !== void 0 ? _a : 0) + order.offset_amount;
+                        var _b;
+                        const received_c = ((_b = order.total_received) !== null && _b !== void 0 ? _b : 0) + order.offset_amount;
                         if (order.total_received === null || order.total_received === undefined) {
                             return '待入帳';
                         }
@@ -201,43 +218,60 @@ export class OrderExcel {
                             return `$${order.orderData.total - (order.total_received + (order.offset_amount || 0))}`;
                         }
                     })(),
-                    沖帳原因: (_a = order.offset_reason) !== null && _a !== void 0 ? _a : '-',
+                    沖帳原因: (_b = order.offset_reason) !== null && _b !== void 0 ? _b : '-',
                 });
             };
+            const getCustomizeJSON = (order) => __awaiter(this, void 0, void 0, function* () {
+                const customizeMap = yield this.getCustomizeMap(order);
+                const json = Object.fromEntries(customizeMap);
+                return formatJSON(json);
+            });
             function exportOrdersToExcel(dataArray) {
-                if (!dataArray.length) {
-                    dialog.errorMessage({ text: '無訂單資料可以匯出' });
-                    return;
-                }
-                const printArray = dataArray.flatMap(order => {
-                    const orderData = order.orderData;
-                    return showLineItems
-                        ? orderData.lineItems.map((item) => (Object.assign(Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getProductJSON(item)), getUserJSON(order, orderData)), getReconciliationJSON(order))))
-                        : [
-                            Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getUserJSON(order, orderData)), getReconciliationJSON(order)),
-                        ];
-                });
-                const worksheet = XLSX.utils.json_to_sheet(printArray);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, '訂單列表');
-                const fileName = `訂單列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-                XLSX.writeFile(workbook, fileName);
-            }
-            function fetchOrders(limit) {
-                var _a;
                 return __awaiter(this, void 0, void 0, function* () {
-                    dialog.dataLoading({ visible: true });
-                    try {
-                        const response = yield ApiShop.getOrder(Object.assign(Object.assign({}, apiJSON), { page: 0, limit: limit }));
-                        dialog.dataLoading({ visible: false });
-                        if (((_a = response === null || response === void 0 ? void 0 : response.response) === null || _a === void 0 ? void 0 : _a.total) > 0) {
-                            exportOrdersToExcel(response.response.data);
+                    if (!dataArray.length) {
+                        dialog.errorMessage({ text: '無訂單資料可以匯出' });
+                        return;
+                    }
+                    const printArray = [];
+                    for (const order of dataArray) {
+                        const orderData = order.orderData;
+                        const customizeJSON = yield getCustomizeJSON(order);
+                        if (showLineItems) {
+                            printArray.push(orderData.lineItems.map((item) => (Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getProductJSON(item)), getUserJSON(order, orderData)), getReconciliationJSON(order)), customizeJSON))));
                         }
                         else {
+                            printArray.push([
+                                Object.assign(Object.assign(Object.assign(Object.assign({}, getOrderJSON(order, orderData)), getUserJSON(order, orderData)), getReconciliationJSON(order)), customizeJSON),
+                            ]);
+                        }
+                    }
+                    const printArrayFlat = printArray.flat();
+                    const worksheet = XLSX.utils.json_to_sheet(printArrayFlat);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, '訂單列表');
+                    const fileName = `訂單列表_${gvc.glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
+                    XLSX.writeFile(workbook, fileName);
+                });
+            }
+            function fetchOrders(limit) {
+                var _b;
+                return __awaiter(this, void 0, void 0, function* () {
+                    dialog.dataLoading({ visible: true, text: '匯出資料中，請稍後...' });
+                    try {
+                        const response = yield ApiShop.getOrder(Object.assign(Object.assign({}, apiJSON), { page: 0, limit: limit }));
+                        if (((_b = response === null || response === void 0 ? void 0 : response.response) === null || _b === void 0 ? void 0 : _b.total) > 0) {
+                            const orders = response.response.data;
+                            yield exportOrdersToExcel(orders).then(() => {
+                                dialog.dataLoading({ visible: false });
+                            });
+                        }
+                        else {
+                            dialog.dataLoading({ visible: false });
                             dialog.errorMessage({ text: '匯出檔案發生錯誤' });
                         }
                     }
                     catch (error) {
+                        console.error(error);
                         dialog.dataLoading({ visible: false });
                         dialog.errorMessage({ text: '無法取得訂單資料' });
                     }
@@ -279,22 +313,30 @@ export class OrderExcel {
             title: '匯出' + pageType,
             width: 700,
             innerHTML: gvc2 => {
-                return html `<div class="d-flex flex-column align-items-start gap-2">
-          <div class="tx_700 mb-2">匯出範圍</div>
-          ${BgWidget.multiCheckboxContainer(gvc2, [
-                    { key: 'all', name: `全部${pageType}` },
-                    { key: 'search', name: '目前搜尋與篩選的結果' },
-                    { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
-                ], [vm.select], (res) => {
-                    vm.select = res[0];
-                }, { single: true })}
-          <div class="tx_700 mb-2">
-            匯出欄位 ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
-          </div>
-          ${this.optionsView(gvc2, cols => {
-                    vm.column = cols;
-                })}
-        </div>`;
+                const id = gvc2.glitter.getUUID();
+                return gvc2.bindView({
+                    bind: id,
+                    view: () => __awaiter(this, void 0, void 0, function* () {
+                        const view = yield this.optionsView(gvc2, cols => {
+                            vm.column = cols;
+                        });
+                        return html `<div class="d-flex flex-column align-items-start gap-2">
+              <div class="tx_700 mb-2">匯出範圍</div>
+              ${BgWidget.multiCheckboxContainer(gvc2, [
+                            { key: 'all', name: `全部${pageType}` },
+                            { key: 'search', name: '目前搜尋與篩選的結果' },
+                            { key: 'checked', name: `勾選的 ${dataArray.length} 個訂單` },
+                        ], [vm.select], (res) => {
+                            vm.select = res[0];
+                        }, { single: true })}
+              <div class="tx_700 mb-2">
+                匯出欄位
+                ${BgWidget.grayNote('＊若勾選商品系列的欄位，將會以訂單商品作為資料列匯出 Excel', 'margin: 4px;')}
+              </div>
+              ${view}
+            </div>`;
+                    }),
+                });
             },
             footer_html: gvc2 => {
                 return [
@@ -324,14 +366,14 @@ export class OrderExcel {
         });
     }
     static importWithShipment(gvc, target, callback) {
-        var _a;
+        var _b;
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             function errorMsg(text) {
                 dialog.dataLoading({ visible: false });
                 dialog.errorMessage({ text: text });
             }
-            if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
+            if ((_b = target.files) === null || _b === void 0 ? void 0 : _b.length) {
                 try {
                     dialog.dataLoading({ visible: true, text: '上傳檔案中' });
                     const jsonData = yield Excel.parseExcelToJson(gvc, target.files[0]);
@@ -422,14 +464,14 @@ export class OrderExcel {
         });
     }
     static importWithReconciliation(gvc, target, callback) {
-        var _a;
+        var _b;
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             function errorMsg(text) {
                 dialog.dataLoading({ visible: false });
                 dialog.errorMessage({ text: text });
             }
-            if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
+            if ((_b = target.files) === null || _b === void 0 ? void 0 : _b.length) {
                 try {
                     dialog.dataLoading({ visible: true, text: '上傳檔案中' });
                     const jsonData = yield Excel.parseExcelToJson(gvc, target.files[0]);
@@ -484,7 +526,7 @@ export class OrderExcel {
                         });
                     });
                     const saveEvent = (order) => {
-                        var _a;
+                        var _b;
                         const compare = importMap.get(order.cart_token);
                         const money = parseInt(compare['入帳/沖帳金額'], 10);
                         if (compare['操作選項'] === '入帳') {
@@ -497,7 +539,7 @@ export class OrderExcel {
                             });
                         }
                         else {
-                            order.offset_records = (_a = order.offset_records) !== null && _a !== void 0 ? _a : [];
+                            order.offset_records = (_b = order.offset_records) !== null && _b !== void 0 ? _b : [];
                             return ApiReconciliation.putReconciliation({
                                 order_id: order.cart_token,
                                 update: {
@@ -681,7 +723,43 @@ export class OrderExcel {
             });
         }, vm.id);
     }
+    static customizePromise() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const saasConfig = window.parent.saasConfig;
+            const dataArray = yield Promise.all([
+                yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_finance').then((data) => {
+                    const cashflowObject = {};
+                    data.response.result[0].value.payment_info_custom.map((item) => {
+                        ApiUser.getPublicConfig(`form_finance_${item.id}`, 'manager').then(r => {
+                            cashflowObject[item.id] = r.response.value.list;
+                        });
+                    });
+                    return cashflowObject;
+                }),
+                yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((data) => {
+                    const shipmentObject = {};
+                    data.response.result[0].value.custom_delivery.map((item) => {
+                        ApiUser.getPublicConfig(`form_delivery_${item.id}`, 'manager').then(r => {
+                            if (r.response.value.list.length > 0) {
+                                shipmentObject[item.id] = r.response.value.list;
+                            }
+                        });
+                    });
+                    return shipmentObject;
+                }),
+                yield ApiUser.getPublicConfig('custom_form_register', 'manager').then(r => {
+                    return Array.isArray(r.response.value.list) ? r.response.value.list : [];
+                }),
+                yield ApiUser.getPublicConfig('customer_form_user_setting', 'manager').then(r => {
+                    return Array.isArray(r.response.value.list) ? r.response.value.list : [];
+                }),
+                (yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value
+            ]);
+            return dataArray;
+        });
+    }
 }
+_a = OrderExcel;
 OrderExcel.importShipmentExample = [
     {
         訂單編號: '1241770010001',
@@ -706,40 +784,100 @@ OrderExcel.importReconciliation = [
         沖帳備註: '於玉山銀行進行查帳只有收到',
     },
 ];
-OrderExcel.headerColumn = {
-    訂單: [
-        '訂單編號',
-        '訂單來源',
-        '訂單建立時間',
-        '會員信箱',
-        '訂單處理狀態',
-        '付款狀態',
-        '出貨狀態',
-        '訂單小計',
-        '訂單運費',
-        '訂單使用優惠券',
-        '訂單折扣',
-        '訂單使用購物金',
-        '分銷連結代碼',
-        '分銷連結名稱',
-    ],
-    商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
-    顧客: [
-        '顧客姓名',
-        '顧客手機',
-        '顧客信箱',
-        '收件人姓名',
-        '收件人手機',
-        '收件人信箱',
-        '付款方式',
-        '配送方式',
-        '收貨地址',
-        '代收金額',
-        '出貨單號碼',
-        '出貨單日期',
-        '發票號碼',
-        '會員等級',
-        '備註',
-    ],
-    對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
-};
+OrderExcel.headerColumn = () => __awaiter(void 0, void 0, void 0, function* () {
+    const customizeMap = yield _a.getCustomizeMap();
+    return {
+        訂單: [
+            '訂單編號',
+            '訂單來源',
+            '訂單建立時間',
+            '會員信箱',
+            '訂單處理狀態',
+            '付款狀態',
+            '出貨狀態',
+            '訂單小計',
+            '訂單運費',
+            '訂單使用優惠券',
+            '訂單折扣',
+            '訂單使用購物金',
+            '分銷連結代碼',
+            '分銷連結名稱',
+        ],
+        商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
+        顧客: [
+            '顧客姓名',
+            '顧客手機',
+            '顧客信箱',
+            '收件人姓名',
+            '收件人手機',
+            '收件人信箱',
+            '付款方式',
+            '配送方式',
+            '收貨地址',
+            '代收金額',
+            '出貨單號碼',
+            '出貨單日期',
+            '發票號碼',
+            '會員等級',
+            '備註',
+        ],
+        對帳資訊: ['對帳狀態', '入帳金額', '入帳日期', '應沖金額', '沖帳原因'],
+        客製化資訊: [...customizeMap.keys()],
+    };
+});
+OrderExcel.getCustomizeMap = (order) => __awaiter(void 0, void 0, void 0, function* () {
+    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig, receipt] = yield OrderExcel.customizePromise();
+    const customizeMap = new Map();
+    const getUserValue = (key) => {
+        try {
+            return order.user_data.userData[key] || '-';
+        }
+        catch (error) {
+            return '-';
+        }
+    };
+    const getCashflowValue = (key) => {
+        try {
+            return order.orderData.user_info.custom_form_payment[key] || '-';
+        }
+        catch (error) {
+            return '-';
+        }
+    };
+    const getShipmentValue = (key) => {
+        try {
+            return order.orderData.user_info.custom_form_delivery[key] || '-';
+        }
+        catch (error) {
+            return '-';
+        }
+    };
+    (registerConfig || []).map((item) => {
+        customizeMap.set(`註冊自訂值 - ${item.title}`, order ? getUserValue(item.key) : '-');
+    });
+    (memberConfig || []).map((item) => {
+        customizeMap.set(`會員自訂值 - ${item.title}`, order ? getUserValue(item.key) : '-');
+    });
+    const cashflowConfig = order ? cashflowConfigObj[order.payment_method] : Object.values(cashflowConfigObj).flat();
+    (cashflowConfig || []).map((item) => {
+        customizeMap.set(`金流自訂值 - ${item.title}`, order ? getCashflowValue(item.key) : '-');
+    });
+    const shipmentConfig = order ? shipmentConfigObj[order.shipment_method] : Object.values(shipmentConfigObj).flat();
+    (shipmentConfig || []).map((item) => {
+        customizeMap.set(`物流自訂值 - ${item.title}`, order ? getShipmentValue(item.key) : '-');
+    });
+    let viewModel = [
+        ['姓名', 'name'],
+        ['電話', 'phone'],
+        ['信箱', 'email'],
+    ];
+    receipt.list.map((d1) => {
+        var _b;
+        if (!viewModel.find(dd => {
+            return dd[1] === d1.key;
+        })) {
+            customizeMap.set(`收件人資訊 - ${d1.title}`, order ? ((_b = order.orderData.user_info[d1.key]) !== null && _b !== void 0 ? _b : '-') : '-');
+        }
+    });
+    return customizeMap;
+});

@@ -22,6 +22,7 @@ const pos_js_1 = require("../services/pos.js");
 const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
 const caught_error_js_1 = require("../../modules/caught-error.js");
 const checkout_event_js_1 = require("../services/checkout-event.js");
+const monitor_js_1 = require("../services/monitor.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -158,7 +159,7 @@ router.post('/checkout', async (req, resp) => {
             code_array: req.body.code_array,
             give_away: req.body.give_away,
             language: req.headers['language'],
-            client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+            client_ip_address: monitor_js_1.Monitor.userIP(req),
             fbc: req.cookies._fbc,
             fbp: req.cookies._fbp,
             temp_cart_id: req.body.temp_cart_id,
@@ -581,7 +582,7 @@ router.delete('/voucher', async (req, resp) => {
     }
 });
 async function redirect_link(req, resp) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     function setQueryParameter(originalUrl, paramName, newValue) {
         try {
             const url = new URL(originalUrl);
@@ -593,7 +594,7 @@ async function redirect_link(req, resp) {
                 console.error(`提供的字串不是有效的 URL: "${originalUrl}"`, error);
             }
             else {
-                console.error("處理 URL 時發生預期外的錯誤:", error);
+                console.error('處理 URL 時發生預期外的錯誤:', error);
             }
             return null;
         }
@@ -625,18 +626,18 @@ async function redirect_link(req, resp) {
         </html> `);
     }
     try {
-        const order_id = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) !== null && _b !== void 0 ? _b : "";
         req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
+        const order_id = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.orderID) || (return_url.searchParams.get('cart_token')) || '';
         const old_order_id = await redis_js_1.default.getValue(order_id);
-        const idToQuery = old_order_id ? old_order_id : ((_c = order_id) !== null && _c !== void 0 ? _c : '');
+        const idToQuery = old_order_id ? old_order_id : ((_b = order_id) !== null && _b !== void 0 ? _b : '');
         if (req.query.LinePay && req.query.LinePay === 'true') {
             let order_data = {};
             try {
                 const queryResult = await database_js_1.default.query(`SELECT *
            FROM \`${req.query.appName}\`.t_checkout
            WHERE cart_token = ?`, [idToQuery]);
-                order_data = (_d = queryResult === null || queryResult === void 0 ? void 0 : queryResult[0]) !== null && _d !== void 0 ? _d : undefined;
+                order_data = (_c = queryResult === null || queryResult === void 0 ? void 0 : queryResult[0]) !== null && _c !== void 0 ? _c : undefined;
                 if (!order_data) {
                     console.log(`找不到 cart_token 為 ${idToQuery} 的訂單資料。`);
                 }
@@ -657,7 +658,7 @@ async function redirect_link(req, resp) {
                 console.log(`line-response==>`, data);
                 if (data.returnCode == '0000' && data.info.orderId === order_id) {
                     await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, idToQuery);
-                    console.log("return_url.href -- ", return_url.href);
+                    console.log('return_url.href -- ', return_url.href);
                 }
             }
         }
@@ -692,7 +693,7 @@ async function redirect_link(req, resp) {
             return_url = updatedUrl;
         }
         else {
-            console.error("無法更新 return_url，因為 setQueryParameter 回傳了 null。");
+            console.error('無法更新 return_url，因為 setQueryParameter 回傳了 null。');
         }
         return returnResult(return_url);
     }

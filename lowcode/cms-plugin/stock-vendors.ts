@@ -7,6 +7,7 @@ import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
+import { TableStorage } from './module/table-storage.js';
 
 const html = String.raw;
 
@@ -29,6 +30,7 @@ type VM = {
   query: string;
   queryType: string;
   orderString: string;
+  listLimit: number;
 };
 
 export class StockVendors {
@@ -45,6 +47,7 @@ export class StockVendors {
       queryType: '',
       filter: {},
       orderString: '',
+      listLimit: TableStorage.getLimit(),
     };
 
     return gvc.bindView({
@@ -133,8 +136,7 @@ export class StockVendors {
                         gvc,
                         callback: (value: any) => {
                           vm.queryType = value;
-                          gvc.notifyDataChange(vm.tableId);
-                          gvc.notifyDataChange(id);
+                          gvc.notifyDataChange([vm.tableId, id]);
                         },
                         default: vm.queryType || 'name',
                         options: FilterOptions.vendorsSelect,
@@ -142,12 +144,19 @@ export class StockVendors {
                       BgWidget.searchFilter(
                         gvc.event(e => {
                           vm.query = `${e.value}`.trim();
-                          gvc.notifyDataChange(vm.tableId);
-                          gvc.notifyDataChange(id);
+                          gvc.notifyDataChange([vm.tableId, id]);
                         }),
                         vm.query || '',
                         '搜尋庫存點名稱'
                       ),
+                      BgWidget.countingFilter({
+                        gvc,
+                        callback: value => {
+                          vm.listLimit = value;
+                          gvc.notifyDataChange([vm.tableId, id]);
+                        },
+                        default: vm.listLimit,
+                      }),
                     ];
 
                     const filterTags = ListComp.getFilterTags(FilterOptions.vendorsFunnel);
@@ -162,14 +171,13 @@ export class StockVendors {
                     gvc: gvc,
                     getData: vd => {
                       vmi = vd;
-                      const limit = 100;
                       this.getPublicData().then((data: any) => {
                         if (data.list) {
                           data.list = data.list.filter((item: VendorData) => {
                             return vm.query === '' || item.name.includes(vm.query);
                           });
                           vm.dataList = data.list;
-                          vmi.pageSize = Math.ceil(data.list.length / limit);
+                          vmi.pageSize = Math.ceil(data.list.length / vm.listLimit);
                           vmi.originalData = vm.dataList;
                           vmi.tableData = getDatalist();
                         }

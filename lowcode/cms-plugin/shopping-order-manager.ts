@@ -26,6 +26,8 @@ import { ListHeaderOption } from './list-header-option.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
+import { TableStorage } from './module/table-storage.js';
+
 
 const html = String.raw;
 const css = String.raw;
@@ -124,6 +126,7 @@ export class ShoppingOrderManager {
       apiJSON: {},
       checkedData: [],
       headerConfig: [],
+      listLimit: TableStorage.getLimit(),
     };
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
     vm.filter = ListComp.getFilterObject();
@@ -157,6 +160,8 @@ export class ShoppingOrderManager {
         }
       });
     }
+    const thathis = this;
+
     return gvc.bindView({
       bind: vm.id,
       dataList: [{ obj: vm, key: 'type' }],
@@ -165,31 +170,37 @@ export class ShoppingOrderManager {
           return '';
         }
 
-        const viewMap: Record<string, () => string> = {
-          list: () => this.tableOrder(gvc, vm, query, ListComp),
-          replace: () => this.replaceOrder(gvc, vm, vm.data.cart_token),
-          add: () => this.createOrder(gvc, vm),
-          createInvoice: () => {
-            vm.return_order = true;
-            return ShoppingInvoiceManager.createOrder(gvc, vm, (vm as any).tempOrder);
-          },
-          recommend: () => {
-            return BgRecommend.editorLink({
-              gvc: gvc,
-              data: vm.distributionData.data[0],
-              callback: () => {
-                vm.type = 'replace';
-              },
-              vm,
-            });
-          },
-          viewInvoice: () => {
-            vm.return_order = true;
-            return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
-          },
-        };
+        try {
+          const viewMap: Record<string, () => string> = {
+            list: () => thathis.tableOrder(gvc, vm, query, ListComp),
+            replace: () => thathis.replaceOrder(gvc, vm, vm.data.cart_token),
+            add: () => thathis.createOrder(gvc, vm),
+            createInvoice: () => {
+              vm.return_order = true;
+              return ShoppingInvoiceManager.createOrder(gvc, vm, (vm as any).tempOrder);
+            },
+            recommend: () => {
+              return BgRecommend.editorLink({
+                gvc: gvc,
+                data: vm.distributionData.data[0],
+                callback: () => {
+                  vm.type = 'replace';
+                },
+                vm,
+              });
+            },
+            viewInvoice: () => {
+              vm.return_order = true;
+              return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
+            },
+          };
 
-        return viewMap[vm.type]?.() ?? '';
+          return viewMap[vm.type]() ?? '';
+        }catch (e) {
+          console.error(e)
+          return `${e}`
+        }
+
       },
       onCreate: () => {
         if (vm.loading) {
@@ -203,7 +214,7 @@ export class ShoppingOrderManager {
     });
   }
 
-  static tableOrder(gvc: GVC, vm: any, query: OrderQuery, ListComp: BgListComponent) {
+  static tableOrder(gvc: GVC, vm: ViewModel, query: OrderQuery, ListComp: BgListComponent) {
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(glitter);
 
@@ -304,6 +315,14 @@ export class ShoppingOrderManager {
                   vm.query || '',
                   '搜尋訂單'
                 ),
+                BgWidget.countingFilter({
+                  gvc,
+                  callback: value => {
+                    vm.listLimit = value;
+                    gvc.notifyDataChange(vm.id);
+                  },
+                  default: vm.listLimit,
+                }),
                 BgWidget.funnelFilter({
                   gvc,
                   callback: () => {
@@ -364,10 +383,9 @@ export class ShoppingOrderManager {
             defPage: ShoppingOrderManager.vm.page,
             getData: vmi => {
               ShoppingOrderManager.vm.page = vmi.page;
-              const limit = 20;
               vm.apiJSON = {
                 page: vmi.page - 1,
-                limit: limit,
+                limit: vm.listLimit,
                 search: vm.query || undefined,
                 searchType: vm.queryType || 'cart_token',
                 orderString: vm.orderString,
@@ -530,7 +548,7 @@ export class ShoppingOrderManager {
                 }
 
                 vm.dataList = data.response.data;
-                vmi.pageSize = Math.ceil(data.response.total / limit);
+                vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                 vmi.originalData = vm.dataList;
                 vmi.tableData = await getDatalist();
                 vmi.loading = false;
@@ -1048,6 +1066,7 @@ export class ShoppingOrderManager {
         let userData: any = {};
         let invoiceDataList: any = [];
         let storeList: any = [];
+        let mainViewId=gvc.glitter.getUUID();
         let productData: any = [];
         let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
           (window as any).glitter.getUrlParameter('page')
@@ -1098,7 +1117,7 @@ export class ShoppingOrderManager {
         ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then(res => {
           userData = res.response;
           userDataLoading = false;
-          gvc.notifyDataChange('mainView');
+          gvc.notifyDataChange(mainViewId);
         });
 
         ApiShop.getInvoice({
@@ -1121,7 +1140,7 @@ export class ShoppingOrderManager {
         }).then(r => {
           productData = r.response.data;
           productLoading = false;
-          gvc.notifyDataChange('mainView');
+          gvc.notifyDataChange(mainViewId);
         });
 
         function saveEvent() {
@@ -1218,7 +1237,7 @@ export class ShoppingOrderManager {
         }
 
         return gvc.bindView({
-          bind: 'mainView',
+          bind: mainViewId,
           dataList: [{ obj: child_vm, key: 'type' }],
           view: () => {
             try {
@@ -1736,14 +1755,27 @@ export class ShoppingOrderManager {
                             return {
                               bind: gvc.glitter.getUUID(),
                               view: async () => {
-                                let viewModel = [
+                                const noNeedAddress = [
+                                  'now',
+                                  'shop',
+                                  'UNIMARTC2C',
+                                  'FAMIC2C',
+                                  'HILIFEC2C',
+                                  'OKMARTC2C',
+                                  'UNIMARTFREEZE',
+                                  'FAMIC2CFREEZE',
+                                ].includes(orderData.orderData.user_info.shipment);
+
+                                const viewModel = [
                                   ['姓名', 'name'],
                                   ['電話', 'phone'],
                                   ['信箱', 'email'],
                                   ['縣市', 'city'],
                                   ['鄉鎮', 'area'],
                                   ['地址', 'address'],
-                                ];
+                                ].filter(item => {
+                                  return !noNeedAddress || !['city', 'area', 'address'].includes(item[1]);
+                                });
 
                                 const receipt = (
                                   await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')
@@ -1755,36 +1787,32 @@ export class ShoppingOrderManager {
                                   }
                                 });
 
-                                if (vm.mode == 'read') {
-                                  return viewModel
-                                    .map(item => {
-                                      return html` <div>
-                                          ${item[0]} : ${(orderData.orderData.user_info as any)[item[1]] || '未填寫'}
-                                        </div>
-                                        ${BgWidget.mbContainer(4)}`;
-                                    })
-                                    .join('');
-                                } else {
-                                  return viewModel
-                                    .map(item => {
-                                      return html`
-                                        <div class="d-flex flex-column w-100" style="gap:8px;">
-                                          <div style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">${item[0]}</div>
-                                          <input
-                                            style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
-                                            value="${(orderData.orderData.user_info as any)[item[1]]}"
-                                            onchange="${gvc.event(e => {
-                                              (orderData.orderData.user_info as any)[item[1]] = e.value;
-                                            })}"
-                                          />
-                                        </div>
-                                      `;
-                                    })
-                                    .join('');
-                                }
+                                return viewModel
+                                  .map(item => {
+                                    return vm.mode == 'read'
+                                      ? html` <div>
+                                            ${item[0]} : ${(orderData.orderData.user_info as any)[item[1]] || '未填寫'}
+                                          </div>
+                                          ${BgWidget.mbContainer(4)}`
+                                      : html`
+                                          <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                            <div style="${item[0] == '姓名' ? '' : 'margin-top: 12px;'}">
+                                              ${item[0]}
+                                            </div>
+                                            <input
+                                              style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                              value="${(orderData.orderData.user_info as any)[item[1]]}"
+                                              onchange="${gvc.event(e => {
+                                                (orderData.orderData.user_info as any)[item[1]] = e.value;
+                                              })}"
+                                            />
+                                          </div>
+                                        `;
+                                  })
+                                  .join('');
                               },
                               divCreate: {
-                                class: `tx_normal`,
+                                class: 'tx_normal',
                               },
                             };
                           })}
@@ -1937,6 +1965,7 @@ export class ShoppingOrderManager {
                           return;
                         }
                         (window.parent as any).glitter.setUrlParameter('orderID', undefined);
+                        
                         if (backCallback) {
                           backCallback();
                         } else {
@@ -2388,7 +2417,7 @@ export class ShoppingOrderManager {
                                                     saveEvent();
                                                   }
                                                 } else {
-                                                  gvc.notifyDataChange('mainView');
+                                                  gvc.notifyDataChange(mainViewId);
                                                 }
                                               },
                                             });
@@ -3190,7 +3219,7 @@ export class ShoppingOrderManager {
                       ratio: 25,
                     }
                   )}
-                  ${BgWidget.mbContainer(240)}
+                <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {

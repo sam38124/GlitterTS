@@ -94,7 +94,7 @@ export class PosSummary {
                         style="width:100px;"
                         placeholder="0"
                         onclick="${gvc.event((e, event) => {
-                                PosFunction.setMoney(gvc, response => {
+                                PosFunction.setMoney(gvc, dd.real, response => {
                                     dd.real = response || 0;
                                     e.value = response || 0;
                                 }, '設定清點金額');
@@ -128,7 +128,7 @@ export class PosSummary {
             <input
               class="form-control mt-2"
               onclick="${gvc.event((e, event) => {
-                        PosFunction.setMoney(gvc, response => {
+                        PosFunction.setMoney(gvc, money, response => {
                             e.value = `${response}`;
                             money = response || 0;
                         }, '設定備用金額');
@@ -463,8 +463,8 @@ export class PosSummary {
                             text: html `${PosWidget.fontBold('要從錢箱匯出的金額')}
                       <input
                         class="form-control mt-2"
-                        onclick="${gvc.event((e, event) => {
-                                PosFunction.setMoney(gvc, response => {
+                        onclick="${gvc.event(e => {
+                                PosFunction.setMoney(gvc, money, response => {
                                     if (response > min_) {
                                         dialog.errorMessage({ text: '錢箱金額不足' });
                                     }

@@ -7,6 +7,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { Tool } from '../modules/tool.js';
 import { ShoppingAllowanceManager } from './shopping-allowance-manager.js';
 import { IminModule } from './pos-pages/imin-module.js';
+import { TableStorage } from './module/table-storage.js';
 const html = String.raw;
 export class ShoppingInvoiceManager {
     static supportShipmentMethod() {
@@ -66,6 +67,7 @@ export class ShoppingInvoiceManager {
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
+            listLimit: TableStorage.getLimit(),
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.invoiceFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -281,6 +283,14 @@ export class ShoppingInvoiceManager {
                                             vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.id);
                                         }), vm.query || '', '搜尋發票'),
+                                        BgWidget.countingFilter({
+                                            gvc,
+                                            callback: value => {
+                                                vm.listLimit = value;
+                                                gvc.notifyDataChange(vm.id);
+                                            },
+                                            default: vm.listLimit,
+                                        }),
                                         BgWidget.funnelFilter({
                                             gvc,
                                             callback: () => {
@@ -306,10 +316,9 @@ export class ShoppingInvoiceManager {
                             gvc: gvc,
                             getData: vmi => {
                                 var _a;
-                                const limit = 20;
                                 ApiShop.getInvoice({
                                     page: vmi.page - 1,
-                                    limit: limit,
+                                    limit: vm.listLimit,
                                     search: vm.query || '',
                                     searchType: (_a = vm.queryType) !== null && _a !== void 0 ? _a : 'order_number',
                                     orderString: vm.orderString,
@@ -390,7 +399,7 @@ export class ShoppingInvoiceManager {
                                         });
                                     }
                                     vm.dataList = data.response.data;
-                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                    vmi.pageSize = Math.ceil(data.response.total / vm.listLimit);
                                     vmi.originalData = vm.dataList;
                                     vmi.tableData = getDatalist();
                                     vmi.loading = false;
@@ -422,10 +431,10 @@ export class ShoppingInvoiceManager {
     }
     static replaceOrder(gvc, vm, searchOrder) {
         const glitter = gvc.glitter;
-        const invoiceData = searchOrder !== null && searchOrder !== void 0 ? searchOrder : vm.data;
         let orderData_;
         const mainViewID = gvc.glitter.getUUID();
         let dataLoading = true;
+        const invoiceData = vm.invoiceData;
         ApiShop.getOrder({
             page: 0,
             limit: 100,
@@ -434,6 +443,8 @@ export class ShoppingInvoiceManager {
             returnSearch: 'true',
         }).then((response) => {
             orderData_ = response.response;
+            orderData_.orderData.user_info = invoiceData.invoice_data.original_data;
+            orderData_.orderData.user_info.print_invoice = (invoiceData.invoice_data.original_data.Print);
             dataLoading = false;
             gvc.notifyDataChange([mainViewID, 'invoiceContent']);
         });
@@ -493,7 +504,10 @@ export class ShoppingInvoiceManager {
                             if (orderData_) {
                                 const orderData = invoiceData.invoice_data.orderData || orderData_.orderData;
                                 console.log(`orderData_.orderData===>`, orderData_.orderData);
-                                console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data.orderData);
+                                console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data);
+                                orderData.user_info.invoice_type = invoiceData.invoice_data.original_data.CustomerIdentifier ? `company` : `customer`;
+                                orderData.user_info.company = invoiceData.invoice_data.original_data.CustomerName;
+                                orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
                                 let tax_total = (() => {
                                     let total = 0;
                                     orderData.lineItems
@@ -510,6 +524,7 @@ export class ShoppingInvoiceManager {
                                 let sale = orderData.total - tax_total;
                                 let allowanceLoading = true;
                                 let allowanceData = [];
+                                console.log('orderData.user_info===>', orderData);
                                 try {
                                     return [
                                         BgWidget.mainCard(html `

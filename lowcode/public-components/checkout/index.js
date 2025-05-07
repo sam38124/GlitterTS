@@ -38,7 +38,7 @@ export class CheckoutIndex {
             return '';
         }
         let onlineData = {};
-        let apiCart = (() => {
+        function getCartData() {
             if (gvc.glitter.getUrlParameter('page') !== 'checkout') {
                 ApiCart.checkoutCart = ApiCart.globalCart;
                 return new ApiCart(ApiCart.globalCart);
@@ -46,7 +46,8 @@ export class CheckoutIndex {
             else {
                 return new ApiCart(ApiCart.checkoutCart);
             }
-        })();
+        }
+        let apiCart = getCartData();
         const check_out_sub = JSON.parse((_a = localStorage.getItem('checkout_sub_' + ApiCart.checkoutCart)) !== null && _a !== void 0 ? _a : '{}');
         const ids = {
             page: 'checkout-index',
@@ -92,7 +93,7 @@ export class CheckoutIndex {
           role="status"
         ></div>
         <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;"
-        >${textAttr.value}</span
+          >${textAttr.value}</span
         >
       </div>`;
         }
@@ -118,6 +119,7 @@ export class CheckoutIndex {
       </div>`;
         }
         function refreshCartData() {
+            apiCart = getCartData();
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
             const beta = false;
@@ -254,7 +256,7 @@ export class CheckoutIndex {
                                 src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                             },
                             {
-                                src: `https://js.paynow.com.tw/sdk/v2/index.js`,
+                                src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
                             },
                         ], () => { }, () => { });
                         loadings.page = false;
@@ -282,7 +284,7 @@ export class CheckoutIndex {
                             src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
                         },
                         {
-                            src: `https://js.paynow.com.tw/sdk/v1/index.js`,
+                            src: `https://js.paynow.com.tw/sdk/v2/index.js`,
                         },
                     ], () => { }, () => { });
                     loadings.page = false;
@@ -437,28 +439,28 @@ export class CheckoutIndex {
                                                                 })(),
                                                                 item.usePass
                                                                     ? html ` <button
-                                                class="${gClass('button-bgr')} my-2"
-                                                style="max-width: 150px;"
-                                                onclick="${gvc.event(() => {
+                                                  class="${gClass('button-bgr')} my-2"
+                                                  style="max-width: 150px;"
+                                                  onclick="${gvc.event(() => {
                                                                         apiCart.setCart(cartItem => {
                                                                             cartItem.code = item.code;
                                                                             refreshCartData();
                                                                             gvc.closeDialog();
                                                                         });
                                                                     })}"
-                                              >
+                                                >
                                                   <span class="${gClass('button-text')}"
-                                                  >${Language.text('select_to_use')}</span
+                                                    >${Language.text('select_to_use')}</span
                                                   >
-                                              </button>`
+                                                </button>`
                                                                     : html ` <button
-                                                class="${gClass('button-bgr-disable')} my-2"
-                                                style="max-width: 150px; cursor: not-allowed"
-                                              >
+                                                  class="${gClass('button-bgr-disable')} my-2"
+                                                  style="max-width: 150px; cursor: not-allowed"
+                                                >
                                                   <span class="${gClass('button-text')}"
-                                                  >${Language.text('not_meet_usage_criteria')}</span
+                                                    >${Language.text('not_meet_usage_criteria')}</span
                                                   >
-                                              </button>`,
+                                                </button>`,
                                                             ];
                                                         }
                                                         const dialog = new ShareDialog(gvc.glitter);
@@ -493,7 +495,7 @@ export class CheckoutIndex {
                                             <div>
                                               <div class="d-flex align-items-center mb-2">
                                                 <label class="${gClass('label')} mb-0 me-2" style="min-width: 80px;"
-                                                >${Language.text('enter_code')}</label
+                                                  >${Language.text('enter_code')}</label
                                                 >
                                                 <input
                                                   class="${gClass('input')}"
@@ -504,75 +506,96 @@ export class CheckoutIndex {
                                                 />
                                               </div>
                                             </div>
-                                            <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                              ${header
-                                                                .map((item, index) => {
-                                                                return html ` <div class="um-th" style="flex: ${flexList[index]};">
-                                                    ${item.title}
-                                                  </div>`;
-                                                            })
-                                                                .join('')}
-                                            </div>
-                                            ${vmi.dataList
-                                                                .map((item, t1) => {
-                                                                const fText = formatText(item.content);
-                                                                return html ` <div class="w-100 d-sm-flex py-1 align-items-center">
-                                                  ${fText
-                                                                    .map((dd, t2) => {
+                                            ${vmi.dataList.length > 0
+                                                                ? html `<div class="w-100 d-sm-flex py-4 um-th-bar">
+                                                    ${header
+                                                                    .map((item, index) => {
                                                                     return html ` <div
-                                                        class="um-td ${t2 === fText.length - 1 ? 'text-center' : ''}"
-                                                        style="flex: ${flexList[t2]}"
-                                                      >
-                                                        ${dd}
-                                                      </div>`;
+                                                          class="um-th"
+                                                          style="flex: ${flexList[index]};"
+                                                        >
+                                                          ${item.title}
+                                                        </div>`;
                                                                 })
                                                                     .join('')}
-                                                </div>`;
-                                                            })
-                                                                .join('')}
+                                                  </div>
+                                                  ${vmi.dataList
+                                                                    .map(item => {
+                                                                    const fText = formatText(item.content);
+                                                                    return html ` <div class="w-100 d-sm-flex py-1 align-items-center">
+                                                        ${fText
+                                                                        .map((dd, t2) => {
+                                                                        return html ` <div
+                                                              class="um-td ${t2 === fText.length - 1
+                                                                            ? 'text-center'
+                                                                            : ''}"
+                                                              style="flex: ${flexList[t2]}"
+                                                            >
+                                                              ${dd}
+                                                            </div>`;
+                                                                    })
+                                                                        .join('')}
+                                                      </div>`;
+                                                                })
+                                                                    .join('')}`
+                                                                : html `<div
+                                                  class="d-flex justify-content-center align-items-center"
+                                                  style="height: 250px;"
+                                                >
+                                                  尚無可使用的優惠券
+                                                </div>`}
                                           `;
                                                         }
-                                                        return html ` <div>
-                                          <div class="d-flex flex-column flex-sm-row align-items-center ">
-                                            <div class="d-flex align-items-center">
+                                                        let voucher = '';
+                                                        return html `<div class="d-flex flex-column flex-sm-row align-items-center">
+                                            <div class="d-flex align-items-center w-100">
                                               <input
                                                 class="${gClass('input')}"
                                                 type="text"
                                                 style="border-top-right-radius: 0;border-bottom-right-radius: 0px;"
+                                                onchange="${gvc.event(e => {
+                                                            voucher = e.value;
+                                                        })}"
                                                 placeholder="${Language.text('enter_promo_code')}"
                                               />
                                               <button
                                                 class="${gClass('button-bgr')}"
                                                 style="width:100px;border-top-left-radius: 0;border-bottom-left-radius: 0px;"
                                                 onclick="${gvc.event(e => {
-                                                            checkCodeValue(e.value);
+                                                            checkCodeValue(voucher);
                                                         })}"
                                               >
                                                 <span class="${gClass('button-text')}"
-                                                >${Language.text('confirm')}</span
+                                                  >${Language.text('confirm')}</span
                                                 >
                                               </button>
                                             </div>
                                           </div>
                                           <div class="w-100 d-sm-none mb-3 s162413">
-                                            ${vmi.dataList
-                                                            .map(item => {
-                                                            return html ` <div class="um-mobile-area">
-                                                  ${formatText(item.content)
-                                                                .map((dd, index) => {
-                                                                if (header[index].title === '') {
-                                                                    return dd;
-                                                                }
-                                                                return html ` <div class="um-mobile-text">
-                                                        ${header[index].title} : ${dd}
-                                                      </div>`;
+                                            ${vmi.dataList.length > 0
+                                                            ? vmi.dataList
+                                                                .map(item => {
+                                                                return html ` <div class="um-mobile-area">
+                                                      ${formatText(item.content)
+                                                                    .map((dd, index) => {
+                                                                    if (header[index].title === '') {
+                                                                        return dd;
+                                                                    }
+                                                                    return html ` <div class="um-mobile-text">
+                                                            ${header[index].title} : ${dd}
+                                                          </div>`;
+                                                                })
+                                                                    .join('')}
+                                                    </div>`;
                                                             })
-                                                                .join('')}
-                                                </div>`;
-                                                        })
-                                                            .join('')}
-                                          </div>
-                                        </div>`;
+                                                                .join('')
+                                                            : html `<div
+                                                  class="d-flex justify-content-center align-items-center"
+                                                  style="height: 200px;"
+                                                >
+                                                  尚無可使用的優惠券
+                                                </div>`}
+                                          </div>`;
                                                     }
                                                 }
                                                 catch (e) {
@@ -581,15 +604,6 @@ export class CheckoutIndex {
                                             },
                                             onCreate: () => {
                                                 if (loading) {
-                                                    function isNowBetweenDates(startIso, endIso) {
-                                                        const now = new Date();
-                                                        const startDate = new Date(startIso);
-                                                        const endDate = new Date(endIso);
-                                                        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                                                            return true;
-                                                        }
-                                                        return now >= startDate && now <= endDate;
-                                                    }
                                                     gvc.addMtScript([
                                                         {
                                                             src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
@@ -602,8 +616,9 @@ export class CheckoutIndex {
                                                         }).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                             if (res.result && res.response.data) {
                                                                 vmi.dataList = res.response.data.filter((item) => {
-                                                                    return (item.content.trigger === 'code' &&
-                                                                        isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date));
+                                                                    return (item.content.status === 1 &&
+                                                                        item.content.trigger === 'code' &&
+                                                                        Tool.isNowBetweenDates(item.content.start_ISO_Date, item.content.end_ISO_Date));
                                                                 });
                                                             }
                                                             else {
@@ -652,16 +667,16 @@ export class CheckoutIndex {
                     >
                       ${vm.cartData.code
                             ? html `${vm.cartData.code}<i
-                          class="fa-solid fa-xmark-large ms-2"
-                          style="cursor: pointer;"
-                          onclick="${gvc.event((e, event) => {
+                              class="fa-solid fa-xmark-large ms-2"
+                              style="cursor: pointer;"
+                              onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
                                 apiCart.setCart(cartItem => {
                                     cartItem.code = '';
                                     refreshCartData();
                                 });
                             })}"
-                        ></i>`
+                            ></i>`
                             : Language.text('add')}
                     </div>
                   </div>
@@ -674,30 +689,30 @@ export class CheckoutIndex {
                                     let tempRebate = 0;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     return html ` <div class="${gClass(['price-row', 'text-2'])}">
-                          <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
-                          <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
-                        </div>
-                        <div class="${gClass(['price-row', 'text-2'])}">
-                          <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
-                          <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
-                        </div>
+                              <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
+                              <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
+                            </div>
+                            <div class="${gClass(['price-row', 'text-2'])}">
+                              <div>${vm.rebateConfig.title}${Language.text('reback_text')}</div>
+                              <div>+ ${vm.cartData.rebate.toLocaleString()}</div>
+                            </div>
 
-                        <div class="${gClass(['price-row', 'text-2'])}">
-                          <div
-                            style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                            <div class="${gClass(['price-row', 'text-2'])}">
+                              <div
+                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
                                         ? 'gap: 18px;'
                                         : 'gap: 0px;'}"
-                            class="w-100"
-                          >
-                            <input
-                              class="flex-fill ${gClass('group-input')}"
-                              placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
-                              style="${document.body.clientWidth < 800
+                                class="w-100"
+                              >
+                                <input
+                                  class="flex-fill ${gClass('group-input')}"
+                                  placeholder="${Language.text('please_enter')}${vm.rebateConfig.title}"
+                                  style="${document.body.clientWidth < 800
                                         ? `width:calc(100% - 150px) !important;`
                                         : ''}"
-                              value="${vm.cartData.use_rebate || ''}"
-                              onchange="${gvc.event((e, event) => {
+                                  value="${vm.cartData.use_rebate || ''}"
+                                  onchange="${gvc.event((e, event) => {
                                         if (CheckInput.isNumberString(e.value)) {
                                             tempRebate = parseInt(e.value, 10);
                                         }
@@ -706,11 +721,11 @@ export class CheckoutIndex {
                                             gvc.notifyDataChange(ids.page);
                                         }
                                     })}"
-                            />
-                            <div class="${gClass('group-button')}">
-                              <div
-                                class="${gClass('button-text')}"
-                                onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                />
+                                <div class="${gClass('group-button')}">
+                                  <div
+                                    class="${gClass('button-text')}"
+                                    onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                         const sum = yield new Promise((resolve, reject) => {
                                             ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                 if (res.result && res.response.sum) {
@@ -739,15 +754,15 @@ export class CheckoutIndex {
                                             refreshCartData();
                                         });
                                     }))}"
-                              >
-                                ${Language.text('apply')}
+                                  >
+                                    ${Language.text('apply')}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        </div>`;
+                            </div>`;
                                 })()}
-                      <div class="${gClass(['price-row', 'text-2'])}">
-                        ${(() => {
+                        <div class="${gClass(['price-row', 'text-2'])}">
+                          ${(() => {
                                     return gvc.bindView(() => {
                                         return {
                                             bind: gvc.glitter.getUUID(),
@@ -768,13 +783,13 @@ export class CheckoutIndex {
                                                 const info = vm.cartData.useRebateInfo;
                                                 if (info.condition) {
                                                     return html `${Language.text('distance_from_target_amount')}$
-                                  ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
-                                  ${vm.rebateConfig.title} ${Language.text('discount')}`;
+                                    ${info.condition.toLocaleString()} ${Language.text('can_use_now')}
+                                    ${vm.rebateConfig.title} ${Language.text('discount')}`;
                                                 }
                                                 if (info.limit) {
                                                     return html `${Language.text('remaining_balance')} ${sum || 0}
-                                  ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text('max_discount_order')}
-                                  ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
+                                      ${Language.text('point')} ${vm.rebateConfig.title} <br />${Language.text('max_discount_order')}
+                                      ${info.limit.toLocaleString()} ${Language.text('point')} ${vm.rebateConfig.title}`;
                                                 }
                                                 else {
                                                     return `${Language.text('remaining_balance')} ${sum || 0} ${Language.text('point')} ${vm.rebateConfig.title}`;
@@ -783,7 +798,7 @@ export class CheckoutIndex {
                                         };
                                     });
                                 })()}
-                      </div>`;
+                        </div>`;
                             }
                         })()}
                   <div class="${gClass(['price-row', 'text-2', 'bold'])}">
@@ -1158,14 +1173,15 @@ export class CheckoutIndex {
                                 </div>
                                 <!--贈品-->
                                 ${(() => {
-                                        let already_add = vm.cartData.lineItems.filter((dd) => {
-                                            return dd.is_gift;
-                                        });
                                         const giftHtml = vm.cartData.voucherList
                                             .filter((d1) => {
                                             return d1.reBackType === 'giveaway';
                                         })
                                             .map((dd) => {
+                                            let already_add = vm.cartData.lineItems.filter((dd) => {
+                                                return dd.is_gift;
+                                            });
+                                            dd.add_on_products = dd.add_on_products.filter(Boolean);
                                             let isSelected = already_add.find(d2 => {
                                                 return dd.add_on_products.find((d1) => {
                                                     return d1.id === d2.id;
@@ -1208,8 +1224,8 @@ export class CheckoutIndex {
                                                       style="${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? `background: gray !important;`
-                                                            : ''
-                                                        : ''}"
+                                                            : ``
+                                                        : `background: orangered !important;`}"
                                                       onclick="${gvc.event(() => {
                                                         var _a;
                                                         if (isSelected && isSelected.id === pd.id) {
@@ -1281,7 +1297,7 @@ export class CheckoutIndex {
                                                                 callback: () => {
                                                                     let find = vm.cartData.lineItems.find((d1) => {
                                                                         return dd.add_on_products.find((d2) => {
-                                                                            return d2.id === d1.id;
+                                                                            return d2 && d2.id === d1.id;
                                                                         });
                                                                     });
                                                                     if (find) {
@@ -1317,7 +1333,12 @@ export class CheckoutIndex {
                                                     })}"
                                                     >
                                                       <span class="${gClass('button-text')}"
-                                                      >${isSelected
+                                                            style="${isSelected
+                                                        ? isSelected.id === pd.id
+                                                            ? ``
+                                                            : `color: white;`
+                                                        : ``}"
+                                                        >${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? Language.text('selected')
                                                             : Language.text('change_gift')
@@ -1336,14 +1357,14 @@ export class CheckoutIndex {
                                       `;
                                         })
                                             .join('');
-                                        return giftHtml && `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
+                                        return giftHtml && html `<div class="rounded-3 bg-white p-3 mt-3">${giftHtml}</div>`;
                                     })()}
                                 <!--加購品-->
                                 ${(() => {
                                         let add_on = [];
                                         vm.cartData.voucherList.filter((dd) => {
                                             if (dd.reBackType === 'add_on_items') {
-                                                add_on = add_on.concat(dd.add_on_products);
+                                                add_on = add_on.concat(dd.add_on_products).filter(Boolean);
                                             }
                                         });
                                         if (add_on.length) {
@@ -1520,7 +1541,7 @@ export class CheckoutIndex {
                                         }
                                     })()}
                                 <!--配送資訊-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   ${html ` <section>
                                     <div class="${gClass('banner-text')} px-2 pt-3">
                                       ${Language.text('payment_and_shipping_methods')}
@@ -1563,7 +1584,29 @@ export class CheckoutIndex {
                                         ${gvc.bindView({
                                         bind: ids.shipping,
                                         view: () => {
-                                            return html ` <div>
+                                            const shipmentTargetNotification = () => {
+                                                try {
+                                                    const target = vm.cartData.select_shipment_setting.cartSetting.freeShipmnetTarget;
+                                                    if (target) {
+                                                        return html `
+                                                    <div class="${gClass('danger-text')}">
+                                                      ${vm.cartData.shipment_fee === 0
+                                                            ? Language.text('free_shipping_achieved')
+                                                            : Language.text('free_shipping_threshold').replace('_p_', Number(target -
+                                                                (vm.cartData.total -
+                                                                    vm.cartData.shipment_fee +
+                                                                    vm.cartData.discount +
+                                                                    vm.cartData.use_rebate)).toLocaleString())}
+                                                    </div>
+                                                  `;
+                                                    }
+                                                    return '';
+                                                }
+                                                catch (error) {
+                                                    return '';
+                                                }
+                                            };
+                                            return html ` <div class="d-flex flex-column gap-1">
                                               <select
                                                 class="w-100 ${gClass('select')}"
                                                 onchange="${gvc.event(e => {
@@ -1588,18 +1631,19 @@ export class CheckoutIndex {
                                                 ? shipmentList
                                                     .map((dd) => {
                                                     return html ` <option
-                                                        value="${dd.value}"
-                                                        ${vm.cartData.user_info.shipment === dd.value
+                                                          value="${dd.value}"
+                                                          ${vm.cartData.user_info.shipment === dd.value
                                                         ? `selected`
                                                         : ''}
-                                                      >
-                                                        ${Language.text(`ship_${dd.value}`) ||
+                                                        >
+                                                          ${Language.text(`ship_${dd.value}`) ||
                                                         Language.getLanguageCustomText(dd.name)}
-                                                      </option>`;
+                                                        </option>`;
                                                 })
                                                     .join('')
                                                 : html ` <option selected>(${Language.text('disable_ship')})</option>`}
                                               </select>
+                                              ${shipmentTargetNotification()}
                                             </div>`;
                                         },
                                     })}
@@ -1612,9 +1656,9 @@ export class CheckoutIndex {
                                                 const log_config = (yield ApiUser.getPublicConfig('shipment_config_' + vm.cartData.user_info.shipment, 'manager')).response.value;
                                                 if (log_config.content) {
                                                     return html ` <label class="${gClass('label')}"
-                                                >${Language.text('shipping_instructions')}</label
-                                                >
-                                                <div class="border rounded-3 p-2">${log_config.content}</div>`;
+                                                    >${Language.text('shipping_instructions')}</label
+                                                  >
+                                                  <div class="border rounded-3 p-2">${log_config.content}</div>`;
                                                 }
                                                 return '';
                                             }),
@@ -1656,13 +1700,13 @@ export class CheckoutIndex {
                                                 view: () => {
                                                     select_id = gvc.glitter.getUUID();
                                                     return html `<label
-                                                class="${gClass('label')} w-100 d-flex align-items-center"
-                                              >${Language.text('shipping_address')}
-                                                <div class="flex-fill"></div>
-                                                <div
-                                                  class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
-                                                  style="cursor: pointer; color: #3366bb;"
-                                                  onclick="${gvc.event(() => {
+                                                    class="${gClass('label')} w-100 d-flex align-items-center"
+                                                    >${Language.text('shipping_address')}
+                                                    <div class="flex-fill"></div>
+                                                    <div
+                                                      class="fs-sm fw-500 ${!GlobalUser.token ? `d-none` : ''}"
+                                                      style="cursor: pointer; color: #3366bb;"
+                                                      onclick="${gvc.event(() => {
                                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
                                                             vm.cartData.user_info.address =
                                                                 res.response.userData.consignee_address;
@@ -1670,32 +1714,32 @@ export class CheckoutIndex {
                                                             gvc.notifyDataChange(id);
                                                         });
                                                     })}"
-                                                >
-                                                  ${Language.text('quick_input')}
-                                                </div>
-                                              </label>
-                                              <div class="row">
-                                                <div class="col-12 mb-3">
-                                                  <div
-                                                    role="tw-city-selector"
-                                                    id="select_id_${id}"
-                                                    class="w-100 city-selector d-flex d_${select_id}"
-                                                    style="gap:15px;"
-                                                  ></div>
-                                                </div>
-                                                <div class="col-12">
-                                                  <input
-                                                    class="${gClass('input')}"
-                                                    type="address"
-                                                    placeholder="${Language.text('please_enter_street_location')}"
-                                                    value="${vm.cartData.user_info.address || ''}"
-                                                    onchange="${gvc.event(e => {
+                                                    >
+                                                      ${Language.text('quick_input')}
+                                                    </div>
+                                                  </label>
+                                                  <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                      <div
+                                                        role="tw-city-selector"
+                                                        id="select_id_${id}"
+                                                        class="w-100 city-selector d-flex d_${select_id}"
+                                                        style="gap:15px;"
+                                                      ></div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                      <input
+                                                        class="${gClass('input')}"
+                                                        type="address"
+                                                        placeholder="${Language.text('please_enter_street_location')}"
+                                                        value="${vm.cartData.user_info.address || ''}"
+                                                        onchange="${gvc.event(e => {
                                                         vm.cartData.user_info.address = e.value;
                                                         this.storeLocalData(vm.cartData);
                                                     })}"
-                                                  />
-                                                </div>
-                                              </div> `;
+                                                      />
+                                                    </div>
+                                                  </div> `;
                                                 },
                                                 divCreate: {
                                                     class: `col-12  mb-2`,
@@ -1740,9 +1784,9 @@ export class CheckoutIndex {
                                       <!-- 選取超商 -->
                                       ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
                                         ? html ` <div class="col-12">
-                                          <button
-                                            class="${gClass('button-bgr')}"
-                                            onclick="${gvc.event(() => {
+                                            <button
+                                              class="${gClass('button-bgr')}"
+                                              onclick="${gvc.event(() => {
                                             ApiDelivery.storeMaps({
                                                 returnURL: (() => {
                                                     if (ApplicationConfig.device_type === 'ios') {
@@ -1768,9 +1812,9 @@ export class CheckoutIndex {
                                                 }
                                             }));
                                         })}"
-                                          >
+                                            >
                                               <span class="${gClass('button-text')}"
-                                              >${(() => {
+                                                >${(() => {
                                             let cvs = glitter.getUrlParameter('CVSStoreName') || '';
                                             if (decodeURIComponent(cvs)) {
                                                 return `${decodeURIComponent(cvs)} 『 ${Language.text('click_to_reselct_store')} 』`;
@@ -1780,8 +1824,8 @@ export class CheckoutIndex {
                                             }
                                         })()}</span
                                               >
-                                          </button>
-                                        </div>`
+                                            </button>
+                                          </div>`
                                         : ''}
                                       ${(() => {
                                         var _a;
@@ -1798,7 +1842,7 @@ export class CheckoutIndex {
                                     })()
                                         ? [
                                             html `<label class="${gClass('label')}">${Language.text('country')}</label>
-                                          ${gvc.bindView(() => {
+                                              ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -1823,89 +1867,89 @@ export class CheckoutIndex {
                                                             });
                                                         });
                                                         return html `<select
-                                                  class="w-100 ${gClass('select')}"
-                                                  onchange="${gvc.event((e, event) => {
+                                                      class="w-100 ${gClass('select')}"
+                                                      onchange="${gvc.event((e, event) => {
                                                             vm.cartData.user_info.country = e.value;
                                                             this.storeLocalData(vm.cartData);
                                                             refreshCartData();
                                                         })}"
-                                                >
-                                                  ${(() => {
+                                                    >
+                                                      ${(() => {
                                                             let map = country_select.map((dd) => {
                                                                 return html `
-                                                          <option
-                                                            value="${dd.countryCode}"
-                                                            ${vm.cartData.user_info.country === dd.countryCode
+                                                              <option
+                                                                value="${dd.countryCode}"
+                                                                ${vm.cartData.user_info.country === dd.countryCode
                                                                     ? `selected`
                                                                     : ''}
-                                                          >
-                                                            ${dd.countryName}
-                                                          </option>
-                                                        `;
+                                                              >
+                                                                ${dd.countryName}
+                                                              </option>
+                                                            `;
                                                             });
                                                             if (!country_select.find((dd) => {
                                                                 return dd.countryCode === vm.cartData.user_info.country;
                                                             })) {
                                                                 delete vm.cartData.user_info.country;
                                                                 map.push(html ` <option class="d-none" selected>
-                                                          ${Language.text('select_country')}
-                                                        </option>`);
+                                                              ${Language.text('select_country')}
+                                                            </option>`);
                                                             }
                                                             return map.join('');
                                                         })()}
-                                                </select>`;
+                                                    </select>`;
                                                     }),
                                                 };
                                             })}`,
                                             html ` <label class="${gClass('label')}"
-                                          >${Language.text('shipping_address')}</label
-                                          >
-                                          <input
-                                            class="${gClass('input')}"
-                                            type="address"
-                                            placeholder="${Language.text('please_enter_delivery_address')}"
-                                            value="${vm.cartData.user_info.address || ''}"
-                                            onchange="${gvc.event(e => {
+                                                >${Language.text('shipping_address')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="address"
+                                                placeholder="${Language.text('please_enter_delivery_address')}"
+                                                value="${vm.cartData.user_info.address || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.address = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                          />`,
+                                              />`,
                                             html ` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                          <input
-                                            class="${gClass('input')}"
-                                            type="city"
-                                            placeholder="${Language.text('city')}"
-                                            value="${vm.cartData.user_info.city || ''}"
-                                            onchange="${gvc.event(e => {
+                                              <input
+                                                class="${gClass('input')}"
+                                                type="city"
+                                                placeholder="${Language.text('city')}"
+                                                value="${vm.cartData.user_info.city || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.city = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                          />`,
+                                              />`,
                                             html ` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                          <input
-                                            class="${gClass('input')}"
-                                            class="${gClass('input')}"
-                                            type="state"
-                                            placeholder="${Language.text('state')}"
-                                            value="${vm.cartData.user_info.state || ''}"
-                                            onchange="${gvc.event(e => {
+                                              <input
+                                                class="${gClass('input')}"
+                                                class="${gClass('input')}"
+                                                type="state"
+                                                placeholder="${Language.text('state')}"
+                                                value="${vm.cartData.user_info.state || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.state = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                          />`,
+                                              />`,
                                             html ` <label class="${gClass('label')}"
-                                          >${Language.text('postal_code')}</label
-                                          >
-                                          <input
-                                            class="${gClass('input')}"
-                                            type=""
-                                            placeholder="${Language.text('postal_code')}"
-                                            value="${vm.cartData.user_info.postal_code || ''}"
-                                            onchange="${gvc.event(e => {
+                                                >${Language.text('postal_code')}</label
+                                              >
+                                              <input
+                                                class="${gClass('input')}"
+                                                type=""
+                                                placeholder="${Language.text('postal_code')}"
+                                                value="${vm.cartData.user_info.postal_code || ''}"
+                                                onchange="${gvc.event(e => {
                                                 vm.cartData.user_info.postal_code = e.value;
                                                 this.storeLocalData(vm.cartData);
                                             })}"
-                                          />`,
+                                              />`,
                                         ]
                                             .map(dd => {
                                             return html ` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
@@ -1939,7 +1983,38 @@ export class CheckoutIndex {
                                             ].join('');
                                         }
                                         catch (e) {
-                                            console.error(`error 3 =>`, e);
+                                            console.error(`error 3-1 =>`, e);
+                                            return '';
+                                        }
+                                    })()}
+                                      ${(() => {
+                                        var _a, _b;
+                                        try {
+                                            vm.cartData.user_info.custom_form_payment =
+                                                (_a = vm.cartData.user_info.custom_form_payment) !== null && _a !== void 0 ? _a : {};
+                                            const formData = (_b = vm.cartData.payment_customer_form.find((dd) => {
+                                                return vm.cartData.customer_info.payment_select === dd.id;
+                                            })) === null || _b === void 0 ? void 0 : _b.list;
+                                            if (!formData) {
+                                                return '';
+                                            }
+                                            const form_array = JSON.parse(JSON.stringify(formData));
+                                            form_array.map((dd) => {
+                                                return formatterFormElement(dd);
+                                            });
+                                            return [
+                                                FormWidget.editorView({
+                                                    gvc: gvc,
+                                                    array: form_array,
+                                                    refresh: () => {
+                                                        this.storeLocalData(vm.cartData);
+                                                    },
+                                                    formData: vm.cartData.user_info.custom_form_payment,
+                                                }),
+                                            ].join('');
+                                        }
+                                        catch (e) {
+                                            console.error(`error 3-2 =>`, e);
                                             return '';
                                         }
                                     })()}
@@ -1947,7 +2022,7 @@ export class CheckoutIndex {
                                   </section>`}
                                 </div>
                                 <!--顧客資訊-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   <div class="${gClass('banner-text')} px-3 pt-3 w-100 d-flex align-items-center">
                                     ${Language.text('customer_info')}
                                     <div class="flex-fill"></div>
@@ -2089,7 +2164,7 @@ export class CheckoutIndex {
                                     })}
                                 </div>
                                 <!--收件人資料-->
-                                <div class="rounded-3 bg-white w-100 p-1 mt-3">
+                                <div class="rounded-3 bg-white w-100 p-2 mt-3">
                                   <div class="${gClass('banner-text')} px-3 pt-3 d-flex align-items-center">
                                     ${Language.text('recipient_info')}
                                     <div class="flex-fill"></div>
@@ -2647,10 +2722,10 @@ export class CheckoutIndex {
                                               class="d-flex align-items-center justify-content-end"
                                               style="width:1180px;max-width: 100%;gap:24px;"
                                             >
-                                              <div class="d-flex align-items-end fs-base" style="gap:5px;">
-                                                <span style="white-space:nowrap;" class="fw-bold fs-sm">
-                                                  ${Language.text('total_amount')}</span
-                                                >
+                                              <div class="d-flex align-items-center fs-base" style="gap:5px;">
+                                                <div style="white-space:nowrap;" class="fw-bold fs-sm">
+                                                  ${Language.text('total_amount')}
+                                                </div>
                                                 <div class="${gClass(['price-row', 'text-1', 'bold'])}">
                                                   <div class="fs-5 fw-bold ${gClass('price-text')}">
                                                     ${Currency.convertCurrencyText(vm.cartData.total)}
@@ -2784,7 +2859,7 @@ export class CheckoutIndex {
                                                             dialog.dataLoading({ visible: false });
                                                             if (!res.result) {
                                                                 dialog.infoMessage({
-                                                                    text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助'
+                                                                    text: '系統處理您的付款時遇到一些問題，導致交易未能完成。請聯繫我們的客服團隊以取得進一步的協助',
                                                                 });
                                                                 return;
                                                             }
@@ -3247,7 +3322,7 @@ export class CheckoutIndex {
           </div>
           <div class="c_dialog">
             <div class="c_dialog_body">
-              <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+              <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px;">
                 ${obj.innerHTML(gvc)}
               </div>
             </div>
