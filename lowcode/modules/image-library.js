@@ -111,8 +111,6 @@ export class imageLibrary {
         function closeFolderView(returnPage = 'folder') {
             changeWindowsName('圖片庫');
             changeCancelBTNName('取消');
-            vm.type = 'folder';
-            gvc.notifyDataChange(vm.id);
         }
         const isSafari = (() => {
             const userAgent = navigator.userAgent.toLowerCase();
@@ -433,10 +431,14 @@ export class imageLibrary {
                                 return html `
                   <div class="d-flex" style="margin: 20px 0">
                     <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
-                                    closeFolderView("file");
+                                    closeFolderView();
+                                    vm.type = 'file';
+                                    gvc.notifyDataChange(vm.id);
                                 })}">我的圖庫</div></div>
                     <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
                                     closeFolderView();
+                                    vm.type = 'folder';
+                                    gvc.notifyDataChange(vm.id);
                                 })}">相簿</div></div>
                     <div class="breadcrumb-item"><div>${vm.tag}</div></div>
                   </div>
@@ -494,11 +496,6 @@ export class imageLibrary {
                     <div
                       class="btn1"
                       onclick="${gvc.event(() => {
-                                    if (!vm.tag) {
-                                        const dialog = new ShareDialog(cf.gvc.glitter);
-                                        dialog.errorMessage({ text: '請先輸入相簿名稱' });
-                                        return;
-                                    }
                                     this.selectImageLibrary(gvc, selectData => {
                                         var _a;
                                         const folder = {
@@ -989,7 +986,7 @@ export class imageLibrary {
                                         }
                                     })}"
                               >
-                                ${vm.type == 'file' ? '上傳新照片' : '上傳相簿'}
+                                ${vm.type == 'file' ? '上傳新照片' : '新增相簿'}
                               </div>
                             </div>
                             ${renderItems(viewData)}
@@ -1100,10 +1097,13 @@ export class imageLibrary {
                             type: 'cancel',
                             label: cancelLabel,
                             onClick: () => {
+                                console.log("vm.type --", vm.type);
                                 if (cf.cancelEvent)
                                     cf.cancelEvent();
                                 if (vm.type === 'folderView' || vm.type === 'folderADD') {
                                     closeFolderView();
+                                    vm.type = 'folder';
+                                    gvc.notifyDataChange(vm.id);
                                 }
                                 else {
                                     gvc.closeDialog();
