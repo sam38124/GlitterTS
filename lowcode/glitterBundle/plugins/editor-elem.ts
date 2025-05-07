@@ -308,7 +308,9 @@ export class EditorElem {
     });
   }
 
-  public static flexMediaManagerV2(obj: { gvc: GVC; data: string[] }) {
+  public static flexMediaManagerV2(obj: { gvc: GVC; data: string[] , event?:{
+    delete?:(index:number)=>void,
+    }} ) {
     const data = obj.data;
     obj.gvc.addStyle(`
       .p-hover-image:hover {
@@ -427,6 +429,9 @@ export class EditorElem {
                       <i
                         class="fa-regular fa-trash"
                         onclick="${obj.gvc.event(() => {
+                          if(obj.event?.delete){
+                            obj.event.delete(index);
+                          }
                           data.splice(index, 1);
                           obj.gvc.notifyDataChange(id);
                         })}"
@@ -1689,7 +1694,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         dialog.dataLoading({ visible: false });
         if (res.result) {
           if (obj.return_array) {
-            console.log("res -- " , res);
             obj.callback(res.links as any);
           } else {
             res.links.map(dd => {

@@ -328,13 +328,14 @@ export class ProductSetting {
                                                         }
                                                       })}"
                                                       onchange="${gvc.event(e => {
-                                                        (data as any)['stockList'][item.id].count = e.value;
+                                                        (data as any)['stockList'][item.id].count = Number(e.value);
                                                         let count = 0;
                                                         Object.values((data as any)['stockList']).map((stock: any) => {
                                                           count += parseInt(stock.count, 10);
                                                         });
 
                                                         data['stock'] = count;
+                                                        console.log("data -- " , data);
                                                         gvc.notifyDataChange(vm.id);
                                                       })}"
                                                     />

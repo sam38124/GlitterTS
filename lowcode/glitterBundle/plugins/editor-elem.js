@@ -398,6 +398,10 @@ export class EditorElem {
                       <i
                         class="fa-regular fa-trash"
                         onclick="${obj.gvc.event(() => {
+                            var _a;
+                            if ((_a = obj.event) === null || _a === void 0 ? void 0 : _a.delete) {
+                                obj.event.delete(index);
+                            }
                             data.splice(index, 1);
                             obj.gvc.notifyDataChange(id);
                         })}"
@@ -1447,7 +1451,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 dialog.dataLoading({ visible: false });
                 if (res.result) {
                     if (obj.return_array) {
-                        console.log("res -- ", res);
                         obj.callback(res.links);
                     }
                     else {

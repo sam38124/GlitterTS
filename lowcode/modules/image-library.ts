@@ -28,7 +28,14 @@ export class imageLibrary {
     mul?: boolean;
     tag: string;
     plus: (gvc: GVC, callback: (file: FileItem[]) => void, fileType?: string) => void;
-    edit: (file: FileItem, callback: (file?: FileItem) => void, obj?:{deleteStyle?:number|0,tag:string|""}) => void;
+    edit: (
+      file: FileItem,
+      callback: (file?: FileItem) => void,
+      obj?: {
+        deleteStyle?: number | 0;
+        tag: string | '';
+      }
+    ) => void;
     cancelEvent?: () => void;
     edit_only?: boolean;
   }) {
@@ -145,6 +152,14 @@ export class imageLibrary {
       });
     }
 
+    function closeFolderView(returnPage:'folder'|'file' = 'folder') {
+      changeWindowsName('圖片庫');
+      changeCancelBTNName('取消');
+      vm.type = 'folder';
+      gvc.notifyDataChange(vm.id);
+    }
+
+
     const isSafari = (() => {
       const userAgent = navigator.userAgent.toLowerCase();
       return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('edg');
@@ -248,49 +263,37 @@ export class imageLibrary {
                                   if (newItem) vm.link[replaceItemIndex] = newItem;
                                   else vm.link.splice(replaceItemIndex, 1);
                                   save(() => gvc.notifyDataChange(vm.id));
-
-                                }
-                                function deleteImageImg(id: string, newItem?: FileItem) {
-                                  const idx = vm.link.findIndex(i => i.id === id);
-                                  // if (idx < 0) return;
-                                  // if (newItem) vm.link[idx] = newItem;
-                                  // else vm.link.splice(idx, 1);
-                                  // save(() => gvc.notifyDataChange(vm.id));
                                 }
 
                                 cf.edit(
                                   fileItem,
-                                  (replace?:FileItem)=>{
+                                  (replace?: FileItem) => {
                                     updateLinkList(replace?.id ?? fileItem.id, replace);
                                     // save(() => gvc.notifyDataChange(vm.id));
-
                                   },
                                   {
-                                    deleteStyle:1,
-                                    tag:vm.tag??""
+                                    deleteStyle: 1,
+                                    tag: vm.tag ?? '',
                                   }
                                 );
                               } else {
-                                cf.edit(
-                                  fileItem,
-                                  replace => {
-                                    if (!replace) {
-                                      let selectData = vm.link.findIndex(data => {
-                                        return data.id == fileItem.id;
-                                      });
-                                      vm.link.splice(selectData, 1);
-                                      save(() => {
-                                        gvc.notifyDataChange(vm.id);
-                                      });
-                                    } else {
-                                      let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
-                                      vm.link[replaceIndex] = replace;
-                                      save(() => {
-                                        gvc.notifyDataChange(vm.id);
-                                      });
-                                    }
+                                cf.edit(fileItem, replace => {
+                                  if (!replace) {
+                                    let selectData = vm.link.findIndex(data => {
+                                      return data.id == fileItem.id;
+                                    });
+                                    vm.link.splice(selectData, 1);
+                                    save(() => {
+                                      gvc.notifyDataChange(vm.id);
+                                    });
+                                  } else {
+                                    let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
+                                    vm.link[replaceIndex] = replace;
+                                    save(() => {
+                                      gvc.notifyDataChange(vm.id);
+                                    });
                                   }
-                                );
+                                });
                               }
                             }
 
@@ -494,6 +497,7 @@ export class imageLibrary {
           });
         }
 
+
         getPublicConfig(() => {
           gvc.notifyDataChange(vm.id);
         });
@@ -503,6 +507,20 @@ export class imageLibrary {
             bind: vm.id,
             view: async () => {
               const dialog = new ShareDialog(cf.gvc.glitter);
+
+              function drawBreadcrumb() {
+                return html`
+                  <div class="d-flex" style="margin: 20px 0">
+                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(()=>{
+                      closeFolderView("file")
+                    })}">我的圖庫</div></div>
+                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(()=>{
+                      closeFolderView()
+                    })}">相簿</div></div>
+                    <div class="breadcrumb-item"><div>${vm.tag}</div></div>
+                  </div>
+                `;
+              }
 
               function pageBTN() {
                 let key = [
@@ -666,6 +684,7 @@ export class imageLibrary {
                 changeWindowsName(vm.tag ?? 'folder');
                 changeCancelBTNName('返回');
                 return html`
+                  ${drawBreadcrumb()}
                   <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
                     ${BgWidget.searchFilter(
                       gvc.event(e => {
@@ -1230,10 +1249,7 @@ export class imageLibrary {
               onClick: () => {
                 if (cf.cancelEvent) cf.cancelEvent();
                 if (vm.type === 'folderView' || vm.type === 'folderADD') {
-                  changeWindowsName('圖片庫');
-                  changeCancelBTNName('取消');
-                  vm.type = 'folder';
-                  gvc.notifyDataChange(vm.id);
+                  closeFolderView()
                 } else {
                   gvc.closeDialog();
                 }
@@ -1590,10 +1606,14 @@ export class imageLibrary {
           multiple: true,
         });
       },
-      edit: (item, callback: (file?: FileItem) => void, obj?:{
-        deleteStyle?:number|0,
-        tag?:string
-      }) => {
+      edit: (
+        item,
+        callback: (file?: FileItem) => void,
+        obj?: {
+          deleteStyle?: number | 0;
+          tag?: string;
+        }
+      ) => {
         item = JSON.parse(JSON.stringify(item));
         BgWidget.settingDialog({
           gvc: gvc,
@@ -1606,7 +1626,8 @@ export class imageLibrary {
               BgWidget.danger(
                 gvc.event(() => {
                   const dialog = new ShareDialog(gvc.glitter);
-                  function deleteImage(){
+
+                  function deleteImage() {
                     dialog.checkYesOrNotWithCustomWidth({
                       width: '432',
                       text: '刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？',
@@ -1619,18 +1640,22 @@ export class imageLibrary {
                       },
                     });
                   }
-                  function deleteAlbumTag(){
+
+                  function deleteAlbumTag() {
                     item.tag = item.tag.filter(t => t !== obj?.tag);
                     callback(item);
                     gvc.closeDialog();
                   }
+
                   switch (obj?.deleteStyle) {
                     case 1: {
                       gvc.glitter.innerDialog(() => {
                         const prefixClass = 'deleteWindows';
-                        function closeThisDialog(){
+
+                        function closeThisDialog() {
                           gvc.glitter.closeDiaLog('deleteWindows');
                         }
+
                         function gClass(className: string) {
                           return prefixClass + '-' + className;
                         }
@@ -1691,14 +1716,24 @@ export class imageLibrary {
                             <i class="fa-regular fa-circle-exclamation mb-1" style="font-size: 4rem;"></i>
                             <div class="${gClass('text-block')}">
                               <div>請選擇刪除方式：</div>
-                              <div class="button" onclick="${gvc.event(()=>{
-                                deleteAlbumTag();
-                                closeThisDialog();
-                              })}">僅從此相簿移除</div>
-                              <div class="button" onclick="${gvc.event(()=>{
-                                deleteImage();
-                                closeThisDialog();
-                              })}">從圖庫中永久刪除</div>
+                              <div
+                                class="button"
+                                onclick="${gvc.event(() => {
+                                  deleteAlbumTag();
+                                  closeThisDialog();
+                                })}"
+                              >
+                                僅從此相簿移除
+                              </div>
+                              <div
+                                class="button"
+                                onclick="${gvc.event(() => {
+                                  deleteImage();
+                                  closeThisDialog();
+                                })}"
+                              >
+                                從圖庫中永久刪除
+                              </div>
                             </div>
                           </div>
                         `;

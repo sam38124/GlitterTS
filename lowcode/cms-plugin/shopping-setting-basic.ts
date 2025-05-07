@@ -123,6 +123,7 @@ export class ShoppingSettingBasic {
         preview_image: '',
       });
     }
+
     postMD.variants.map((dd: any) => {
       dd.checked = undefined;
       return dd;
@@ -1011,6 +1012,23 @@ export class ShoppingSettingBasic {
                     EditorElem.flexMediaManagerV2({
                       gvc: obj.gvc,
                       data: language_data.preview_image,
+                      event: {
+                        delete: (index: number) => {
+                         
+                          console.log("language_data -- " , language_data);
+                          postMD.variants.forEach((variant: any) => {
+                            if (variant.preview_image === language_data.preview_image[index]) {
+                              variant.preview_image = language_data.preview_image[0] ?? BgWidget.noImageURL;
+                            }
+                            if (variant[`preview_image_${vm.language}`] === language_data.preview_image[index]) {
+                              variant[`preview_image_${vm.language}`] = language_data.preview_image[0] ?? BgWidget.noImageURL;
+                            }
+                          })
+                          console.log("language_data -- " , postMD.variants);
+                          ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
+
+                        }
+                      }
                     })
                   );
                 },

@@ -108,6 +108,12 @@ export class imageLibrary {
                 finish();
             });
         }
+        function closeFolderView(returnPage = 'folder') {
+            changeWindowsName('圖片庫');
+            changeCancelBTNName('取消');
+            vm.type = 'folder';
+            gvc.notifyDataChange(vm.id);
+        }
         const isSafari = (() => {
             const userAgent = navigator.userAgent.toLowerCase();
             return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('edg');
@@ -199,15 +205,12 @@ export class imageLibrary {
                                                                     vm.link.splice(replaceItemIndex, 1);
                                                                 save(() => gvc.notifyDataChange(vm.id));
                                                             }
-                                                            function deleteImageImg(id, newItem) {
-                                                                const idx = vm.link.findIndex(i => i.id === id);
-                                                            }
                                                             cf.edit(fileItem, (replace) => {
                                                                 var _a;
                                                                 updateLinkList((_a = replace === null || replace === void 0 ? void 0 : replace.id) !== null && _a !== void 0 ? _a : fileItem.id, replace);
                                                             }, {
                                                                 deleteStyle: 1,
-                                                                tag: (_a = vm.tag) !== null && _a !== void 0 ? _a : ""
+                                                                tag: (_a = vm.tag) !== null && _a !== void 0 ? _a : '',
                                                             });
                                                         }
                                                         else {
@@ -426,6 +429,19 @@ export class imageLibrary {
                         view: () => __awaiter(this, void 0, void 0, function* () {
                             var _a, _b, _c;
                             const dialog = new ShareDialog(cf.gvc.glitter);
+                            function drawBreadcrumb() {
+                                return html `
+                  <div class="d-flex" style="margin: 20px 0">
+                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
+                                    closeFolderView("file");
+                                })}">我的圖庫</div></div>
+                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
+                                    closeFolderView();
+                                })}">相簿</div></div>
+                    <div class="breadcrumb-item"><div>${vm.tag}</div></div>
+                  </div>
+                `;
+                            }
                             function pageBTN() {
                                 let key = [
                                     {
@@ -571,6 +587,7 @@ export class imageLibrary {
                                 changeWindowsName((_b = vm.tag) !== null && _b !== void 0 ? _b : 'folder');
                                 changeCancelBTNName('返回');
                                 return html `
+                  ${drawBreadcrumb()}
                   <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
                     ${BgWidget.searchFilter(gvc.event(e => {
                                     vm.query = e.value;
@@ -1086,10 +1103,7 @@ export class imageLibrary {
                                 if (cf.cancelEvent)
                                     cf.cancelEvent();
                                 if (vm.type === 'folderView' || vm.type === 'folderADD') {
-                                    changeWindowsName('圖片庫');
-                                    changeCancelBTNName('取消');
-                                    vm.type = 'folder';
-                                    gvc.notifyDataChange(vm.id);
+                                    closeFolderView();
                                 }
                                 else {
                                     gvc.closeDialog();
@@ -1512,14 +1526,24 @@ export class imageLibrary {
                             <i class="fa-regular fa-circle-exclamation mb-1" style="font-size: 4rem;"></i>
                             <div class="${gClass('text-block')}">
                               <div>請選擇刪除方式：</div>
-                              <div class="button" onclick="${gvc.event(() => {
+                              <div
+                                class="button"
+                                onclick="${gvc.event(() => {
                                                     deleteAlbumTag();
                                                     closeThisDialog();
-                                                })}">僅從此相簿移除</div>
-                              <div class="button" onclick="${gvc.event(() => {
+                                                })}"
+                              >
+                                僅從此相簿移除
+                              </div>
+                              <div
+                                class="button"
+                                onclick="${gvc.event(() => {
                                                     deleteImage();
                                                     closeThisDialog();
-                                                })}">從圖庫中永久刪除</div>
+                                                })}"
+                              >
+                                從圖庫中永久刪除
+                              </div>
                             </div>
                           </div>
                         `;
