@@ -92,7 +92,7 @@ export declare class Stock {
     postHistory(json: StockHistoryData): Promise<{
         data: any;
     } | undefined>;
-    putHistory(json: StockHistoryData): Promise<{
+    putHistory(token: any, json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
     static formatStockContent(data: {

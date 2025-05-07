@@ -727,6 +727,19 @@ export class ApiUser {
             },
         });
     }
+    static getUserPermission() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.getPermission({ page: 0, limit: 1000 }).then(data => {
+                if (!data.result) {
+                    return undefined;
+                }
+                const find_user = data.response.data.find((data) => {
+                    return `${data.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}`;
+                });
+                return find_user;
+            });
+        });
+    }
     static setPermission(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/permission`,

@@ -36,6 +36,7 @@ import { PaymentStrategyFactory } from './factories/payment-strategy-factory.js'
 import { IPaymentStrategy } from './interface/payment-strategy-interface.js';
 import { PaymentService } from './payment-service.js';
 import { CartItem, CheckoutEvent } from './checkout-event.js';
+import { DiffRecord } from './diff-record.js';
 
 type BindItem = {
   id: string;
@@ -5289,6 +5290,9 @@ export class Shopping {
 
   async putProduct(content: any) {
     try {
+      // 初始化資料
+      const updater_id = `${content.token.userID}`;
+      delete content.token;
       content.type = 'product';
 
       // 檢查 seo domain 是否重複
@@ -5320,11 +5324,12 @@ export class Shopping {
         this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
       ]);
 
+      // const diffRecord = new DiffRecord(this.app, this.token);
+      // await diffRecord.recordProdcut(updater_id, content.id, content);
+
       // 更新商品
       await db.query(
-        `UPDATE \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         WHERE id = ?
+        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `,
         [
           {
@@ -5340,9 +5345,7 @@ export class Shopping {
       // 同步更新蝦皮
       if (content.shopee_id) {
         await new Shopee(this.app, this.token).asyncStockToShopee({
-          product: {
-            content: content,
-          },
+          product: { content },
           callback: () => {},
         });
       }
@@ -5738,15 +5741,20 @@ export class Shopping {
     }
   }
 
-  async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
+  async putVariants(token: any, query: any) {
     try {
+      // const diffRecord = new DiffRecord(this.app, this.token);
+
       for (const data of query) {
+        // await diffRecord.recordProdcutVariant(token.userID, data.id, data.variant_content);
+
         await db.query(
           `UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`,
           [{ content: JSON.stringify(data.variant_content) }, data.id]
         );
+
         let variants = (
           await db.query(
             `SELECT *

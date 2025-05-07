@@ -125,6 +125,24 @@ function floatAdd(a, b) {
         return a + b;
     }
 }
+function deepDiff(obj1, obj2) {
+    const result = {};
+    const keys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
+    for (const key of keys) {
+        const val1 = obj1 === null || obj1 === void 0 ? void 0 : obj1[key];
+        const val2 = obj2 === null || obj2 === void 0 ? void 0 : obj2[key];
+        if (typeof val1 === 'object' && val1 !== null && typeof val2 === 'object' && val2 !== null) {
+            const childDiff = deepDiff(val1, val2);
+            if (Object.keys(childDiff).length > 0) {
+                result[key] = childDiff;
+            }
+        }
+        else if (val1 !== val2) {
+            result[key] = { before: val1, after: val2 };
+        }
+    }
+    return result;
+}
 exports.default = {
     isNull,
     replaceDatetime,
@@ -138,5 +156,6 @@ exports.default = {
     getCurrentDateTime,
     formatDateTime,
     floatAdd,
+    deepDiff,
 };
 //# sourceMappingURL=tool.js.map

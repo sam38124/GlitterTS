@@ -226,7 +226,7 @@ class Stock {
             if (variants.length == 0) {
                 return { data: true, process: '' };
             }
-            const promise = await new Promise((resolve) => {
+            const promise = await new Promise(resolve => {
                 let n = 0;
                 for (const variant of variants) {
                     delete variant.content.stockList[store_id];
@@ -249,14 +249,14 @@ class Stock {
                 }
             }).then(async () => {
                 const idString = Object.keys(productList)
-                    .map((item) => `"${item}"`)
+                    .map(item => `"${item}"`)
                     .join(',');
                 if (idString.length > 0) {
                     const products = await database_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_manager_post
                          WHERE id in (${idString});
                         `, []);
-                    return await new Promise((resolve) => {
+                    return await new Promise(resolve => {
                         let n = 0;
                         for (const product of products) {
                             product.content.variants = productList[`${product.id}`];
@@ -333,7 +333,8 @@ class Stock {
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
             pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count) + parseInt(value);
             pbVariant.stock = parseInt(pbVariant.stock) + parseInt(value);
-            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) + parseInt(value);
+            variantData.content.stockList[key].count =
+                parseInt(variantData.content.stockList[key].count) + parseInt(value);
             variantData.content.stock = parseInt(variantData.content.stock) + parseInt(value);
         });
         await new shopping_1.Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
@@ -369,7 +370,8 @@ class Stock {
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
             pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count) - parseInt(value);
             pbVariant.stock = parseInt(pbVariant.stock) - parseInt(value);
-            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) - parseInt(value);
+            variantData.content.stockList[key].count =
+                parseInt(variantData.content.stockList[key].count) - parseInt(value);
             variantData.content.stock = parseInt(variantData.content.stock) - parseInt(value);
         });
         await new shopping_1.Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
@@ -425,7 +427,7 @@ class Stock {
             }));
             data.map((rowData) => {
                 rowData.created_time = formatDate(rowData.created_time);
-                rowData.content.changeLogs.map((log) => {
+                rowData.content.changeLogs.map(log => {
                     const findManager = getPermission.data.find((m) => `${m.user}` === `${log.user}`);
                     log.user_name = findManager ? findManager.config.name : '';
                     return log;
@@ -446,7 +448,7 @@ class Stock {
     async postHistory(json) {
         try {
             const typeData = typeConfig[json.type];
-            json.content.product_list.map((item) => {
+            json.content.product_list.map(item => {
                 return item;
             });
             json.content.changeLogs = [
@@ -479,7 +481,7 @@ class Stock {
             }
         }
     }
-    async putHistory(json) {
+    async putHistory(token, json) {
         var _a, _b;
         try {
             if (!this.token) {
@@ -493,7 +495,7 @@ class Stock {
             }
             const originHistory = getHistory[0];
             const originList = originHistory.content.product_list;
-            json.content.product_list.map((item) => {
+            json.content.product_list.map(item => {
                 delete item.title;
                 delete item.spec;
                 delete item.sku;
@@ -508,9 +510,9 @@ class Stock {
                 product_list: (() => {
                     if (json.status === 1 || json.status === 5) {
                         const updateList = JSON.parse(JSON.stringify(json.content.product_list));
-                        return updateList.map((item1) => {
+                        return updateList.map(item1 => {
                             var _a, _b;
-                            const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
+                            const originVariant = originList.find(item2 => item1.variant_id === item2.variant_id);
                             if (originVariant) {
                                 return Object.assign({ replenishment_count: ((_a = item1.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) }, item1);
                             }
@@ -527,7 +529,7 @@ class Stock {
             const variants = await _shop.getVariants({
                 page: 0,
                 limit: 9999,
-                id_list: json.content.product_list.map((item) => item.variant_id).join(','),
+                id_list: json.content.product_list.map(item => item.variant_id).join(','),
             });
             const dataList = [];
             const createStockEntry = (type, store, count, variant) => (Object.assign({ id: variant.id, product_id: variant.product_id }, Stock.formatStockContent({
@@ -538,9 +540,9 @@ class Stock {
                 variant_content: variant.variant_content,
             })));
             for (const variant of variants.data) {
-                const item = json.content.product_list.find((item) => item.variant_id === variant.id);
+                const item = json.content.product_list.find(item => item.variant_id === variant.id);
                 if (item) {
-                    const originVariant = originList.find((origin) => item.variant_id === origin.variant_id);
+                    const originVariant = originList.find(origin => item.variant_id === origin.variant_id);
                     const recent_count = (_a = item.recent_count) !== null && _a !== void 0 ? _a : 0;
                     const count = originVariant ? recent_count - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) : recent_count;
                     const { type, content } = json;
@@ -557,9 +559,9 @@ class Stock {
                     }
                 }
             }
-            await _shop.putVariants(dataList);
+            await _shop.putVariants(token, dataList);
             await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
-                `, [formatJson, json.order_id]);
+        `, [formatJson, json.order_id]);
             return { data: true };
         }
         catch (error) {
@@ -618,7 +620,7 @@ class Stock {
     async deleteHistory(json) {
         try {
             await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
-                `, [{ status: -1 }, json.id]);
+        `, [{ status: -1 }, json.id]);
             return { data: false };
         }
         catch (error) {

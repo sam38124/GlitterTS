@@ -31,9 +31,9 @@ class ApiPublic {
                         resolve(true);
                         clearInterval(interval);
                     }
-                    else if (!(ApiPublic.checkingApp.find(dd => {
+                    else if (!ApiPublic.checkingApp.find(dd => {
                         return dd.app_name === appName;
-                    }))) {
+                    })) {
                         resolve(false);
                         clearInterval(interval);
                     }
@@ -696,7 +696,8 @@ class ApiPublic {
   KEY \`index4\` (\`spec\`),
   KEY \`index5\` (\`count\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.1'`,
-                }, {
+                },
+                {
                     scheme: appName,
                     table: `visit_logs`,
                     sql: `(
@@ -708,8 +709,25 @@ class ApiPublic {
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`date\` ASC) VISIBLE,
   UNIQUE INDEX \`tag_name_UNIQUE\` (\`tag_name\` ASC) VISIBLE);
-          `
-                }
+          `,
+                },
+                {
+                    scheme: 't_1725992531001',
+                    table: 't_changed_logs',
+                    sql: `(
+                \`id\` INT NOT NULL AUTO_INCREMENT,
+                \`entity_table\` varchar(200) NOT NULL COMMENT '關聯的table',
+                \`entity_id\` INT NOT NULL COMMENT '關聯的id',
+                \`type\` varchar(200) DEFAULT NULL COMMENT '可自訂類型',
+                \`note\` TEXT NOT NULL COMMENT '修改內容',
+                \`changed_json\` JSON NOT NULL COMMENT '修改的JSON紀錄',
+                \`changed_source\` varchar(200) NOT NULL COMMENT '修改來源',
+                \`changed_by\` INT NOT NULL COMMENT '修改人',
+                \`changed_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改時間',
+                PRIMARY KEY (\`id\`),
+                UNIQUE KEY \`id_UNIQUE\` (\`id\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -731,8 +749,8 @@ class ApiPublic {
                 app_name: appName,
                 router: (_a = (await new user_js_1.User(appName).getConfigV2({
                     key: 'domain_301',
-                    user_id: 'manager'
-                })).list) !== null && _a !== void 0 ? _a : []
+                    user_id: 'manager',
+                })).list) !== null && _a !== void 0 ? _a : [],
             });
             ApiPublic.checkedApp.push({
                 app_name: appName,

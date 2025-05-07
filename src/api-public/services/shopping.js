@@ -39,6 +39,7 @@ const Language_js_1 = require("../../Language.js");
 const payment_strategy_factory_js_1 = require("./factories/payment-strategy-factory.js");
 const payment_service_js_1 = require("./payment-service.js");
 const checkout_event_js_1 = require("./checkout-event.js");
+const diff_record_js_1 = require("./diff-record.js");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -3897,6 +3898,8 @@ class Shopping {
     async putProduct(content) {
         var _a, _b, _c;
         try {
+            const updater_id = `${content.token.userID}`;
+            delete content.token;
             content.type = 'product';
             if (content.language_data) {
                 const language = await app_js_1.App.getSupportLanguage(this.app);
@@ -3918,9 +3921,9 @@ class Shopping {
                 this.setProductCustomizeTagConifg((_a = content.product_customize_tag) !== null && _a !== void 0 ? _a : []),
                 this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
             ]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         WHERE id = ?
+            const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
+            await diffRecord.recordProdcut(updater_id, content.id, content);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `, [
                 {
                     content: JSON.stringify(content),
@@ -3930,9 +3933,7 @@ class Shopping {
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             if (content.shopee_id) {
                 await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                    product: {
-                        content: content,
-                    },
+                    product: { content },
                     callback: () => { },
                 });
             }
@@ -4272,9 +4273,11 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
         }
     }
-    async putVariants(query) {
+    async putVariants(token, query) {
         try {
+            const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
             for (const data of query) {
+                await diffRecord.recordProdcutVariant(token.userID, data.id, data.variant_content);
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);

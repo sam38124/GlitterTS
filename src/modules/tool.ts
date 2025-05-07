@@ -5,6 +5,10 @@ import Logger from './logger';
 import crypto from 'crypto';
 import moment from 'moment';
 
+type DiffResult = {
+  [key: string]: any;
+};
+
 function isNull(...args: any[]) {
   if (!args || args.length == 0) {
     return true;
@@ -143,6 +147,28 @@ function floatAdd(a: number, b: number) {
   }
 }
 
+function deepDiff(obj1: any, obj2: any): DiffResult {
+  const result: DiffResult = {};
+
+  const keys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
+
+  for (const key of keys) {
+    const val1 = obj1?.[key];
+    const val2 = obj2?.[key];
+
+    if (typeof val1 === 'object' && val1 !== null && typeof val2 === 'object' && val2 !== null) {
+      const childDiff = deepDiff(val1, val2);
+      if (Object.keys(childDiff).length > 0) {
+        result[key] = childDiff;
+      }
+    } else if (val1 !== val2) {
+      result[key] = { before: val1, after: val2 };
+    }
+  }
+
+  return result;
+}
+
 export default {
   isNull,
   replaceDatetime,
@@ -156,4 +182,5 @@ export default {
   getCurrentDateTime,
   formatDateTime,
   floatAdd,
+  deepDiff,
 };
