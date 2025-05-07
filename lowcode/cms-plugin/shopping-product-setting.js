@@ -644,7 +644,7 @@ export class ShoppingProductSetting {
                                     gvc: gvc,
                                     title: html ` <div
                                       class="d-flex flex-column"
-                                      style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                      style=""
                                     >
                                       圖片庫
                                     </div>`,

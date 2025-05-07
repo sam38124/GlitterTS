@@ -5411,11 +5411,11 @@ ${obj.default ?? ''}</textarea
             if (vm.loading) {
               return html` <div class="my-4">${this.spinner()}</div>`;
             }
-            return html` <div class="bg-white shadow rounded-3 h-100 d-flex flex-column" style="width: 100%; ">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom" style="background: #F2F2F2;">
-                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+            return html` 
+            <div class="bg-white shadow rounded-3 h-100 d-flex flex-column position-relative overflow-hidden" style="width: 100%; padding-top: 61px;">
+              <div class="w-100 d-flex align-items-center p-3 border-bottom position-absolute" style="background: #F2F2F2;top:0;left:0">
+                <div class="tx_700 dialog-title">${obj.title ?? '圖片庫'}</div>
                 <div class="flex-fill"></div>
-
                 <i
                   class="fa-sharp fa-solid fa-xmark fs-5 text-dark cursor_pointer"
                   onclick="${gvc.event(() => {
@@ -5426,9 +5426,9 @@ ${obj.default ?? ''}</textarea
                   })}"
                 ></i>
               </div>
-              <div class="c_dialog flex-fill">
+              <div class="c_dialog flex-fill " style="height: 600px;">
                 <div class="c_dialog_body d-flex flex-column h-100">
-                  <div class="c_dialog_main flex-fill" style="gap: 24px;max-height:100%; ">
+                  <div class="c_dialog_main flex-fill" style="gap: 24px;max-height:100%;padding-top:0;">
                     ${obj.innerHTML(gvc) ?? ''}
                   </div>
                   <div class="c_dialog_bar">${obj.footer_html(gvc) ?? ''}</div>

@@ -6,7 +6,7 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { Language } from '../glitter-base/global/language.js';
 import { Tool } from '../modules/tool.js';
-import { imageLibrary } from '../modules/image-library.js';
+import { FileItem, imageLibrary } from '../modules/image-library.js';
 import { ProductSetting } from './module/product-setting.js';
 import { QuestionInfo } from './module/question-info.js';
 import { ProductAi } from './ai-generator/product-ai.js';
@@ -193,6 +193,51 @@ export class ShoppingSettingBasic {
         // 將 Map 轉換為包含唯一 title 及其對應的 option 的陣列
         postMD.specs = Array.from(uniqueTitlesMap, ([title, option]) => ({ title, option }));
       }
+    }
+
+    function saveImageLib(urlArray: string[]) {
+      ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
+        const newImageArray = urlArray.map((item: string) => {
+          return {
+            title: item.split('_')[item.split('_').length - 1],
+            data: item,
+            items: [],
+            type: 'file',
+            tag: [],
+            id: gvc.glitter.getUUID(),
+          };
+        })
+        if (data.result){
+          const img_lib = data.response.value;
+          img_lib.push(...newImageArray);
+          dialog.dataLoading({ visible: true });
+          ApiUser.setPublicConfig({
+            key: 'image-manager',
+            value: img_lib,
+            user_id: 'manager',
+          }).then(data => {
+            dialog.dataLoading({ visible: false });
+          });
+        }
+        // if (data.response.value) {
+        //   vm.link = data.response.value;
+        //
+        //   function loop(array: FileItem[]) {
+        //     array.map(dd => {
+        //       if (dd.type === 'folder') {
+        //         loop(dd.items ?? []);
+        //       }
+        //     });
+        //   }
+        //
+        //   loop(vm.link);
+        //   vm.loading = false;
+        //   callback();
+        // } else {
+        //   vm.loading = false;
+        //   callback();
+        // }
+      });
     }
 
     ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
@@ -889,12 +934,14 @@ export class ShoppingSettingBasic {
                     name: '上傳圖片',
                   },
                   event: gvc.event(() => {
+                    
                     EditorElem.uploadFileFunction({
                       gvc: gvc,
                       callback: (images: any) => {
                         const addImage = (urlArray: string[]) => {
                           if (urlArray.length > 0) {
                             language_data.preview_image.push(...urlArray);
+                            saveImageLib(urlArray)
                             obj.gvc.notifyDataChange('image_view');
                           } else {
                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
@@ -1337,7 +1384,6 @@ export class ShoppingSettingBasic {
                               },
                               save: () => {
                                 postMD.specs.push(temp);
-
                                 createPage.page = 'add';
                                 checkSpecSingle();
                                 ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);

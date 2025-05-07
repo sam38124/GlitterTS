@@ -23,6 +23,7 @@ interface ConfirmDialogOptions {
   icon?: string;
   yesString?: string;
   notString?: string;
+  width?: string;
 }
 
 
@@ -97,6 +98,7 @@ export class ShareDialog {
     this.glitter.openDiaLog('glitterBundle/dialog/dialog.js', type, {
       type,
       title: obj.text,
+      width: obj.width,
       icon: obj.icon,
       yesString: obj.yesString,
       notString: obj.notString,

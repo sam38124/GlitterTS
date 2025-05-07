@@ -1437,6 +1437,7 @@ export class EditorElem {
                 dialog.dataLoading({ visible: false });
                 if (res.result) {
                     if (obj.return_array) {
+                        console.log("res -- ", res);
                         obj.callback(res.links);
                     }
                     else {

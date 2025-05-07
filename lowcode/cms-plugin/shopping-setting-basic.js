@@ -167,6 +167,32 @@ export class ShoppingSettingBasic {
                 postMD.specs = Array.from(uniqueTitlesMap, ([title, option]) => ({ title, option }));
             }
         }
+        function saveImageLib(urlArray) {
+            ApiUser.getPublicConfig('image-manager', 'manager').then((data) => {
+                const newImageArray = urlArray.map((item) => {
+                    return {
+                        title: item.split('_')[item.split('_').length - 1],
+                        data: item,
+                        items: [],
+                        type: 'file',
+                        tag: [],
+                        id: gvc.glitter.getUUID(),
+                    };
+                });
+                if (data.result) {
+                    const img_lib = data.response.value;
+                    img_lib.push(...newImageArray);
+                    dialog.dataLoading({ visible: true });
+                    ApiUser.setPublicConfig({
+                        key: 'image-manager',
+                        value: img_lib,
+                        user_id: 'manager',
+                    }).then(data => {
+                        dialog.dataLoading({ visible: false });
+                    });
+                }
+            });
+        }
         ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
         const cat_title = (() => {
             switch (postMD.product_category) {
@@ -778,6 +804,7 @@ export class ShoppingSettingBasic {
                                 const addImage = (urlArray) => {
                                     if (urlArray.length > 0) {
                                         language_data.preview_image.push(...urlArray);
+                                        saveImageLib(urlArray);
                                         obj.gvc.notifyDataChange('image_view');
                                     }
                                     else {

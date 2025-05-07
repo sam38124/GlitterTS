@@ -89,7 +89,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
   `);
     return {
         onCreateView: () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
             try {
                 switch (gBundle.type) {
                     case 'dataLoading':
@@ -170,7 +170,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 title: (_q = gBundle.notString) !== null && _q !== void 0 ? _q : Language.text('cancel'),
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, false); },
                             },
-                            width: 600
+                            width: (_r = gBundle.width) !== null && _r !== void 0 ? _r : 600
                         });
                     default:
                         return '';

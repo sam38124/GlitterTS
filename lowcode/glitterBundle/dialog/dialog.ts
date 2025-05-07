@@ -165,7 +165,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
           case 'checkYesOrNot':
           case 'warningMessage':
             return createDialogBox({
-              icon: icons.question,
+              icon:  icons.question,
               content: gBundle.title ?? '',
               confirm: {
                 title: gBundle.yesString ?? Language.text('okay'),
@@ -204,7 +204,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
                 title: gBundle.notString ?? Language.text('cancel'),
                 event: () => gBundle.callback?.(false),
               },
-              width:600
+              width:gBundle.width??600
             });
 
           default:
