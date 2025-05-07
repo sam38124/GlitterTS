@@ -357,6 +357,7 @@ export class CustomerMessageUser {
         close?: () => void,
         hideBar?: boolean
     }) {
+
         const gvc = cf.gvc;
         const document = cf.document;
         const css = String.raw;
@@ -400,6 +401,7 @@ export class CustomerMessageUser {
                                             return ``;
                                         }
                                         return new Promise(async (resolve, reject) => {
+
                                             const chatRoom = (
                                                 await Chat.getChatRoom({
                                                     page: 0,

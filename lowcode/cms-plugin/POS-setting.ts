@@ -21,6 +21,7 @@ import { ApiPos } from '../glitter-base/route/pos.js';
 import { PosWidget } from './pos-widget.js';
 import { SaasOffer } from '../saas-offer.js';
 import { Language } from '../glitter-base/global/language.js';
+import { CreditCard } from './pos-pages/credit-card.js';
 
 const html = String.raw;
 
@@ -1388,8 +1389,21 @@ export class POSSetting {
                             <div class="dropdown-menu position-absolute" style="top:50px; right: 0;">
                               ${[
                                 ...[
+                                
                                   ...(PayConfig.deviceType === 'pos'
                                     ? [
+                                      html`<a
+                                        class="dropdown-item cursor_pointer d-flex align-items-center"
+                                        style="gap:10px;"
+                                        onclick="${gvc.event(() => {
+                                          CreditCard.refundView(gvc)
+                                        })}"
+                                      ><i
+                                        class="fa-regular fa-credit-card d-flex align-items-center justify-content-center"
+                                        style="width:20px;"
+                                      ></i
+                                      >信用卡刷退</a
+                                      >`,
                                         html` <a
                                           class="dropdown-item cursor_pointer d-flex align-items-center"
                                           style="gap:10px;"
@@ -1500,7 +1514,7 @@ export class POSSetting {
                             vm: vm,
                           });
                         } else if (vm.type === 'order') {
-                          return html` <div class="vw-100 px-lg-3" style="overflow-y: scroll;">
+                          return html` <div class="vw-50 px-lg-3" style="overflow-y: scroll;">
                             ${ShoppingOrderManager.main(gvc, { isPOS: true })}
                           </div>`;
                         } else if (vm.type === 'member') {

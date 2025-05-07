@@ -431,10 +431,10 @@ export class ShoppingInvoiceManager {
     }
     static replaceOrder(gvc, vm, searchOrder) {
         const glitter = gvc.glitter;
-        const invoiceData = searchOrder !== null && searchOrder !== void 0 ? searchOrder : vm.data;
         let orderData_;
         const mainViewID = gvc.glitter.getUUID();
         let dataLoading = true;
+        const invoiceData = vm.invoiceData;
         ApiShop.getOrder({
             page: 0,
             limit: 100,
@@ -443,6 +443,8 @@ export class ShoppingInvoiceManager {
             returnSearch: 'true',
         }).then((response) => {
             orderData_ = response.response;
+            orderData_.orderData.user_info = invoiceData.invoice_data.original_data;
+            orderData_.orderData.user_info.print_invoice = (invoiceData.invoice_data.original_data.Print);
             dataLoading = false;
             gvc.notifyDataChange([mainViewID, 'invoiceContent']);
         });
@@ -502,7 +504,10 @@ export class ShoppingInvoiceManager {
                             if (orderData_) {
                                 const orderData = invoiceData.invoice_data.orderData || orderData_.orderData;
                                 console.log(`orderData_.orderData===>`, orderData_.orderData);
-                                console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data.orderData);
+                                console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data);
+                                orderData.user_info.invoice_type = invoiceData.invoice_data.original_data.CustomerIdentifier ? `company` : `customer`;
+                                orderData.user_info.company = invoiceData.invoice_data.original_data.CustomerName;
+                                orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
                                 let tax_total = (() => {
                                     let total = 0;
                                     orderData.lineItems
@@ -519,6 +524,7 @@ export class ShoppingInvoiceManager {
                                 let sale = orderData.total - tax_total;
                                 let allowanceLoading = true;
                                 let allowanceData = [];
+                                console.log('orderData.user_info===>', orderData);
                                 try {
                                     return [
                                         BgWidget.mainCard(html `

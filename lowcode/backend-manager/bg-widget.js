@@ -765,6 +765,9 @@ export class BgWidget {
                         obj.default = e.value;
                         obj.oninput && obj.oninput(e.value);
                     })}"
+                onclick="${obj.gvc.event((e) => {
+                        obj.onclick && obj.onclick(e);
+                    })}"
                 value="${((_e = obj.default) !== null && _e !== void 0 ? _e : '').replace(/"/g, '&quot;')}"
                 ${obj.readonly ? `readonly` : ``}
               />

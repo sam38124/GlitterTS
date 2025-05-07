@@ -221,7 +221,7 @@ export class ToolSetting {
             },
             true
           );
-          gvc.glitter.share.editorViewModel.selectItem = widget_edited;
+          // gvc.glitter.share.editorViewModel.selectItem = widget_edited;
           try {
             module_list = module_list.filter((dd: any) => {
               return dd.appName !== widget.config[0].data.refer_app || dd.tag !== widget.config[0].data.tag;

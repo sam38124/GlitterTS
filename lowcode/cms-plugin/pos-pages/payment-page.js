@@ -2197,11 +2197,16 @@ export class PaymentPage {
                     >
                       <input
                         class="form-control h-100"
-                        style="border: none;"
+                        style="border: none;background: white;"
                         placeholder="請輸入統一編號"
-                        oninput="${gvc.event((e, event) => {
-                                c_vm.value = e.value;
+                        value="${c_vm.value}"
+                        onclick="${gvc.event(() => {
+                                PosFunction.setMoney(gvc, c_vm.value || '0', (text) => {
+                                    c_vm.value = `${text}`;
+                                    gvc.recreateView();
+                                }, '統一編號');
                             })}"
+                        readonly
                       />
                       <div class="flex-fill"></div>
                       <div

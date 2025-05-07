@@ -919,6 +919,7 @@ export class BgWidget {
     startText?: string;
     endText?: string;
     oninput?: (text: string) => void;
+    onclick?: (e: Event) => void;
     global_language?: boolean;
   }) {
     obj.title = obj.title ?? '';
@@ -975,6 +976,9 @@ export class BgWidget {
                   }
                   obj.default = e.value;
                   obj.oninput && obj.oninput(e.value);
+                })}"
+                onclick="${obj.gvc.event((e)=>{
+                  obj.onclick && obj.onclick(e)
                 })}"
                 value="${(obj.default ?? '').replace(/"/g, '&quot;')}"
                 ${obj.readonly ? `readonly` : ``}

@@ -234,9 +234,37 @@ export class ShoppingFinanceSetting {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
-                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                              style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex;"
                             >
-                              <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
+                             
+                              <div
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                              >
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  <img src="${dd.img || BgWidget.noImageURL}" />
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
+                                    keyData[dd.key].toggle = !keyData[dd.key].toggle;
+                                    saveData();
+                                })}"
+                                        ${keyData[dd.key].toggle ? `checked` : ''}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="border-top w-100"></div>
+                              <div class="w-100 d-flex align-items-center justify-content-end fw-500" style="">
                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
@@ -573,33 +601,8 @@ export class ShoppingFinanceSetting {
                                     }),
                                 })}
                               </div>
-                              <div
-                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                              >
-                                <div style="min-width: 46px;max-width: 46px;">
-                                  <img src="${dd.img || BgWidget.noImageURL}" />
-                                </div>
-                                <div
-                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
-                                >
-                                  <div class="tx_normal">${dd.name}</div>
-                                  <div class="d-flex align-items-center" style="gap:4px;">
-                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
-                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                      <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        onchange="${gvc.event((e, event) => {
-                                    keyData[dd.key].toggle = !keyData[dd.key].toggle;
-                                    saveData();
-                                })}"
-                                        ${keyData[dd.key].toggle ? `checked` : ''}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
                             </div>
+                           
                           </div>`;
                             })
                                 .join('')}
@@ -625,11 +628,42 @@ export class ShoppingFinanceSetting {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
-                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                              style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start;gap:10px;  display: inline-flex;"
                             >
                               <div
-                                class="position-absolute fw-500 ${dd.hide_setting ? `d-none` : ''}"
-                                style="cursor:pointer;right:15px;top:15px;"
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                              >
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  ${dd.img
+                                    ? html `<img class="rounded-2" src="${dd.img}" />`
+                                    : html `<i class="fa-regular fa-puzzle-piece-simple fs-4" aria-hidden="true"></i>`}
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">
+                                      ${keyData.off_line_support[dd.key] ? `開啟` : `關閉`}
+                                    </div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
+                                    keyData.off_line_support[dd.key] = !keyData.off_line_support[dd.key];
+                                    saveData();
+                                })}"
+                                        ${keyData.off_line_support[dd.key] ? `checked` : ''}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="border-top w-100"></div>
+                              <div
+                                class=" w-100 d-flex align-items-center justify-content-end fw-500 ${dd.hide_setting ? `d-none` : ''}"
+                                style=""
                               >
                                 ${BgWidget.customButton({
                                     button: {
@@ -678,36 +712,6 @@ export class ShoppingFinanceSetting {
                                     }),
                                 })}
                               </div>
-                              <div
-                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                              >
-                                <div style="min-width: 46px;max-width: 46px;">
-                                  ${dd.img
-                                    ? html `<img class="rounded-2" src="${dd.img}" />`
-                                    : html `<i class="fa-regular fa-puzzle-piece-simple fs-4" aria-hidden="true"></i>`}
-                                </div>
-                                <div
-                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
-                                >
-                                  <div class="tx_normal">${dd.name}</div>
-                                  <div class="d-flex align-items-center" style="gap:4px;">
-                                    <div class="tx_normal">
-                                      ${keyData.off_line_support[dd.key] ? `開啟` : `關閉`}
-                                    </div>
-                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                      <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        onchange="${gvc.event((e, event) => {
-                                    keyData.off_line_support[dd.key] = !keyData.off_line_support[dd.key];
-                                    saveData();
-                                })}"
-                                        ${keyData.off_line_support[dd.key] ? `checked` : ''}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
                             </div>
                           </div>`;
                             })
@@ -745,9 +749,36 @@ export class ShoppingFinanceSetting {
                                 return html ` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                             <div
                               class="w-100 position-relative main-card"
-                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                              style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex;"
                             >
-                              <div class="position-absolute fw-500" style="cursor:pointer;right:15px;top:15px;">
+                              <div
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                              >
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  <img src="${dd.img || BgWidget.noImageURL}" />
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.name}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event(() => {
+                                    keyData[dd.key].toggle = !keyData[dd.key].toggle;
+                                    saveData();
+                                })}"
+                                        ${keyData[dd.key].toggle ? `checked` : ''}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="border-top w-100"></div>
+                              <div class="w-100 d-flex align-items-center justify-content-end fw-500" style="cursor:pointer;">
                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
@@ -801,32 +832,6 @@ export class ShoppingFinanceSetting {
                                         });
                                     }),
                                 })}
-                              </div>
-                              <div
-                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
-                              >
-                                <div style="min-width: 46px;max-width: 46px;">
-                                  <img src="${dd.img || BgWidget.noImageURL}" />
-                                </div>
-                                <div
-                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
-                                >
-                                  <div class="tx_normal">${dd.name}</div>
-                                  <div class="d-flex align-items-center" style="gap:4px;">
-                                    <div class="tx_normal">${keyData[dd.key].toggle ? `開啟` : `關閉`}</div>
-                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                      <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        onchange="${gvc.event(() => {
-                                    keyData[dd.key].toggle = !keyData[dd.key].toggle;
-                                    saveData();
-                                })}"
-                                        ${keyData[dd.key].toggle ? `checked` : ''}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>`;

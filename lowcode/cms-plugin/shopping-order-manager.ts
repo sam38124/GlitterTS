@@ -28,6 +28,7 @@ import { LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
 import { TableStorage } from './module/table-storage.js';
 
+
 const html = String.raw;
 const css = String.raw;
 
@@ -159,6 +160,8 @@ export class ShoppingOrderManager {
         }
       });
     }
+    const thathis = this;
+
     return gvc.bindView({
       bind: vm.id,
       dataList: [{ obj: vm, key: 'type' }],
@@ -167,31 +170,37 @@ export class ShoppingOrderManager {
           return '';
         }
 
-        const viewMap: Record<string, () => string> = {
-          list: () => this.tableOrder(gvc, vm, query, ListComp),
-          replace: () => this.replaceOrder(gvc, vm, vm.data.cart_token),
-          add: () => this.createOrder(gvc, vm),
-          createInvoice: () => {
-            vm.return_order = true;
-            return ShoppingInvoiceManager.createOrder(gvc, vm, (vm as any).tempOrder);
-          },
-          recommend: () => {
-            return BgRecommend.editorLink({
-              gvc: gvc,
-              data: vm.distributionData.data[0],
-              callback: () => {
-                vm.type = 'replace';
-              },
-              vm,
-            });
-          },
-          viewInvoice: () => {
-            vm.return_order = true;
-            return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
-          },
-        };
+        try {
+          const viewMap: Record<string, () => string> = {
+            list: () => thathis.tableOrder(gvc, vm, query, ListComp),
+            replace: () => thathis.replaceOrder(gvc, vm, vm.data.cart_token),
+            add: () => thathis.createOrder(gvc, vm),
+            createInvoice: () => {
+              vm.return_order = true;
+              return ShoppingInvoiceManager.createOrder(gvc, vm, (vm as any).tempOrder);
+            },
+            recommend: () => {
+              return BgRecommend.editorLink({
+                gvc: gvc,
+                data: vm.distributionData.data[0],
+                callback: () => {
+                  vm.type = 'replace';
+                },
+                vm,
+              });
+            },
+            viewInvoice: () => {
+              vm.return_order = true;
+              return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
+            },
+          };
 
-        return viewMap[vm.type]?.() ?? '';
+          return viewMap[vm.type]() ?? '';
+        }catch (e) {
+          console.error(e)
+          return `${e}`
+        }
+
       },
       onCreate: () => {
         if (vm.loading) {
@@ -1057,6 +1066,7 @@ export class ShoppingOrderManager {
         let userData: any = {};
         let invoiceDataList: any = [];
         let storeList: any = [];
+        let mainViewId=gvc.glitter.getUUID();
         let productData: any = [];
         let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
           (window as any).glitter.getUrlParameter('page')
@@ -1107,7 +1117,7 @@ export class ShoppingOrderManager {
         ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then(res => {
           userData = res.response;
           userDataLoading = false;
-          gvc.notifyDataChange('mainView');
+          gvc.notifyDataChange(mainViewId);
         });
 
         ApiShop.getInvoice({
@@ -1130,7 +1140,7 @@ export class ShoppingOrderManager {
         }).then(r => {
           productData = r.response.data;
           productLoading = false;
-          gvc.notifyDataChange('mainView');
+          gvc.notifyDataChange(mainViewId);
         });
 
         function saveEvent() {
@@ -1227,7 +1237,7 @@ export class ShoppingOrderManager {
         }
 
         return gvc.bindView({
-          bind: 'mainView',
+          bind: mainViewId,
           dataList: [{ obj: child_vm, key: 'type' }],
           view: () => {
             try {
@@ -1955,6 +1965,7 @@ export class ShoppingOrderManager {
                           return;
                         }
                         (window.parent as any).glitter.setUrlParameter('orderID', undefined);
+                        
                         if (backCallback) {
                           backCallback();
                         } else {
@@ -2406,7 +2417,7 @@ export class ShoppingOrderManager {
                                                     saveEvent();
                                                   }
                                                 } else {
-                                                  gvc.notifyDataChange('mainView');
+                                                  gvc.notifyDataChange(mainViewId);
                                                 }
                                               },
                                             });
@@ -3208,7 +3219,7 @@ export class ShoppingOrderManager {
                       ratio: 25,
                     }
                   )}
-                  ${BgWidget.mbContainer(240)}
+                <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {

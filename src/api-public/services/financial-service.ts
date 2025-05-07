@@ -857,7 +857,6 @@ export class PayPal {
                       description: 'shipment_fee',
                     }
                   ])
-                  ,
               },
             ];
             return unit_array;

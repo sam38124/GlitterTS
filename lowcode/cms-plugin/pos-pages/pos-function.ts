@@ -476,7 +476,7 @@ export class PosFunction {
   }
 
   // SetMoney
-  public static setMoney(gvc: GVC, def: number, callback: (money: number) => void, title?: string) {
+  public static setMoney(gvc: GVC, def: string|number, callback: (money: number) => void, title?: string) {
     gvc.glitter.innerDialog(gvc => {
       const c_vm = {
         id: gvc.glitter.getUUID(),

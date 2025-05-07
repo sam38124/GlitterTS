@@ -494,14 +494,6 @@ export class ShoppingInvoiceManager {
   public static replaceOrder(gvc: GVC, vm: any, searchOrder?: any) {
     const glitter = gvc.glitter;
 
-    const invoiceData: {
-      id: number;
-      invoice_no: string;
-      status: number;
-      order_id: string;
-      invoice_data: any;
-      create_date: string;
-    } = searchOrder ?? vm.data;
 
     let orderData_: {
       id: number;
@@ -545,6 +537,7 @@ export class ShoppingInvoiceManager {
           MerchantTradeNo: string;
           CVSAddress: string;
           note?: string;
+          print_invoice?:string;
           code_note?: string;
           gui_number?: string;
         };
@@ -590,7 +583,7 @@ export class ShoppingInvoiceManager {
     };
     const mainViewID = gvc.glitter.getUUID();
     let dataLoading = true;
-
+const invoiceData=vm.invoiceData;
     ApiShop.getOrder({
       page: 0,
       limit: 100,
@@ -599,6 +592,9 @@ export class ShoppingInvoiceManager {
       returnSearch: 'true',
     }).then((response: any) => {
       orderData_ = response.response;
+
+      orderData_.orderData.user_info=invoiceData.invoice_data.original_data;
+      orderData_.orderData.user_info.print_invoice=(invoiceData.invoice_data.original_data.Print)
       dataLoading = false;
       gvc.notifyDataChange([mainViewID, 'invoiceContent']);
     });
@@ -666,7 +662,10 @@ export class ShoppingInvoiceManager {
                 if (orderData_) {
                   const orderData = invoiceData.invoice_data.orderData || orderData_.orderData;
                   console.log(`orderData_.orderData===>`, orderData_.orderData);
-                  console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data.orderData);
+                  console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data);
+                  orderData.user_info.invoice_type=invoiceData.invoice_data.original_data.CustomerIdentifier ? `company`:`customer`
+                  orderData.user_info.company=invoiceData.invoice_data.original_data.CustomerName
+                  orderData.user_info.print_invoice=invoiceData.invoice_data.original_data.Print;
                   let tax_total = (() => {
                     let total = 0;
                     orderData.lineItems
@@ -684,6 +683,7 @@ export class ShoppingInvoiceManager {
                   let allowanceLoading = true;
                   let allowanceData: any[] = [];
 
+                  console.log('orderData.user_info===>', orderData);
                   // CustomerIdentifier
                   try {
                     return [
@@ -1588,6 +1588,7 @@ ${reason}</textarea
                             ),
                           ];
 
+                          
                           if (
                             invoiceData.invoice_data.original_data.Print === '1' &&
                             (window.parent as any).glitter.share.PayConfig.posType === 'SUNMI'

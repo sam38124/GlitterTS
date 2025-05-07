@@ -1195,18 +1195,23 @@ export class CheckoutEvent {
           (carData as any).orderStatus = '1';
           (carData as any).progress = 'finish';
         }
+
+        if (data.invoice_select !== 'nouse') {
+          // POS 結帳者，不考慮發票開立時機設定，直接開立
+          try {
+            (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
+              carData,
+              carData.user_info.send_type !== 'carrier'
+            );
+          }catch (e) {
+
+          }
+        }
         await OrderEvent.insertOrder({
           cartData: carData,
           status: data.pay_status as any,
           app: this.app,
         });
-        if (data.invoice_select !== 'nouse') {
-          // POS 結帳者，不考慮發票開立時機設定，直接開立
-          (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(
-            carData,
-            carData.user_info.send_type !== 'carrier'
-          );
-        }
         await trans.commit();
         await trans.release();
         await Promise.all(saveStockArray.map(dd => dd()));

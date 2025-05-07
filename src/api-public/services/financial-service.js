@@ -628,7 +628,7 @@ class PayPal {
                                         quantity: 1,
                                         description: 'shipment_fee',
                                     }
-                                ]),
+                                ])
                             },
                         ];
                         return unit_array;

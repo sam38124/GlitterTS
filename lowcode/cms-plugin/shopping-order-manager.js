@@ -121,38 +121,45 @@ export class ShoppingOrderManager {
                 }
             });
         }
+        const thathis = this;
         return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
-                var _a, _b;
+                var _a;
                 if (vm.loading) {
                     return '';
                 }
-                const viewMap = {
-                    list: () => this.tableOrder(gvc, vm, query, ListComp),
-                    replace: () => this.replaceOrder(gvc, vm, vm.data.cart_token),
-                    add: () => this.createOrder(gvc, vm),
-                    createInvoice: () => {
-                        vm.return_order = true;
-                        return ShoppingInvoiceManager.createOrder(gvc, vm, vm.tempOrder);
-                    },
-                    recommend: () => {
-                        return BgRecommend.editorLink({
-                            gvc: gvc,
-                            data: vm.distributionData.data[0],
-                            callback: () => {
-                                vm.type = 'replace';
-                            },
-                            vm,
-                        });
-                    },
-                    viewInvoice: () => {
-                        vm.return_order = true;
-                        return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
-                    },
-                };
-                return (_b = (_a = viewMap[vm.type]) === null || _a === void 0 ? void 0 : _a.call(viewMap)) !== null && _b !== void 0 ? _b : '';
+                try {
+                    const viewMap = {
+                        list: () => thathis.tableOrder(gvc, vm, query, ListComp),
+                        replace: () => thathis.replaceOrder(gvc, vm, vm.data.cart_token),
+                        add: () => thathis.createOrder(gvc, vm),
+                        createInvoice: () => {
+                            vm.return_order = true;
+                            return ShoppingInvoiceManager.createOrder(gvc, vm, vm.tempOrder);
+                        },
+                        recommend: () => {
+                            return BgRecommend.editorLink({
+                                gvc: gvc,
+                                data: vm.distributionData.data[0],
+                                callback: () => {
+                                    vm.type = 'replace';
+                                },
+                                vm,
+                            });
+                        },
+                        viewInvoice: () => {
+                            vm.return_order = true;
+                            return ShoppingInvoiceManager.replaceOrder(gvc, vm, vm.invoiceData);
+                        },
+                    };
+                    return (_a = viewMap[vm.type]()) !== null && _a !== void 0 ? _a : '';
+                }
+                catch (e) {
+                    console.error(e);
+                    return `${e}`;
+                }
             },
             onCreate: () => {
                 if (vm.loading) {
@@ -943,6 +950,7 @@ export class ShoppingOrderManager {
                     let userData = {};
                     let invoiceDataList = [];
                     let storeList = [];
+                    let mainViewId = gvc.glitter.getUUID();
                     let productData = [];
                     let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(window.glitter.getUrlParameter('page'));
                     const dialog = new ShareDialog(gvc.glitter);
@@ -979,7 +987,7 @@ export class ShoppingOrderManager {
                     ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then(res => {
                         userData = res.response;
                         userDataLoading = false;
-                        gvc.notifyDataChange('mainView');
+                        gvc.notifyDataChange(mainViewId);
                     });
                     ApiShop.getInvoice({
                         page: 0,
@@ -1000,7 +1008,7 @@ export class ShoppingOrderManager {
                     }).then(r => {
                         productData = r.response.data;
                         productLoading = false;
-                        gvc.notifyDataChange('mainView');
+                        gvc.notifyDataChange(mainViewId);
                     });
                     function saveEvent() {
                         dialog.dataLoading({ text: '上傳中', visible: true });
@@ -1089,7 +1097,7 @@ export class ShoppingOrderManager {
                         });
                     }
                     return gvc.bindView({
-                        bind: 'mainView',
+                        bind: mainViewId,
                         dataList: [{ obj: child_vm, key: 'type' }],
                         view: () => {
                             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
@@ -2176,7 +2184,7 @@ export class ShoppingOrderManager {
                                                                         }
                                                                     }
                                                                     else {
-                                                                        gvc.notifyDataChange('mainView');
+                                                                        gvc.notifyDataChange(mainViewId);
                                                                     }
                                                                 },
                                                             });
@@ -2915,7 +2923,7 @@ export class ShoppingOrderManager {
                       </div>`,
                                     ratio: 25,
                                 })}
-                  ${BgWidget.mbContainer(240)}
+                <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {
