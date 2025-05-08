@@ -51,7 +51,6 @@ class DiffRecord {
             }
             const userClass = new user_js_1.User(this.app);
             const diff = tool_js_1.default.deepDiff(originProduct.content, update_content);
-            console.log(JSON.stringify(diff));
             if (diff.variants) {
                 const variantsEntries = Object.entries(diff.variants);
                 const store_config = await userClass.getConfigV2({

@@ -39,7 +39,6 @@ const Language_js_1 = require("../../Language.js");
 const payment_strategy_factory_js_1 = require("./factories/payment-strategy-factory.js");
 const payment_service_js_1 = require("./payment-service.js");
 const checkout_event_js_1 = require("./checkout-event.js");
-const diff_record_js_1 = require("./diff-record.js");
 class OrderDetail {
     constructor(subtotal, shipment) {
         this.discount = 0;
@@ -763,8 +762,6 @@ class Shopping {
                         }
                     });
                 }
-                const diff = new diff_record_js_1.DiffRecord(this.app, this.token);
-                product.content.records = await diff.getProdcutRecord(product.id);
             };
             if (Array.isArray(products.data)) {
                 products.data = products.data.filter(dd => {
@@ -3923,8 +3920,6 @@ class Shopping {
                 this.setProductCustomizeTagConifg((_a = content.product_customize_tag) !== null && _a !== void 0 ? _a : []),
                 this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
             ]);
-            const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
-            await diffRecord.postProdcutRecord(updater_id, content.id, content);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `, [
                 {
@@ -4277,9 +4272,7 @@ class Shopping {
     }
     async putVariants(token, query) {
         try {
-            const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
             for (const data of query) {
-                await diffRecord.postProdcutVariantRecord(token.userID, data.id, data.variant_content);
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);

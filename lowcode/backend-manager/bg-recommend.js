@@ -750,153 +750,120 @@ export class BgRecommend {
                                                 }, { single: true, readonly: vm.readonly })}`,
                                             ].join(BgWidget.mbContainer(18))),
                                             BgWidget.mainCard([
-                                                html ` <div class="tx_700 mb-3">分潤商品</div>`,
-                                                gvc.bindView({
-                                                    bind: 'listProduct',
-                                                    view: () => {
-                                                        try {
-                                                            let returnHTML = '';
-                                                            if (newOrder.productCheck.length) {
-                                                                newOrder.productCheck.map((product, index) => {
-                                                                    var _a, _b;
-                                                                    let selectVariant = product.content.variants[parseInt((_a = product.selectIndex) !== null && _a !== void 0 ? _a : 0)];
-                                                                    selectVariant.preview_image = (_b = selectVariant.preview_image) !== null && _b !== void 0 ? _b : '';
-                                                                    let productIMG = typeof selectVariant.preview_image == 'string'
-                                                                        ? selectVariant.preview_image
-                                                                        : selectVariant.preview_image[0];
-                                                                    productIMG = productIMG
-                                                                        ? productIMG
-                                                                        : product.content.preview_image[0]
-                                                                            ? product.content.preview_image[0]
-                                                                            : BgWidget.noImageURL;
-                                                                    selectVariant.qty = selectVariant.qty || 1;
-                                                                    returnHTML += html `
-                                          <div
-                                            style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;"
-                                          >
-                                            <div
-                                              class="flex-fill d-flex align-items-center col-5"
-                                              style="font-size: 16px;font-weight: 700;gap: 12px;"
-                                            >
-                                              <div
-                                                style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"
-                                              ></div>
-                                              <div
-                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
-                                              >
-                                                <div
-                                                  style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;"
-                                                >
-                                                  ${product.content.title}
-                                                </div>
-                                              </div>
-                                            </div>
-                                            <div
-                                              class="col-3"
-                                              style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
-                                            >
-                                              $${(() => {
-                                                                        const price = parseInt(`${selectVariant.sale_price}`, 10);
-                                                                        return isNaN(price) ? 0 : price.toLocaleString();
-                                                                    })()}
-                                            </div>
-                                            <div
-                                              style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;"
-                                            >
-                                              <span
-                                                >$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span
-                                              >
-                                              <div
-                                                class="d-flex align-items-center cursor_pointer"
-                                                style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
-                                                onclick="${gvc.event(() => {
-                                                                        newOrder.productCheck.splice(index, 1);
-                                                                        gvc.notifyDataChange('listProduct');
-                                                                    })}"
-                                              >
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="11"
-                                                  height="10"
-                                                  viewBox="0 0 11 10"
-                                                  fill="none"
-                                                >
-                                                  <path
-                                                    d="M1.51367 9.24219L9.99895 0.756906"
-                                                    stroke="#DDDDDD"
-                                                    stroke-width="1.3"
-                                                    stroke-linecap="round"
-                                                  />
-                                                  <path
-                                                    d="M9.99805 9.24219L1.51276 0.756907"
-                                                    stroke="#DDDDDD"
-                                                    stroke-width="1.3"
-                                                    stroke-linecap="round"
-                                                  />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        `;
-                                                                });
+                                                BgWidget.title('分潤商品', 'font-size: 16px;'),
+                                                html ` <div class="my-2"></div>`,
+                                                gvc.bindView(() => {
+                                                    var _a;
+                                                    const subVM = {
+                                                        id: gvc.glitter.getUUID(),
+                                                        loading: true,
+                                                        dataList: [],
+                                                    };
+                                                    function getSelectProducts(id_array) {
+                                                        return __awaiter(this, void 0, void 0, function* () {
+                                                            const products_data = yield ApiShop.getProduct({
+                                                                page: 0,
+                                                                limit: 99999,
+                                                                id_list: id_array.join(','),
+                                                            }).then(data => data.response.data);
+                                                            return products_data;
+                                                        });
+                                                    }
+                                                    (_a = newOrder.productCheck) !== null && _a !== void 0 ? _a : (newOrder.productCheck = []);
+                                                    const relativeCloneData = structuredClone(newOrder.productCheck);
+                                                    return {
+                                                        bind: subVM.id,
+                                                        view: () => {
+                                                            if (subVM.loading) {
+                                                                return BgWidget.spinner();
                                                             }
-                                                            return returnHTML;
-                                                        }
-                                                        catch (e) {
-                                                            console.log(e);
-                                                            return `error`;
-                                                        }
-                                                    },
-                                                    divCreate: {
-                                                        style: `display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;`,
-                                                        class: ``,
-                                                    },
-                                                }),
-                                                gvc.bindView({
-                                                    bind: 'addProduct',
-                                                    view: () => {
-                                                        return html `
-                                    <div
-                                      class="w-100 d-flex justify-content-center align-items-center"
-                                      style="color: #36B;gap:5px;"
-                                      onclick="${gvc.event(() => {
-                                                            let confirm = true;
-                                                            BgProduct.productsDialog({
-                                                                gvc: gvc,
-                                                                default: newOrder.productCheck.map((dd) => {
-                                                                    return dd.id;
-                                                                }),
-                                                                callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                    const dialog = new ShareDialog(glitter);
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    const pd = yield ApiShop.getProduct({
-                                                                        limit: 1000,
-                                                                        page: 0,
-                                                                        id_list: value.join(','),
+                                                            return html `
+                                      <div class="d-flex flex-column p-2" style="gap: 18px;">
+                                        <div
+                                          class="d-flex align-items-center gray-bottom-line-18"
+                                          style="gap: 24px; justify-content: space-between;"
+                                        >
+                                          <div class="form-check-label c_updown_label">
+                                            <div class="tx_normal">產品列表</div>
+                                          </div>
+                                          ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                BgProduct.productsDialog({
+                                                                    gvc: gvc,
+                                                                    default: relativeCloneData.map((dd) => dd.id),
+                                                                    callback: product_array => {
+                                                                        getSelectProducts(product_array).then(resp => {
+                                                                            newOrder.productCheck = resp;
+                                                                            subVM.loading = true;
+                                                                            gvc.notifyDataChange(subVM.id);
+                                                                        });
+                                                                    },
+                                                                });
+                                                            }), { textStyle: 'font-weight: 400;' })}
+                                        </div>
+                                        ${subVM.dataList
+                                                                .map((opt, index) => {
+                                                                return html `
+                                              <div
+                                                class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                              >
+                                                <span class="tx_normal" style="min-width: 20px;">${index + 1}.</span>
+                                                ${BgWidget.validImageBox({
+                                                                    gvc: gvc,
+                                                                    image: opt.image,
+                                                                    width: 40,
+                                                                })}
+                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">
+                                                  ${opt.value}
+                                                  ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                </div>
+                                                <div class="flex-fill"></div>
+                                                ${BgWidget.cancel(gvc.event(() => {
+                                                                    newOrder.productCheck.splice(index, 1);
+                                                                    subVM.dataList.splice(index, 1);
+                                                                    gvc.notifyDataChange(subVM.id);
+                                                                }), '移除')}
+                                              </div>
+                                            `;
+                                                            })
+                                                                .join('') ||
+                                                                html `<div class="w-100 d-flex align-content-center justify-content-center">
+                                          尚未加入任何賣場商品
+                                        </div>`}
+                                      </div>
+                                    `;
+                                                        },
+                                                        onCreate: () => {
+                                                            if (subVM.loading) {
+                                                                if (newOrder.productCheck.length === 0) {
+                                                                    setTimeout(() => {
+                                                                        subVM.dataList = [];
+                                                                        subVM.loading = false;
+                                                                        gvc.notifyDataChange(subVM.id);
+                                                                    }, 100);
+                                                                }
+                                                                else {
+                                                                    new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                        const products_data = yield getSelectProducts(newOrder.productCheck.map((p) => p.id));
+                                                                        newOrder.productCheck = products_data;
+                                                                        subVM.dataList = products_data.map((product) => {
+                                                                            return {
+                                                                                key: product.id,
+                                                                                value: product.content.title,
+                                                                                image: product.content.preview_image[0] || BgWidget.noImageURL,
+                                                                            };
+                                                                        });
+                                                                        resolve(subVM.dataList);
+                                                                    })).then(data => {
+                                                                        subVM.dataList = data;
+                                                                        subVM.loading = false;
+                                                                        gvc.notifyDataChange(subVM.id);
                                                                     });
-                                                                    newOrder.productCheck = pd.response.data;
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    gvc.notifyDataChange(id);
-                                                                }),
-                                                                filter: d1 => {
-                                                                    return !newOrder.productCheck.find((dd) => {
-                                                                        return dd.id === d1;
-                                                                    });
-                                                                },
-                                                            });
-                                                        })}"
-                                    >
-                                      設定分潤商品
-                                      <i class="fa-duotone fa-solid fa-gear"></i>
-                                    </div>
-                                  `;
-                                                    },
-                                                    divCreate: {
-                                                        style: `width: 100%;display: flex;align-items: center;margin:24px 0;cursor: pointer;`,
-                                                        class: ``,
-                                                    },
+                                                                }
+                                                            }
+                                                        },
+                                                    };
                                                 }),
-                                            ].join(``)),
+                                            ].join('')),
                                             vm.readonly
                                                 ? gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
