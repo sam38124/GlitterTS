@@ -27,7 +27,18 @@ class DiffRecord {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createChangedLog Error:' + error, null);
         }
     }
-    async recordProdcut(updater_id, product_id, update_content) {
+    async getProdcutRecord(product_id) {
+        try {
+            const records = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_changed_logs WHERE entity_table = 't_manager_post' AND entity_id = ?;
+        `, [product_id]);
+            return records;
+        }
+        catch (error) {
+            console.error(error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getProdcutRecord Error:' + error, null);
+        }
+    }
+    async postProdcutRecord(updater_id, product_id, update_content) {
         var _a;
         try {
             const originProduct = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.\`t_manager_post\` WHERE id = ?
@@ -80,10 +91,10 @@ class DiffRecord {
         }
         catch (error) {
             console.error(error);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'recordProdcut Error:' + error, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProdcutRecord Error:' + error, null);
         }
     }
-    async recordProdcutVariant(updater_id, variant_id, update_variant) {
+    async postProdcutVariantRecord(updater_id, variant_id, update_variant) {
         try {
             const originVariant = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.\`t_variants\` WHERE id = ?
           `, [variant_id]))[0];
@@ -115,7 +126,7 @@ class DiffRecord {
         }
         catch (error) {
             console.error(error);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'recordProdcutVariant Error:' + error, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProdcutVariantRecord Error:' + error, null);
         }
     }
     static changedStockListLog(stock_list, store_config) {

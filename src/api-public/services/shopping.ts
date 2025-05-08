@@ -1204,6 +1204,9 @@ export class Shopping {
             }
           });
         }
+
+        const diff = new DiffRecord(this.app, this.token);
+        product.content.records = await diff.getProdcutRecord(product.id);
       };
 
       if (Array.isArray(products.data)) {
@@ -5324,8 +5327,8 @@ export class Shopping {
         this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
       ]);
 
-      // const diffRecord = new DiffRecord(this.app, this.token);
-      // await diffRecord.recordProdcut(updater_id, content.id, content);
+      const diffRecord = new DiffRecord(this.app, this.token);
+      await diffRecord.postProdcutRecord(updater_id, content.id, content);
 
       // 更新商品
       await db.query(
@@ -5743,10 +5746,10 @@ export class Shopping {
 
   async putVariants(token: any, query: any) {
     try {
-      // const diffRecord = new DiffRecord(this.app, this.token);
+      const diffRecord = new DiffRecord(this.app, this.token);
 
       for (const data of query) {
-        // await diffRecord.recordProdcutVariant(token.userID, data.id, data.variant_content);
+        await diffRecord.postProdcutVariantRecord(token.userID, data.id, data.variant_content);
 
         await db.query(
           `UPDATE \`${this.app}\`.t_variants

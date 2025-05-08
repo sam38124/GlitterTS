@@ -763,6 +763,8 @@ class Shopping {
                         }
                     });
                 }
+                const diff = new diff_record_js_1.DiffRecord(this.app, this.token);
+                product.content.records = await diff.getProdcutRecord(product.id);
             };
             if (Array.isArray(products.data)) {
                 products.data = products.data.filter(dd => {
@@ -3922,7 +3924,7 @@ class Shopping {
                 this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
             ]);
             const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
-            await diffRecord.recordProdcut(updater_id, content.id, content);
+            await diffRecord.postProdcutRecord(updater_id, content.id, content);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `, [
                 {
@@ -4277,7 +4279,7 @@ class Shopping {
         try {
             const diffRecord = new diff_record_js_1.DiffRecord(this.app, this.token);
             for (const data of query) {
-                await diffRecord.recordProdcutVariant(token.userID, data.id, data.variant_content);
+                await diffRecord.postProdcutVariantRecord(token.userID, data.id, data.variant_content);
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);

@@ -43,6 +43,18 @@ export type ActiveSchedule = {
   endTime?: string;
 };
 
+interface ChangeLog {
+  id: number;
+  entity_table: string;
+  entity_id: number;
+  changed_at: string;
+  changed_by: number;
+  changed_source: string;
+  note: string;
+  type: string | null;
+  changed_json: any;
+}
+
 export interface Product {
   sync_shopee_stock?: boolean;
   shopee_id: number;
@@ -125,6 +137,7 @@ export interface Product {
   about_vouchers: VoucherContent[];
   comments: any[];
   multi_sale_price?: MultiSalePrice[];
+  records: ChangeLog[];
 }
 
 export type MultiSaleType = 'store' | 'level' | 'tags';

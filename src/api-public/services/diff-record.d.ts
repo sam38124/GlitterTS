@@ -17,8 +17,9 @@ export declare class DiffRecord {
         changed_source: 'client' | 'management';
         changed_by: string;
     }): Promise<void>;
-    recordProdcut(updater_id: string, product_id: number, update_content: any): Promise<void>;
-    recordProdcutVariant(updater_id: string, variant_id: number, update_variant: any): Promise<void>;
+    getProdcutRecord(product_id: number): Promise<any>;
+    postProdcutRecord(updater_id: string, product_id: number, update_content: any): Promise<void>;
+    postProdcutVariantRecord(updater_id: string, variant_id: number, update_variant: any): Promise<void>;
     static changedStockListLog(stock_list: any, store_config: any): StockListRecordData[];
 }
 export {};

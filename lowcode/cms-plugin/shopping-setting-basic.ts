@@ -6,7 +6,7 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { Language } from '../glitter-base/global/language.js';
 import { Tool } from '../modules/tool.js';
-import { FileItem, imageLibrary } from '../modules/image-library.js';
+import { imageLibrary } from '../modules/image-library.js';
 import { ProductSetting } from './module/product-setting.js';
 import { QuestionInfo } from './module/question-info.js';
 import { ProductAi } from './ai-generator/product-ai.js';
@@ -207,8 +207,8 @@ export class ShoppingSettingBasic {
             tag: [],
             id: gvc.glitter.getUUID(),
           };
-        })
-        if (data.result){
+        });
+        if (data.result) {
           const img_lib = data.response.value;
           img_lib.push(...newImageArray);
           dialog.dataLoading({ visible: true });
@@ -947,14 +947,13 @@ export class ShoppingSettingBasic {
                     name: '上傳圖片',
                   },
                   event: gvc.event(() => {
-                    
                     EditorElem.uploadFileFunction({
                       gvc: gvc,
                       callback: (images: any) => {
                         const addImage = (urlArray: string[]) => {
                           if (urlArray.length > 0) {
                             language_data.preview_image.push(...urlArray);
-                            saveImageLib(urlArray)
+                            saveImageLib(urlArray);
                             obj.gvc.notifyDataChange('image_view');
                           } else {
                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
@@ -1014,21 +1013,20 @@ export class ShoppingSettingBasic {
                       data: language_data.preview_image,
                       event: {
                         delete: (index: number) => {
-                         
-                          console.log("language_data -- " , language_data);
+                          console.log('language_data -- ', language_data);
                           postMD.variants.forEach((variant: any) => {
                             if (variant.preview_image === language_data.preview_image[index]) {
                               variant.preview_image = language_data.preview_image[0] ?? BgWidget.noImageURL;
                             }
                             if (variant[`preview_image_${vm.language}`] === language_data.preview_image[index]) {
-                              variant[`preview_image_${vm.language}`] = language_data.preview_image[0] ?? BgWidget.noImageURL;
+                              variant[`preview_image_${vm.language}`] =
+                                language_data.preview_image[0] ?? BgWidget.noImageURL;
                             }
-                          })
-                          console.log("language_data -- " , postMD.variants);
+                          });
+                          console.log('language_data -- ', postMD.variants);
                           ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
-
-                        }
-                      }
+                        },
+                      },
                     })
                   );
                 },

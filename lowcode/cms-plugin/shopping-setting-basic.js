@@ -864,20 +864,21 @@ export class ShoppingSettingBasic {
                                     data: language_data.preview_image,
                                     event: {
                                         delete: (index) => {
-                                            console.log("language_data -- ", language_data);
+                                            console.log('language_data -- ', language_data);
                                             postMD.variants.forEach((variant) => {
                                                 var _a, _b;
                                                 if (variant.preview_image === language_data.preview_image[index]) {
                                                     variant.preview_image = (_a = language_data.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL;
                                                 }
                                                 if (variant[`preview_image_${vm.language}`] === language_data.preview_image[index]) {
-                                                    variant[`preview_image_${vm.language}`] = (_b = language_data.preview_image[0]) !== null && _b !== void 0 ? _b : BgWidget.noImageURL;
+                                                    variant[`preview_image_${vm.language}`] =
+                                                        (_b = language_data.preview_image[0]) !== null && _b !== void 0 ? _b : BgWidget.noImageURL;
                                                 }
                                             });
-                                            console.log("language_data -- ", postMD.variants);
+                                            console.log('language_data -- ', postMD.variants);
                                             ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
-                                        }
-                                    }
+                                        },
+                                    },
                                 }));
                         },
                         divCreate: {

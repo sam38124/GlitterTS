@@ -56,16 +56,17 @@ export class Tool {
 
     if (isNaN(date.getTime())) return ''; // 避免無效日期
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: includeSeconds ? '2-digit' : undefined,
+      hour12: false,
+    });
 
-    return includeSeconds
-      ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-      : `${year}-${month}-${day} ${hours}:${minutes}`;
+    return formatter.format(date);
   }
 
   static ObjCompare(obj1: { [k: string]: any }, obj2: { [k: string]: any }) {

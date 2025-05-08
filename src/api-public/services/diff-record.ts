@@ -45,7 +45,22 @@ export class DiffRecord {
     }
   }
 
-  async recordProdcut(updater_id: string, product_id: number, update_content: any) {
+  async getProdcutRecord(product_id: number) {
+    try {
+      const records = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_changed_logs WHERE entity_table = 't_manager_post' AND entity_id = ?;
+        `,
+        [product_id]
+      );
+
+      return records;
+    } catch (error) {
+      console.error(error);
+      throw exception.BadRequestError('BAD_REQUEST', 'getProdcutRecord Error:' + error, null);
+    }
+  }
+
+  async postProdcutRecord(updater_id: string, product_id: number, update_content: any) {
     try {
       const originProduct = (
         await db.query(
@@ -64,8 +79,6 @@ export class DiffRecord {
 
       const userClass = new User(this.app);
       const diff = Tool.deepDiff(originProduct.content, update_content);
-
-      console.log(JSON.stringify(diff));
 
       if (diff.variants) {
         const variantsEntries = Object.entries(diff.variants) as [string, any];
@@ -118,11 +131,11 @@ export class DiffRecord {
       }
     } catch (error) {
       console.error(error);
-      throw exception.BadRequestError('BAD_REQUEST', 'recordProdcut Error:' + error, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'postProdcutRecord Error:' + error, null);
     }
   }
 
-  async recordProdcutVariant(updater_id: string, variant_id: number, update_variant: any) {
+  async postProdcutVariantRecord(updater_id: string, variant_id: number, update_variant: any) {
     try {
       const originVariant = (
         await db.query(
@@ -166,7 +179,7 @@ export class DiffRecord {
       }
     } catch (error) {
       console.error(error);
-      throw exception.BadRequestError('BAD_REQUEST', 'recordProdcutVariant Error:' + error, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'postProdcutVariantRecord Error:' + error, null);
     }
   }
 
