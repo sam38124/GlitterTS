@@ -695,6 +695,7 @@ export class BgRecommend {
                 ${BgWidget.title(vm.data.title || '新增分銷連結')}
                 <div class="flex-fill"></div>
               </div>`,
+              BgWidget.mbContainer(18),
               BgWidget.container1x2(
                 {
                   html: gvc.bindView(() => {

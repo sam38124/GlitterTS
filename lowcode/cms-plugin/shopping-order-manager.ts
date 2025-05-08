@@ -28,7 +28,6 @@ import { LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
 import { TableStorage } from './module/table-storage.js';
 
-
 const html = String.raw;
 const css = String.raw;
 
@@ -196,11 +195,10 @@ export class ShoppingOrderManager {
           };
 
           return viewMap[vm.type]() ?? '';
-        }catch (e) {
-          console.error(e)
-          return `${e}`
+        } catch (e) {
+          console.error(e);
+          return `${e}`;
         }
-
       },
       onCreate: () => {
         if (vm.loading) {
@@ -1066,7 +1064,7 @@ export class ShoppingOrderManager {
         let userData: any = {};
         let invoiceDataList: any = [];
         let storeList: any = [];
-        let mainViewId=gvc.glitter.getUUID();
+        let mainViewId = gvc.glitter.getUUID();
         let productData: any = [];
         let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
           (window as any).glitter.getUrlParameter('page')
@@ -1965,7 +1963,7 @@ export class ShoppingOrderManager {
                           return;
                         }
                         (window.parent as any).glitter.setUrlParameter('orderID', undefined);
-                        
+
                         if (backCallback) {
                           backCallback();
                         } else {
@@ -3219,7 +3217,7 @@ export class ShoppingOrderManager {
                       ratio: 25,
                     }
                   )}
-                <div style="height:240px;"></div>
+                  <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {

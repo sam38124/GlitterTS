@@ -2923,7 +2923,7 @@ export class ShoppingOrderManager {
                       </div>`,
                                     ratio: 25,
                                 })}
-                <div style="height:240px;"></div>
+                  <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {
