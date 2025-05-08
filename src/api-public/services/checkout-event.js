@@ -903,7 +903,9 @@ class CheckoutEvent {
                     try {
                         carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                     }
-                    catch (e) { }
+                    catch (e) {
+                        console.error(e);
+                    }
                 }
                 await order_event_js_1.OrderEvent.insertOrder({
                     cartData: carData,

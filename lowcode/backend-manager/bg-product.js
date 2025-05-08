@@ -54,7 +54,22 @@ export class BgProduct {
                 query: '',
                 queryType: 'title',
                 orderString: '',
+                manager_tag: [],
             };
+            gvc.addStyle(`
+        .bg-product-main {
+          gap: 12px;
+          min-height: 480px;
+          max-height: 500px;
+          border: ${document.body.clientWidth > 800 ? 16 : 8}px solid #fff;
+        }
+        .bg-product-topbar {
+          gap: 6px;
+          position: sticky;
+          top: 0px;
+          background-color: #fff;
+        }
+      `);
             return html ` <div
         class="bg-white shadow rounded-3"
         style="overflow-y: auto; ${document.body.clientWidth > 768
@@ -67,6 +82,57 @@ export class BgProduct {
                     var _a;
                     if (vm.loading) {
                         return html `<div class="my-5">${BgWidget.spinner()}</div>`;
+                    }
+                    function selectBar() {
+                        return BgWidget.selectFilter({
+                            gvc,
+                            callback: (value) => {
+                                vm.queryType = value;
+                                gvc.notifyDataChange(vm.id);
+                            },
+                            default: vm.queryType || 'title',
+                            options: FilterOptions.productSelect,
+                            style: 'min-width: 120px;',
+                        });
+                    }
+                    function searchBar() {
+                        return gvc.bindView({
+                            bind: gvc.glitter.getUUID(),
+                            dataList: [{ obj: vm, key: 'queryType' }],
+                            view: () => {
+                                if (vm.queryType === 'customize_tag') {
+                                    return BgWidget.searchTagsFilter(gvc, vm.manager_tag, tagArray => {
+                                        vm.query = '';
+                                        vm.manager_tag = tagArray;
+                                        vm.loading = true;
+                                        gvc.notifyDataChange(vm.id);
+                                    }, '搜尋');
+                                }
+                                else {
+                                    return BgWidget.searchFilter(gvc.event(e => {
+                                        vm.query = e.value;
+                                        vm.manager_tag = [];
+                                        vm.loading = true;
+                                        gvc.notifyDataChange(vm.id);
+                                    }), vm.query || '', '搜尋');
+                                }
+                            },
+                            divCreate: {
+                                class: 'w-100 position-relative',
+                            },
+                        });
+                    }
+                    function updownButton() {
+                        return BgWidget.updownFilter({
+                            gvc,
+                            callback: (value) => {
+                                vm.orderString = value;
+                                vm.loading = true;
+                                gvc.notifyDataChange(vm.id);
+                            },
+                            default: vm.orderString || 'default',
+                            options: FilterOptions.productOrderBy,
+                        });
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
               <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -82,34 +148,17 @@ export class BgProduct {
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main p-3" style="gap: 12px; min-height: 480px; max-height: 500px;">
-                    <div class="d-flex mb-2" style="gap: 6px;">
-                      ${BgWidget.selectFilter({
-                        gvc,
-                        callback: (value) => {
-                            vm.queryType = value;
-                            gvc.notifyDataChange(vm.id);
-                        },
-                        default: vm.queryType || 'title',
-                        options: FilterOptions.productSelect,
-                        style: 'min-width: 120px;',
-                    })}
-                      ${BgWidget.searchFilter(gvc.event(e => {
-                        vm.query = e.value;
-                        vm.loading = true;
-                        gvc.notifyDataChange(vm.id);
-                    }), vm.query || '', '搜尋')}
-                      ${BgWidget.updownFilter({
-                        gvc,
-                        callback: (value) => {
-                            vm.orderString = value;
-                            vm.loading = true;
-                            gvc.notifyDataChange(vm.id);
-                        },
-                        default: vm.orderString || 'default',
-                        options: FilterOptions.productOrderBy,
-                    })}
-                    </div>
+                  <div class="c_dialog_main p-0 bg-product-main">
+                    ${document.body.clientWidth > 768
+                        ? html ` <div class="d-flex pb-2 px-1 bg-product-topbar">
+                          ${selectBar()} ${searchBar()} ${updownButton()}
+                        </div>`
+                        : html `<div class="pb-2 px-1 bg-product-topbar">
+                          <div class="d-flex align-items-center justify-content-between w-100 mb-1">
+                            ${selectBar()} ${updownButton()}
+                          </div>
+                          <div>${searchBar()}</div>
+                        </div> `}
                     ${gvc
                         .map(vm.options
                         .filter(dd => {
@@ -267,7 +316,7 @@ export class BgProduct {
                 },
                 onCreate: () => {
                     if (vm.loading) {
-                        ApiShop.getProduct({
+                        const apiJSON = {
                             page: 0,
                             limit: 99999,
                             search: vm.query,
@@ -284,7 +333,9 @@ export class BgProduct {
                             productType: obj.productType,
                             filter_visible: obj.filter_visible,
                             status: 'inRange',
-                        }).then(data => {
+                            manager_tag: vm.manager_tag.join(','),
+                        };
+                        ApiShop.getProduct(apiJSON).then(data => {
                             vm.options = [];
                             data.response.data.map((product) => {
                                 var _a;

@@ -765,7 +765,7 @@ export class BgWidget {
                         obj.default = e.value;
                         obj.oninput && obj.oninput(e.value);
                     })}"
-                onclick="${obj.gvc.event((e) => {
+                onclick="${obj.gvc.event(e => {
                         obj.onclick && obj.onclick(e);
                     })}"
                 value="${((_e = obj.default) !== null && _e !== void 0 ? _e : '').replace(/"/g, '&quot;')}"
@@ -2294,12 +2294,18 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                 </div>`
                             : this.mainCard([
                                 this.searchPlace(gvc.event(e => {
-                                    search = e.value;
+                                    search = `${e.value}`.trim();
                                     gvc.notifyDataChange(id);
                                 }), search || '', '搜尋', '0', '0'),
-                                this.multiCheckboxContainer(gvc, data.filter(item => item.name.includes(search)), def, stringArray => {
-                                    def = stringArray;
-                                    callback(stringArray);
+                                this.multiCheckboxContainer(gvc, data.filter(item => item.name.toLowerCase().includes(search.toLowerCase())), def, stringArray => {
+                                    def = [
+                                        ...new Set(def
+                                            .filter(tag => {
+                                            return !tag.toLowerCase().includes(search.toLowerCase());
+                                        })
+                                            .concat(stringArray)),
+                                    ];
+                                    callback(def);
                                 }, {
                                     single: false,
                                     containerStyle: 'overflow: auto; max-height: 310px;',
@@ -2928,6 +2934,156 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         value="${value}"
       />
     </div>`;
+    }
+    static searchTagsFilter(gvc, def, callback, placeholder, margin) {
+        const id = gvc.glitter.getUUID();
+        let loading = true;
+        let show = false;
+        let tagList = [];
+        let search = '';
+        let selectTags = def || [];
+        return gvc.bindView({
+            bind: id,
+            view: () => {
+                if (loading) {
+                    return '';
+                }
+                if (show) {
+                    return html `<div
+            style="margin-top: 1px;border: 8px solid #fff; outline: 1px solid #aeaeae; height: 300px; width: 100%; border-radius: 5px; position: absolute; top: 0; background-color: #fff; border-radius: 5px; overflow: auto;"
+          >
+            <div class="position-relative">
+              <div
+                class="w-100 d-flex align-items-center gap-1 position-sticky mb-1"
+                style="top: 0; background-color: #fff;"
+              >
+                <div class="w-100">
+                  <i
+                    class="fa-regular fa-magnifying-glass"
+                    style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+                    aria-hidden="true"
+                  ></i>
+                  <input
+                    class="form-control h-100"
+                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
+                    placeholder="${placeholder}"
+                    onchange="${gvc.event(e => {
+                        search = `${e.value}`.trim();
+                        gvc.notifyDataChange(id);
+                    })}"
+                    value="${search}"
+                  />
+                </div>
+                ${this.customButton({
+                        button: {
+                            color: 'black',
+                            size: 'md',
+                        },
+                        text: {
+                            name: '確認',
+                            style: 'font-size: 14px;',
+                        },
+                        event: gvc.event(() => {
+                            show = false;
+                            gvc.notifyDataChange(id);
+                            callback(selectTags);
+                        }),
+                    })}
+              </div>
+              <div class="p-2">
+                ${this.multiCheckboxContainer(gvc, tagList.filter(tag => tag.name.toLowerCase().includes(search.toLowerCase())), selectTags, text => {
+                        if (search) {
+                            selectTags = [
+                                ...new Set(selectTags
+                                    .filter(tag => {
+                                    return !tag.toLowerCase().includes(search.toLowerCase());
+                                })
+                                    .concat(text)),
+                            ];
+                        }
+                        else {
+                            selectTags = text;
+                        }
+                    }, { single: false })}
+              </div>
+            </div>
+          </div>`;
+                }
+                else {
+                    return html `<div
+            class="h-100"
+            onclick="${gvc.event(() => {
+                        show = true;
+                        gvc.notifyDataChange(id);
+                    })}"
+          >
+            <i
+              class="fa-regular fa-magnifying-glass"
+              style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+              aria-hidden="true"
+            ></i>
+            <div
+              class="form-control h-100"
+              style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%; color: #aeaeae; ${selectTags.length >
+                        0 && false
+                        ? 'padding: 0.3rem 3rem;'
+                        : ''}"
+            >
+              ${placeholder}
+              <!-- ${selectTags.length > 0
+                        ? html `<div class="d-flex flex-wrap gap-2">
+                    ${selectTags.map(item => this.normalInsignia(`#${item}`)).join('')}
+                  </div>`
+                        : placeholder} -->
+            </div>
+          </div>`;
+                }
+            },
+            divCreate: {
+                class: 'w-100 position-relative search-tags-filter',
+                style: `height: 40px !important; margin: ${margin !== null && margin !== void 0 ? margin : 0};`,
+            },
+            onCreate: () => __awaiter(this, void 0, void 0, function* () {
+                if (loading) {
+                    tagList = yield ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd) => {
+                        var _b, _c;
+                        if (dd.result && ((_c = (_b = dd.response) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.list)) {
+                            return dd.response.value.list.map((item) => {
+                                return {
+                                    key: item,
+                                    name: `#${item}`,
+                                };
+                            });
+                        }
+                        return [];
+                    });
+                    loading = false;
+                    gvc.notifyDataChange(id);
+                }
+                else if (show) {
+                    function hasSearchTagsFilterAncestor(target) {
+                        let el = target;
+                        for (let i = 0; i < 10 && el; i++) {
+                            if (el.classList.contains('search-tags-filter')) {
+                                return true;
+                            }
+                            el = el.parentElement;
+                        }
+                        return false;
+                    }
+                    function clickEvent(event) {
+                        if (!hasSearchTagsFilterAncestor(event.target) &&
+                            !event.target.classList.contains('form-check-input') &&
+                            !event.target.classList.contains('form-check-label')) {
+                            show = false;
+                            gvc.notifyDataChange(id);
+                            window.parent.document.removeEventListener('click', clickEvent);
+                        }
+                    }
+                    setTimeout(() => window.parent.document.addEventListener('click', clickEvent), 100);
+                }
+            }),
+        });
     }
     static columnFilter(obj) {
         const id = 'columnFilter';
@@ -4613,9 +4769,14 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                     if (vm.loading) {
                         return html ` <div class="my-4">${this.spinner()}</div>`;
                     }
-                    return html ` 
-            <div class="bg-white shadow rounded-3 h-100 d-flex flex-column position-relative overflow-hidden" style="width: 100%; padding-top: 61px;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom position-absolute" style="background: #F2F2F2;top:0;left:0">
+                    return html ` <div
+              class="bg-white shadow rounded-3 h-100 d-flex flex-column position-relative overflow-hidden"
+              style="width: 100%; padding-top: 61px;"
+            >
+              <div
+                class="w-100 d-flex align-items-center p-3 border-bottom position-absolute"
+                style="background: #F2F2F2;top:0;left:0"
+              >
                 <div class="tx_700 dialog-title">${(_b = obj.title) !== null && _b !== void 0 ? _b : '圖片庫'}</div>
                 <div class="flex-fill"></div>
                 <i
