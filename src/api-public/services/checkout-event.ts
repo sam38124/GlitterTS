@@ -1203,8 +1203,8 @@ export class CheckoutEvent {
               carData,
               carData.user_info.send_type !== 'carrier'
             );
-          }catch (e) {
-
+          } catch (e) {
+            console.error(e);
           }
         }
         await OrderEvent.insertOrder({

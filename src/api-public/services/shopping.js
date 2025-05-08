@@ -640,6 +640,16 @@ class Shopping {
                 const price = (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
                 price && priceList.push(price);
             };
+            const formatLogistic = (content) => {
+                if (!content.designated_logistics) {
+                    return { type: 'all', list: [] };
+                }
+                const { list, group } = content.designated_logistics;
+                if ((!list || list.length === 0) && (!group || group.length === 0)) {
+                    return { type: 'all', list: [] };
+                }
+                return content.designated_logistics;
+            };
             const processProduct = async (product) => {
                 if (!product || !product.content) {
                     return;
@@ -762,6 +772,7 @@ class Shopping {
                         }
                     });
                 }
+                product.content.designated_logistics = formatLogistic(product.content);
             };
             if (Array.isArray(products.data)) {
                 products.data = products.data.filter(dd => {

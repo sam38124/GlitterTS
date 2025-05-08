@@ -2603,9 +2603,23 @@ export class ShoppingOrderManager {
                         ${[
                                         BgWidget.mainCard(html `
                             <div style="font-size: 16px;font-weight: 700;">訂單來源</div>
-                            <div>
+                            <div class="d-flex flex-column gap-1 mt-1">
                               ${(() => {
                                             var _a;
+                                            if (orderData.orderData.fbp) {
+                                                return html `
+                                    <div>FB廣告</div>
+                                    ${BgWidget.blueNote(html `複製追蹤碼<i class="fa-regular fa-copy ms-1"></i>`, gvc.event(() => {
+                                                    navigator.clipboard.writeText(`${orderData.orderData.fbp}`);
+                                                    BgWidget.jumpAlert({
+                                                        gvc,
+                                                        text: '複製成功',
+                                                        justify: 'top',
+                                                        align: 'center',
+                                                    });
+                                                }), 'font-weight: 500;')}
+                                  `;
+                                            }
                                             if (!orderData.orderData.orderSource) {
                                                 return '線上';
                                             }
