@@ -26,6 +26,15 @@ export class imageLibrary {
             query: '',
             orderString: 'created_time_desc',
             type: 'file',
+            newFolder: {
+                selected: false,
+                title: '',
+                data: [],
+                items: [],
+                type: 'folder',
+                tag: [],
+                id: gvc.glitter.getUUID(),
+            },
         };
         const ids = {
             classPrefix: 'image-library-dialog',
@@ -430,17 +439,33 @@ export class imageLibrary {
                             function drawBreadcrumb() {
                                 return html `
                   <div class="d-flex" style="margin: 20px 0">
-                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
+                    <div class="breadcrumb-item">
+                      <div
+                        class="cursor_pointer"
+                        onclick="${gvc.event(() => {
                                     closeFolderView();
                                     vm.type = 'file';
                                     gvc.notifyDataChange(vm.id);
-                                })}">我的圖庫</div></div>
-                    <div class="breadcrumb-item"><div class="cursor_pointer" onclick="${gvc.event(() => {
+                                })}"
+                      >
+                        我的圖庫
+                      </div>
+                    </div>
+                    <div class="breadcrumb-item">
+                      <div
+                        class="cursor_pointer"
+                        onclick="${gvc.event(() => {
                                     closeFolderView();
                                     vm.type = 'folder';
                                     gvc.notifyDataChange(vm.id);
-                                })}">相簿</div></div>
-                    <div class="breadcrumb-item"><div>${vm.tag}</div></div>
+                                })}"
+                      >
+                        相簿
+                      </div>
+                    </div>
+                    <div class="breadcrumb-item">
+                      <div>${vm.tag}</div>
+                    </div>
                   </div>
                 `;
                             }
@@ -480,6 +505,23 @@ export class imageLibrary {
                                     .join('');
                             }
                             if (vm.type == 'folderADD') {
+                                function pushFolder(folder, imageArray) {
+                                    console.log('folder -- ', folder);
+                                    console.log('imageArray -- ', imageArray);
+                                    imageArray.forEach(image => {
+                                        image.selected = false;
+                                    });
+                                    return folder.data.push(...imageArray);
+                                }
+                                vm.newFolder = {
+                                    selected: false,
+                                    title: '',
+                                    data: [],
+                                    items: [],
+                                    type: 'folder',
+                                    tag: [],
+                                    id: gvc.glitter.getUUID(),
+                                };
                                 return html `
                   <div class="d-flex flex-column ${gClass('new-album-title-bar')}">
                     相簿名稱
@@ -497,34 +539,8 @@ export class imageLibrary {
                       class="btn1"
                       onclick="${gvc.event(() => {
                                     this.selectImageLibrary(gvc, selectData => {
-                                        var _a;
-                                        const folder = {
-                                            selected: false,
-                                            title: (_a = vm.tag) !== null && _a !== void 0 ? _a : 'folder',
-                                            data: [],
-                                            items: selectData,
-                                            type: 'folder',
-                                            tag: [],
-                                            id: gvc.glitter.getUUID(),
-                                        };
-                                        selectData.map(data => {
-                                            let matchingElement = vm.link.find(item2 => item2.id === data.id);
-                                            if (matchingElement) {
-                                                if (!matchingElement.tag) {
-                                                    matchingElement.tag = [];
-                                                }
-                                                if (!matchingElement.tag.includes(vm.tag)) {
-                                                    matchingElement.tag.push(vm.tag);
-                                                }
-                                            }
-                                            data.selected = false;
-                                        });
-                                        vm.link.push(folder);
-                                        vm.type = 'folder';
-                                        gvc.notifyDataChange(vm.id);
-                                        save(() => {
-                                            gvc.notifyDataChange(vm.id);
-                                        });
+                                        pushFolder(vm.newFolder, selectData);
+                                        gvc.notifyDataChange('folderItemGroup');
                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
                                         key: 'album',
                                         mul: true,
@@ -536,28 +552,11 @@ export class imageLibrary {
                     <div
                       class="btn1"
                       onclick="${gvc.event(() => {
-                                    if (!vm.tag) {
-                                        const dialog = new ShareDialog(cf.gvc.glitter);
-                                        dialog.errorMessage({ text: '請先輸入相簿名稱' });
-                                        return;
-                                    }
                                     cf.plus(gvc, fileArray => {
-                                        var _a;
-                                        const folder = {
-                                            title: (_a = vm.tag) !== null && _a !== void 0 ? _a : 'folder',
-                                            data: [],
-                                            items: [],
-                                            type: 'folder',
-                                            tag: [],
-                                            id: gvc.glitter.getUUID(),
-                                        };
-                                        fileArray.forEach(item => {
-                                            item.tag = [];
-                                            item.tag.push(vm.tag);
-                                            vm.link.push(item);
+                                        pushFolder(vm.newFolder, fileArray);
+                                        save(() => {
+                                            gvc.notifyDataChange('folderItemGroup');
                                         });
-                                        vm.link.push(folder);
-                                        gvc.notifyDataChange(vm.id);
                                     }, 'file');
                                 })}"
                     >
@@ -567,14 +566,7 @@ export class imageLibrary {
                   ${gvc.bindView({
                                     bind: `folderItemGroup`,
                                     view: () => {
-                                        if (vm.tag) {
-                                            let group = vm.link.filter(item2 => {
-                                                var _a;
-                                                return item2.tag && item2.tag.includes((_a = vm.tag) !== null && _a !== void 0 ? _a : '');
-                                            });
-                                            return renderItems(group, { onlyRead: true });
-                                        }
-                                        return ``;
+                                        return renderItems(vm.newFolder.data, { onlyRead: true });
                                     },
                                     divCreate: {},
                                 })}
@@ -1097,7 +1089,6 @@ export class imageLibrary {
                             type: 'cancel',
                             label: cancelLabel,
                             onClick: () => {
-                                console.log("vm.type --", vm.type);
                                 if (cf.cancelEvent)
                                     cf.cancelEvent();
                                 if (vm.type === 'folderView' || vm.type === 'folderADD') {
@@ -1108,6 +1099,13 @@ export class imageLibrary {
                                 else {
                                     gvc.closeDialog();
                                 }
+                            },
+                        },
+                        {
+                            type: 'edit',
+                            label: '編輯',
+                            onClick: () => {
+                                vm.type = 'folderEdit';
                             },
                         },
                         {
@@ -1123,8 +1121,32 @@ export class imageLibrary {
                                             selected.push(d);
                                     });
                                 })(vm.link);
+                                if (vm.type === 'folderADD') {
+                                    if (!vm.tag) {
+                                        dialog.infoMessage({ text: '相簿尚未命名' });
+                                        return;
+                                    }
+                                    vm.newFolder.title = vm.tag;
+                                    vm.newFolder.data.forEach((data) => {
+                                        var _a;
+                                        const findImage = vm.link.find(image => image.id === data.id);
+                                        if (findImage) {
+                                            findImage.tag.push((_a = vm.tag) !== null && _a !== void 0 ? _a : '');
+                                        }
+                                    });
+                                    vm.newFolder.data = [];
+                                    vm.link.push(vm.newFolder);
+                                    save(() => {
+                                        vm.type = 'folder';
+                                        gvc.notifyDataChange(vm.id);
+                                    });
+                                    return;
+                                }
                                 if (cf.key === 'album') {
                                     dialog.successMessage({ text: '相簿建立成功' });
+                                    cf.getSelect(selected);
+                                    gvc.closeDialog();
+                                    return;
                                 }
                                 if (['image-manager', 'folderEdit'].includes(cf.key)) {
                                     if (selected.length || cf.edit_only) {
@@ -1149,7 +1171,15 @@ export class imageLibrary {
                 return defs
                     .map(d => {
                     const widget = d.type === 'cancel' ? BgWidget.cancel : d.type === 'danger' ? BgWidget.danger : BgWidget.save;
-                    return widget(gvc.event(d.onClick), d.label);
+                    if (d.type == 'edit') {
+                        if (vm.type == 'folder') {
+                            return widget(gvc.event(d.onClick), d.label);
+                        }
+                        return '';
+                    }
+                    else {
+                        return widget(gvc.event(d.onClick), d.label);
+                    }
                 })
                     .join('');
             },
