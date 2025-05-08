@@ -121,9 +121,23 @@ export class OrderExcel {
             const formatJSON = (obj) => Object.fromEntries(Object.entries(obj).filter(([key]) => column.includes(key)));
             const getOrderJSON = (order, orderData) => {
                 var _b, _c, _d, _e, _f, _g;
+                const formatOrderSource = (() => {
+                    var _b;
+                    if (orderData.fbp)
+                        return 'FB廣告';
+                    if (!orderData.orderSource)
+                        return '線上';
+                    const source = {
+                        pos: 'POS',
+                        combine: '合併訂單',
+                        split: '拆分訂單',
+                        manual: '手動新增',
+                    };
+                    return (_b = source[orderData.orderSource]) !== null && _b !== void 0 ? _b : '線上';
+                })();
                 return formatJSON({
                     訂單編號: order.cart_token,
-                    訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
+                    訂單來源: formatOrderSource,
                     訂單建立時間: formatDate(order.created_time),
                     會員信箱: (_b = order.email) !== null && _b !== void 0 ? _b : 'no-email',
                     訂單處理狀態: getStatusLabel(orderData.orderStatus, { '-1': '已取消', '1': '已完成', '0': '處理中' }, '處理中'),
@@ -144,6 +158,7 @@ export class OrderExcel {
                     訂單總計: orderData.total,
                     分銷連結代碼: (_e = (_d = orderData.distribution_info) === null || _d === void 0 ? void 0 : _d.code) !== null && _e !== void 0 ? _e : '',
                     分銷連結名稱: (_g = (_f = orderData.distribution_info) === null || _f === void 0 ? void 0 : _f.title) !== null && _g !== void 0 ? _g : '',
+                    FB廣告追蹤碼: orderData.fbp,
                 });
             };
             const getProductJSON = (item) => {
@@ -753,7 +768,7 @@ export class OrderExcel {
                 yield ApiUser.getPublicConfig('customer_form_user_setting', 'manager').then(r => {
                     return Array.isArray(r.response.value.list) ? r.response.value.list : [];
                 }),
-                (yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value
+                (yield ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value,
             ]);
             return dataArray;
         });
@@ -802,6 +817,7 @@ OrderExcel.headerColumn = () => __awaiter(void 0, void 0, void 0, function* () {
             '訂單使用購物金',
             '分銷連結代碼',
             '分銷連結名稱',
+            'FB廣告追蹤碼',
         ],
         商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
         顧客: [

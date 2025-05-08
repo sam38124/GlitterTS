@@ -63,6 +63,7 @@ export class OrderExcel {
         '訂單使用購物金',
         '分銷連結代碼',
         '分銷連結名稱',
+        'FB廣告追蹤碼',
       ],
       商品: ['商品名稱', '商品規格', '商品SKU', '商品購買數量', '商品價格', '商品折扣'],
       顧客: [
@@ -216,9 +217,22 @@ export class OrderExcel {
 
     // 訂單欄位物件
     const getOrderJSON = (order: any, orderData: any) => {
+      const formatOrderSource = (() => {
+        if (orderData.fbp) return 'FB廣告';
+        if (!orderData.orderSource) return '線上';
+
+        const source: Record<string, string> = {
+          pos: 'POS',
+          combine: '合併訂單',
+          split: '拆分訂單',
+          manual: '手動新增',
+        };
+        return source[orderData.orderSource] ?? '線上';
+      })();
+
       return formatJSON({
         訂單編號: order.cart_token,
-        訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
+        訂單來源: formatOrderSource,
         訂單建立時間: formatDate(order.created_time),
         會員信箱: order.email ?? 'no-email',
         訂單處理狀態: getStatusLabel(orderData.orderStatus, { '-1': '已取消', '1': '已完成', '0': '處理中' }, '處理中'),
@@ -247,6 +261,7 @@ export class OrderExcel {
         訂單總計: orderData.total,
         分銷連結代碼: orderData.distribution_info?.code ?? '',
         分銷連結名稱: orderData.distribution_info?.title ?? '',
+        FB廣告追蹤碼: orderData.fbp,
       });
     };
 
@@ -410,7 +425,8 @@ export class OrderExcel {
 
   // 取得客製化資訊
   static getCustomizeMap = async (order?: any) => {
-    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig ,receipt] = await OrderExcel.customizePromise();
+    const [cashflowConfigObj, shipmentConfigObj, registerConfig, memberConfig, receipt] =
+      await OrderExcel.customizePromise();
     const customizeMap = new Map();
 
     const getUserValue = (key: string) => {
@@ -468,7 +484,7 @@ export class OrderExcel {
       ) {
         customizeMap.set(`收件人資訊 - ${d1.title}`, order ? (order.orderData.user_info[d1.key] ?? '-') : '-');
       }
-    })
+    });
     return customizeMap;
   };
 
@@ -1024,12 +1040,7 @@ export class OrderExcel {
         return Array.isArray(r.response.value.list) ? r.response.value.list : [];
       }),
       //收件人資料
-      (
-        await ApiUser.getPublicConfig(
-          'custom_form_checkout_recipient',
-          'manager'
-        )
-      ).response.value
+      (await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager')).response.value,
     ]);
 
     return dataArray;

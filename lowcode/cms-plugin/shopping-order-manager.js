@@ -2626,7 +2626,8 @@ export class ShoppingOrderManager {
                                             const source = {
                                                 pos: 'POS',
                                                 combine: '合併訂單',
-                                                split: '拆分',
+                                                split: '拆分訂單',
+                                                manual: '手動新增',
                                             };
                                             return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
                                         })()}
