@@ -1378,6 +1378,7 @@ class User {
                     user.last_order_total = user.last_order_total || 0;
                     user.order_count = user.order_count || 0;
                     user.total_amount = user.total_amount || 0;
+                    console.log('shipmentOrder', user.email);
                     const shipmentOrder = await _shopping.getCheckOut({
                         page: 0,
                         limit: 1,

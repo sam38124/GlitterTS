@@ -1189,14 +1189,22 @@ export class BgNotify {
             ${BgWidget.grayButton(
               '查看名單',
               gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+
                 if (postData.userList.length === 0) {
-                  const dialog = new ShareDialog(gvc.glitter);
                   dialog.infoMessage({ text: '目前無預計寄件的顧客' });
                   return;
                 }
+
+                if (postData.userList.length > 500) {
+                  dialog.infoMessage({ text: '預覽人數超過500筆，請減少名單人數後再次開啟' });
+                  return;
+                }
+
                 const userVM = {
                   dataList: [] as { key: string; value: string; note: string }[],
                 };
+
                 BgWidget.selectDropDialog({
                   gvc: gvc,
                   title: '預計寄件顧客',
