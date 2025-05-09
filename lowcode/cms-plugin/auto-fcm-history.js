@@ -867,6 +867,7 @@ export class BgNotify {
                             page: 0,
                             limit: 99999,
                             id: tagData.filter.join(','),
+                            only_id: true,
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 if (user.userData.email && user.userData.email.length > 0) {
@@ -888,6 +889,7 @@ export class BgNotify {
                                     page: 0,
                                     limit: 99999,
                                     group: { type: 'level', tag: id },
+                                    only_id: true,
                                 }).then(data => {
                                     data.response.data.map((user) => {
                                         if (user.userData.email) {
@@ -920,6 +922,7 @@ export class BgNotify {
                                     page: 0,
                                     limit: 99999,
                                     group: { type: type },
+                                    only_id: true,
                                 }).then(data => {
                                     let dataArray = data.response.data;
                                     if (data.response.extra) {
@@ -952,6 +955,7 @@ export class BgNotify {
                             page: 0,
                             limit: 99999,
                             filter: { birth: tagData.filter },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email) {
@@ -969,6 +973,7 @@ export class BgNotify {
                             page: 0,
                             limit: 99999,
                             filter: { tags: tagData.filter },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email) {
@@ -988,6 +993,7 @@ export class BgNotify {
                             page: 0,
                             limit: 99999,
                             filter: { rebate: { key: 'moreThan', value: tagData.filter } },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email) {
@@ -1077,6 +1083,7 @@ export class BgNotify {
                                     page: 0,
                                     limit: 99999,
                                     id: postData.userList.map(user => { var _a; return (_a = user.id) !== null && _a !== void 0 ? _a : 0; }).join(','),
+                                    only_id: true,
                                 }).then(dd => {
                                     if (dd.response.data) {
                                         userVM.dataList = dd.response.data.map((item) => {
@@ -1234,8 +1241,8 @@ export class BgNotify {
                                                             ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                only_id: true,
                                                                 search: data.query,
+                                                                only_id: true,
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data

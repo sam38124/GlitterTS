@@ -1,4 +1,5 @@
 import db from '../../modules/database';
+import express from 'express';
 import exception from '../../modules/exception';
 import tool, { getUUID } from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
@@ -33,9 +34,8 @@ import { UtTimer } from '../utils/ut-timer';
 import { AutoFcm } from '../../public-config-initial/auto-fcm.js';
 import { PhoneVerify } from './phone-verify.js';
 import { StackTracker, Stack } from '../../update-progress-track.js';
-import { InitialFakeData } from './initial-fake-data.js';
 import { FbApi } from './fb-api.js';
-import express from 'express';
+import { Shopping } from './shopping';
 
 interface UserQuery {
   page?: number;
@@ -294,7 +294,7 @@ export class User {
         ]
       );
 
-      await this.createUserHook(userID,req);
+      await this.createUserHook(userID, req);
 
       const usData: any = await this.getUserData(userID, 'userID');
       usData.pwd = undefined;
@@ -317,7 +317,7 @@ export class User {
   }
 
   // 用戶初次建立的initial函式
-  async createUserHook(userID: string,req: express.Request) {
+  async createUserHook(userID: string, req: express.Request) {
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;
@@ -353,7 +353,7 @@ export class User {
     new ManagerNotify(this.app).userRegister({ user_id: userID });
     await UserUpdate.update(this.app, userID);
     //註冊事件
-    await new FbApi(this.app).register(usData,req)
+    await new FbApi(this.app).register(usData, req);
   }
 
   async updateAccount(account: string, userID: string): Promise<any> {
@@ -413,7 +413,7 @@ export class User {
     }
   }
 
-  async loginWithFb(token: string,req: express.Request) {
+  async loginWithFb(token: string, req: express.Request) {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -459,7 +459,7 @@ export class User {
           1,
         ]
       );
-      await this.createUserHook(userID,req);
+      await this.createUserHook(userID, req);
     }
     const data: any = (
       (await db.execute(
@@ -488,7 +488,7 @@ export class User {
     return usData;
   }
 
-  async loginWithLine(code: string, redirect: string,req: express.Request) {
+  async loginWithLine(code: string, redirect: string, req: express.Request) {
     try {
       const lineData = await this.getConfigV2({
         key: 'login_line_setting',
@@ -590,7 +590,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID,req);
+        await this.createUserHook(userID, req);
         findList = await getUsData();
       }
       const data = findList[0];
@@ -616,7 +616,7 @@ export class User {
     }
   }
 
-  async loginWithGoogle(code: string, redirect: string,req: express.Request) {
+  async loginWithGoogle(code: string, redirect: string, req: express.Request) {
     try {
       const config = await this.getConfigV2({
         key: 'login_google_setting',
@@ -689,7 +689,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID,req);
+        await this.createUserHook(userID, req);
       }
       const data: any = (
         (await db.execute(
@@ -758,7 +758,7 @@ export class User {
     }
   }
 
-  async loginWithApple(token: string,req: express.Request) {
+  async loginWithApple(token: string, req: express.Request) {
     try {
       const config = await this.getConfigV2({
         key: 'login_apple_setting',
@@ -827,7 +827,7 @@ export class User {
             1,
           ]
         );
-        await this.createUserHook(userID,req);
+        await this.createUserHook(userID, req);
       }
       const data: any = (
         (await db.execute(
@@ -1231,11 +1231,6 @@ export class User {
       obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
     const orderCountingSQL = await this.getCheckoutCountingModeSQL();
 
-    // return  `
-    //  SELECT ${obj.select} from \`${this.app}\`.t_user  WHERE (${whereClause})
-    //  ORDER BY ${orderByClause} ${limitClause}
-    // `
-    //o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time
     const sql = `
         SELECT ${obj.select}
         FROM (SELECT email,
@@ -1280,6 +1275,7 @@ export class User {
   async getUserList(query: UserQuery) {
     try {
       const checkPoint = new UtTimer('GET-USER-LIST').checkPoint;
+      const _shopping = new Shopping(this.app, this.token);
 
       // return
       const orderCountingSQL = await this.getCheckoutCountingModeSQL();
@@ -1569,14 +1565,13 @@ export class User {
 
         const levelData = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels ?? [];
 
-        const getUsers = (await db.query(dataSQL, [])).map((dd: any) => {
-          dd.pwd = undefined;
-          const find_level = levelData.find((d1: any) => {
-            return dd.member_level === d1.id;
-          });
-          dd.tag_name = find_level ? find_level.tag_name : '一般會員';
-          return dd;
-        });
+        const getUsers = await db.query(dataSQL, []);
+
+        for (const user of getUsers) {
+          user.pwd = undefined;
+          const find_level = levelData.find((d1: any) => user.member_level === d1.id);
+          user.tag_name = find_level ? find_level.tag_name : '一般會員';
+        }
         checkPoint('getUsers');
 
         if (param) {
@@ -1662,6 +1657,17 @@ export class User {
           user.last_order_total = user.last_order_total || 0;
           user.order_count = user.order_count || 0;
           user.total_amount = user.total_amount || 0;
+
+          const shipmentOrder = await _shopping.getCheckOut({
+            page: 0,
+            limit: 1,
+            email: user.email,
+            is_shipment: true,
+          });
+
+          if (shipmentOrder.data[0]) {
+            user.last_has_shipment_number_date = shipmentOrder.data[0].shipment_date;
+          }
         };
 
         // 批次處理會員資料
@@ -2849,7 +2855,6 @@ export class User {
 
       //當有暫存時
       if (checkConfigCache()) {
-        // console.log(`[${this.app}] config cache hit`);
         return JSON.parse(JSON.stringify(checkConfigCache()));
       }
 

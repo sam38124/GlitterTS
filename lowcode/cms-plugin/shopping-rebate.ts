@@ -9,415 +9,421 @@ import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 
 export class ShoppingRebate {
-    public static main(gvc: GVC) {
-        const glitter = gvc.glitter;
-        const html = String.raw;
-        const vm: {
-            id: string;
-            tableId: string;
-            filterId: string;
-            type: 'list' | 'add' | 'replace';
-            data: any;
-            dataList: any;
-            query?: string;
-        } = {
-            id: glitter.getUUID(),
-            tableId: glitter.getUUID(),
-            filterId: glitter.getUUID(),
-            type: 'list',
-            data: {
-                id: 0,
-                userID: 0,
-                account: '',
-                userData: { name: '', email: '', phone: '' },
-                created_time: '',
-                role: 0,
-                company: null,
-                status: 1,
-            },
-            dataList: undefined,
-            query: '',
-        };
-        const dialog = new ShareDialog(gvc.glitter);
+  public static main(gvc: GVC) {
+    const glitter = gvc.glitter;
+    const html = String.raw;
+    const vm: {
+      id: string;
+      tableId: string;
+      filterId: string;
+      type: 'list' | 'add' | 'replace';
+      data: any;
+      dataList: any;
+      query?: string;
+    } = {
+      id: glitter.getUUID(),
+      tableId: glitter.getUUID(),
+      filterId: glitter.getUUID(),
+      type: 'list',
+      data: {
+        id: 0,
+        userID: 0,
+        account: '',
+        userData: { name: '', email: '', phone: '' },
+        created_time: '',
+        role: 0,
+        company: null,
+        status: 1,
+      },
+      dataList: undefined,
+      query: '',
+    };
+    const dialog = new ShareDialog(gvc.glitter);
 
-        function showUsersDialog(defaultValue: string[], callback: (dataList: number[]) => void) {
-            BgWidget.selectDropDialog({
-                gvc: gvc,
-                title: '搜尋特定顧客',
-                tag: 'show_users_dialog',
-                updownOptions: FilterOptions.userOrderBy,
-                callback: (dataList, status) => {
-                    if (status === -1) {
-                        setTimeout(() => {
-                            showUsersDialog(dataList, callback);
-                        }, 100);
-                    }
-                    if (status === 1) {
-                        if (dataList.length === 0) {
-                            dialog.checkYesOrNot({
-                                callback: (bool) => {
-                                    if (bool) {
-                                        showUsersDialog(dataList, callback);
-                                    }
-                                },
-                                text: '您未勾選任何顧客<br />請問要重新選取嗎？',
-                            });
-                        } else {
-                            dialog.checkYesOrNot({
-                                callback: (bool) => {
-                                    if (bool) {
-                                        callback(dataList);
-                                    } else {
-                                        showUsersDialog(dataList, callback);
-                                    }
-                                },
-                                text: `總計勾選${dataList.length}名顧客<br />確定要發送購物金？`,
-                            });
-                        }
-                    }
+    function showUsersDialog(defaultValue: string[], callback: (dataList: number[]) => void) {
+      BgWidget.selectDropDialog({
+        gvc: gvc,
+        title: '搜尋特定顧客',
+        tag: 'show_users_dialog',
+        updownOptions: FilterOptions.userOrderBy,
+        callback: (dataList, status) => {
+          if (status === -1) {
+            setTimeout(() => {
+              showUsersDialog(dataList, callback);
+            }, 100);
+          }
+          if (status === 1) {
+            if (dataList.length === 0) {
+              dialog.checkYesOrNot({
+                callback: bool => {
+                  if (bool) {
+                    showUsersDialog(dataList, callback);
+                  }
                 },
-                default: defaultValue,
-                api: (data: { query: string; orderString: string }) => {
-                    return new Promise((resolve) => {
-                        ApiUser.getUserListOrders({
-                            page: 0,
-                            limit: 99999,
-                            search: data.query,
-                            orderString: data.orderString,
-                        }).then((dd) => {
-                            if (dd.response.data) {
-                                vm.dataList = dd.response.data
-                                    .filter((item: { account: string }) => {
-                                        return item.account && item.account.length > 0;
-                                    })
-                                    .map(
-                                        (item: {
-                                            userID: number;
-                                            account: string;
-                                            userData: {
-                                                name: string;
-                                                email: string;
-                                            };
-                                        }) => {
-                                            return {
-                                                key: item.userID,
-                                                value: item.userData.name ?? '（尚無姓名）',
-                                                note: item.account,
-                                            };
-                                        }
-                                    );
-                                resolve(vm.dataList);
-                            }
-                        });
-                    });
+                text: '您未勾選任何顧客<br />請問要重新選取嗎？',
+              });
+            } else {
+              dialog.checkYesOrNot({
+                callback: bool => {
+                  if (bool) {
+                    callback(dataList);
+                  } else {
+                    showUsersDialog(dataList, callback);
+                  }
                 },
-                style: 'width: 100%;',
+                text: `總計勾選${dataList.length}名顧客<br />確定要發送購物金？`,
+              });
+            }
+          }
+        },
+        default: defaultValue,
+        api: (data: { query: string; orderString: string }) => {
+          return new Promise(resolve => {
+            ApiUser.getUserListOrders({
+              page: 0,
+              limit: 99999,
+              search: data.query,
+              orderString: data.orderString,
+              only_id: true,
+            }).then(dd => {
+              if (dd.response.data) {
+                vm.dataList = dd.response.data
+                  .filter((item: { account: string }) => {
+                    return item.account && item.account.length > 0;
+                  })
+                  .map(
+                    (item: {
+                      userID: number;
+                      account: string;
+                      userData: {
+                        name: string;
+                        email: string;
+                      };
+                    }) => {
+                      return {
+                        key: item.userID,
+                        value: item.userData.name ?? '（尚無姓名）',
+                        note: item.account,
+                      };
+                    }
+                  );
+                resolve(vm.dataList);
+              }
             });
-        }
+          });
+        },
+        style: 'width: 100%;',
+      });
+    }
 
-        return gvc.bindView(() => {
-            return {
-                bind: vm.id,
-                dataList: [{ obj: vm, key: 'type' }],
-                view: () => {
-                    if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="title-container">
-                                    ${BgWidget.title('購物金紀錄')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton(
-                                        '新增紀錄',
-                                        gvc.event(() => {
-                                            this.newRebateDialog({
-                                                gvc: gvc,
-                                                saveButton: {
-                                                    event: (obj) => {
-                                                        showUsersDialog([], (dataList) => {
-                                                            dialog.dataLoading({
-                                                                text: '發送中...',
-                                                                visible: true,
-                                                            });
-                                                            ApiWallet.storeRebateByManager({
-                                                                userID: dataList,
-                                                                total: (() => {
-                                                                    if (obj.type === 'add') {
-                                                                        return parseInt(obj.value, 10);
-                                                                    } else {
-                                                                        const minus = parseInt(obj.value, 10);
-                                                                        return minus ? minus * -1 : minus;
-                                                                    }
-                                                                })(),
-                                                                note: obj.note,
-                                                                rebateEndDay: obj.rebateEndDay,
-                                                            }).then((result) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (result.response.result) {
-                                                                    dialog.successMessage({ text: `設定成功` });
-                                                                    gvc.closeDialog();
-                                                                    setTimeout(() => {
-                                                                        gvc.notifyDataChange(vm.tableId);
-                                                                    }, 200);
-                                                                } else {
-                                                                    dialog.errorMessage({ text: result.response.msg });
-                                                                }
-                                                            });
-                                                        });
-                                                    },
-                                                    text: '選擇顧客',
-                                                },
-                                            });
-                                        })
-                                    )}
-                                </div>
-                                ${BgWidget.container(
-                                    BgWidget.mainCard(
-                                        [
-                                            BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(vm.id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋顧客信箱、姓名'
-                                            ),
-                                            gvc.bindView({
-                                                bind: vm.tableId,
-                                                view: () => {
-                                                    return BgWidget.tableV3({
-                                                        gvc: gvc,
-                                                        getData: (vmi) => {
-                                                            const limit = 15;
-                                                            ApiWallet.getRebate({
-                                                                page: vmi.page - 1,
-                                                                limit: limit,
-                                                                search: vm.query || undefined,
-                                                            }).then((data) => {
-                                                                function getDatalist() {
-                                                                    return data.response.data.map((dd: any) => {
-                                                                        return [
-                                                                            {
-                                                                                key: '用戶名稱',
-                                                                                value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
-                                                                            },
-                                                                            {
-                                                                                key: '購物金來源',
-                                                                                value: (() => {
-                                                                                    let text = '';
-                                                                                    if (dd.content.order_id) {
-                                                                                        text = `訂單編號：${dd.content.order_id}`;
-                                                                                    } else {
-                                                                                        switch (dd.content.type) {
-                                                                                            case 'manual':
-                                                                                                text = '手動設定';
-                                                                                                break;
-                                                                                            case 'first_regiser':
-                                                                                                text = '新加入會員';
-                                                                                                break;
-                                                                                            case 'birth':
-                                                                                                text = '生日禮';
-                                                                                                break;
-                                                                                            default:
-                                                                                                text = dd.origin < 0 ? '使用折抵' : '其他';
-                                                                                                break;
-                                                                                        }
-                                                                                    }
-                                                                                    return html`<span class="fs-7">${text}</span>`;
-                                                                                })(),
-                                                                            },
-                                                                            {
-                                                                                key: '增減',
-                                                                                value: (() => {
-                                                                                    if (dd.origin > 0) {
-                                                                                        return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
-                                                                                    }
-                                                                                    return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
-                                                                                })(),
-                                                                            },
-                                                                            {
-                                                                                key: '此筆可使用餘額',
-                                                                                value: (() => {
-                                                                                    const now = new Date();
-                                                                                    if (dd.origin > 0 && dd.remain > 0 && now > new Date(dd.created_at) && now < new Date(dd.deadline)) {
-                                                                                        return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
-                                                                                    }
-                                                                                    return html`<span class="tx_700">0</span>`;
-                                                                                })(),
-                                                                            },
-                                                                            {
-                                                                                key: '備註',
-                                                                                value: `<span class="fs-7">${
-                                                                                    typeof dd.note === 'string' ? dd.note : (dd.note && dd.note.note) ?? '尚未填寫備註'
-                                                                                }</span>`,
-                                                                            },
-                                                                            {
-                                                                                key: '建立時間',
-                                                                                value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
-                                                                            },
-                                                                        ];
-                                                                    });
-                                                                }
-                                                                vm.dataList = data.response.data;
-                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                vmi.originalData = vm.dataList;
-                                                                vmi.tableData = getDatalist();
-                                                                vmi.loading = false;
-                                                                vmi.callback();
-                                                            });
-                                                        },
-                                                        rowClick: (data, index) => {
-                                                            vm.data = vm.dataList[index];
-                                                            vm.type = 'replace';
-                                                        },
-                                                        filter: [],
-                                                    });
-                                                },
-                                            }),
-                                        ].join('')
-                                    ) + BgWidget.mbContainer(120)
-                                )}
-                            `
-                        );
-                    } else if (vm.type == 'replace') {
-                        return UserList.userInformationDetail({
-                            userID: vm.data.user_id,
-                            callback: () => {
-                                vm.type = 'list';
-                                gvc.notifyDataChange(vm.id);
-                            },
-                            gvc: gvc,
+    return gvc.bindView(() => {
+      return {
+        bind: vm.id,
+        dataList: [{ obj: vm, key: 'type' }],
+        view: () => {
+          if (vm.type === 'list') {
+            return BgWidget.container(html`
+              <div class="title-container">
+                ${BgWidget.title('購物金紀錄')}
+                <div class="flex-fill"></div>
+                ${BgWidget.darkButton(
+                  '新增紀錄',
+                  gvc.event(() => {
+                    this.newRebateDialog({
+                      gvc: gvc,
+                      saveButton: {
+                        event: obj => {
+                          showUsersDialog([], dataList => {
+                            dialog.dataLoading({
+                              text: '發送中...',
+                              visible: true,
+                            });
+                            ApiWallet.storeRebateByManager({
+                              userID: dataList,
+                              total: (() => {
+                                if (obj.type === 'add') {
+                                  return parseInt(obj.value, 10);
+                                } else {
+                                  const minus = parseInt(obj.value, 10);
+                                  return minus ? minus * -1 : minus;
+                                }
+                              })(),
+                              note: obj.note,
+                              rebateEndDay: obj.rebateEndDay,
+                            }).then(result => {
+                              dialog.dataLoading({ visible: false });
+                              if (result.response.result) {
+                                dialog.successMessage({ text: `設定成功` });
+                                gvc.closeDialog();
+                                setTimeout(() => {
+                                  gvc.notifyDataChange(vm.tableId);
+                                }, 200);
+                              } else {
+                                dialog.errorMessage({ text: result.response.msg });
+                              }
+                            });
+                          });
+                        },
+                        text: '選擇顧客',
+                      },
+                    });
+                  })
+                )}
+              </div>
+              ${BgWidget.container(
+                BgWidget.mainCard(
+                  [
+                    BgWidget.searchPlace(
+                      gvc.event((e, event) => {
+                        vm.query = e.value;
+                        gvc.notifyDataChange(vm.id);
+                      }),
+                      vm.query || '',
+                      '搜尋顧客信箱、姓名'
+                    ),
+                    gvc.bindView({
+                      bind: vm.tableId,
+                      view: () => {
+                        return BgWidget.tableV3({
+                          gvc: gvc,
+                          getData: vmi => {
+                            const limit = 15;
+                            ApiWallet.getRebate({
+                              page: vmi.page - 1,
+                              limit: limit,
+                              search: vm.query || undefined,
+                            }).then(data => {
+                              function getDatalist() {
+                                return data.response.data.map((dd: any) => {
+                                  return [
+                                    {
+                                      key: '用戶名稱',
+                                      value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
+                                    },
+                                    {
+                                      key: '購物金來源',
+                                      value: (() => {
+                                        let text = '';
+                                        if (dd.content.order_id) {
+                                          text = `訂單編號：${dd.content.order_id}`;
+                                        } else {
+                                          switch (dd.content.type) {
+                                            case 'manual':
+                                              text = '手動設定';
+                                              break;
+                                            case 'first_regiser':
+                                              text = '新加入會員';
+                                              break;
+                                            case 'birth':
+                                              text = '生日禮';
+                                              break;
+                                            default:
+                                              text = dd.origin < 0 ? '使用折抵' : '其他';
+                                              break;
+                                          }
+                                        }
+                                        return html`<span class="fs-7">${text}</span>`;
+                                      })(),
+                                    },
+                                    {
+                                      key: '增減',
+                                      value: (() => {
+                                        if (dd.origin > 0) {
+                                          return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                                        }
+                                        return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                                      })(),
+                                    },
+                                    {
+                                      key: '此筆可使用餘額',
+                                      value: (() => {
+                                        const now = new Date();
+                                        if (
+                                          dd.origin > 0 &&
+                                          dd.remain > 0 &&
+                                          now > new Date(dd.created_at) &&
+                                          now < new Date(dd.deadline)
+                                        ) {
+                                          return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                                        }
+                                        return html`<span class="tx_700">0</span>`;
+                                      })(),
+                                    },
+                                    {
+                                      key: '備註',
+                                      value: `<span class="fs-7">${
+                                        typeof dd.note === 'string'
+                                          ? dd.note
+                                          : ((dd.note && dd.note.note) ?? '尚未填寫備註')
+                                      }</span>`,
+                                    },
+                                    {
+                                      key: '建立時間',
+                                      value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
+                                    },
+                                  ];
+                                });
+                              }
+                              vm.dataList = data.response.data;
+                              vmi.pageSize = Math.ceil(data.response.total / limit);
+                              vmi.originalData = vm.dataList;
+                              vmi.tableData = getDatalist();
+                              vmi.loading = false;
+                              vmi.callback();
+                            });
+                          },
+                          rowClick: (data, index) => {
+                            vm.data = vm.dataList[index];
+                            vm.type = 'replace';
+                          },
+                          filter: [],
                         });
-                    }
-                    return '';
-                },
-            };
-        });
-    }
+                      },
+                    }),
+                  ].join('')
+                ) + BgWidget.mbContainer(120)
+              )}
+            `);
+          } else if (vm.type == 'replace') {
+            return UserList.userInformationDetail({
+              userID: vm.data.user_id,
+              callback: () => {
+                vm.type = 'list';
+                gvc.notifyDataChange(vm.id);
+              },
+              gvc: gvc,
+            });
+          }
+          return '';
+        },
+      };
+    });
+  }
 
-    public static newRebateDialog(obj: {
-        gvc: GVC;
-        saveButton: {
-            event: (data: { type: string; value: string; note: string; rebateEndDay: string }) => void;
-            text: string;
-        };
-    }) {
-        const html = String.raw;
-        const gvc = obj.gvc;
-        return gvc.glitter.innerDialog((gvc2) => {
-            const vm = {
-                type: 'add',
-                value: '0',
-                note: '',
-                rebateEndDay: '0',
-            };
-            return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width: 90%; width: 400px;">
-                <div>
-                    <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
-                        <span class="ps-2 tx_700">新增紀錄</span>
-                    </div>
-                    ${gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
-                        return {
-                            bind: id,
-                            view: () => {
-                                return [
-                                    html`<div>
-                                        ${EditorElem.radio({
-                                            title: html`<h6 class="tx_700">類型</h6>`,
-                                            gvc: gvc,
-                                            def: vm.type,
-                                            array: [
-                                                { title: '新增', value: 'add' },
-                                                { title: '減少', value: 'minus' },
-                                            ],
-                                            callback: (text) => {
-                                                vm.type = text;
-                                                gvc.notifyDataChange(id);
-                                            },
-                                        })}
-                                    </div>`,
-                                    html`<div class="row mt-2">
-                                        <div class="col-6">
-                                            ${EditorElem.editeInput({
-                                                title: html`<h6 class="tx_700">金額</h6>`,
-                                                gvc: gvc,
-                                                default: vm.value,
-                                                type: 'number',
-                                                placeHolder: '設定數值',
-                                                callback: (text) => {
-                                                    vm.value = text;
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                            })}
-                                        </div>
-                                        <div class="col-6">
-                                            ${EditorElem.editeInput({
-                                                title: html`<h6 class="tx_700">可使用天數</h6>`,
-                                                gvc: gvc,
-                                                default: vm.rebateEndDay,
-                                                type: 'number',
-                                                placeHolder: '設定數值',
-                                                callback: (text) => {
-                                                    vm.rebateEndDay = text;
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                                unit: '天',
-                                                readonly: vm.type !== 'add',
-                                            })}
-                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px;')}
-                                        </div>
-                                    </div>`,
-                                    html`<div>
-                                        ${EditorElem.editeText({
-                                            title: html`<h6 class="tx_700">備註</h6>`,
-                                            gvc: gvc,
-                                            default: vm.note,
-                                            placeHolder: '輸入備註',
-                                            callback: (text) => {
-                                                vm.note = text;
-                                                gvc.notifyDataChange(id);
-                                            },
-                                        })}
-                                    </div>`,
-                                ].join(``);
-                            },
-                            divCreate: {
-                                class: `p-2`,
-                                style: `display: flex; flex-direction: column;`,
-                            },
-                        };
+  public static newRebateDialog(obj: {
+    gvc: GVC;
+    saveButton: {
+      event: (data: { type: string; value: string; note: string; rebateEndDay: string }) => void;
+      text: string;
+    };
+  }) {
+    const html = String.raw;
+    const gvc = obj.gvc;
+    return gvc.glitter.innerDialog(gvc2 => {
+      const vm = {
+        type: 'add',
+        value: '0',
+        note: '',
+        rebateEndDay: '0',
+      };
+      return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width: 90%; width: 400px;">
+        <div>
+          <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
+            <span class="ps-2 tx_700">新增紀錄</span>
+          </div>
+          ${gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+              bind: id,
+              view: () => {
+                return [
+                  html`<div>
+                    ${EditorElem.radio({
+                      title: html`<h6 class="tx_700">類型</h6>`,
+                      gvc: gvc,
+                      def: vm.type,
+                      array: [
+                        { title: '新增', value: 'add' },
+                        { title: '減少', value: 'minus' },
+                      ],
+                      callback: text => {
+                        vm.type = text;
+                        gvc.notifyDataChange(id);
+                      },
                     })}
-                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                        ${BgWidget.cancel(
-                            gvc.event(() => {
-                                gvc2.closeDialog();
-                            })
-                        )}
-                        ${BgWidget.save(
-                            gvc.event(() => {
-                                const dialog = new ShareDialog(gvc.glitter);
-                                const day = parseInt(`${vm.rebateEndDay}`, 10);
-                                const value = parseInt(`${vm.value}`, 10);
-
-                                if (value <= 0) {
-                                    dialog.infoMessage({ text: '金額需大於0' });
-                                    return;
-                                }
-                                if (vm.type === 'add' && isNaN(day)) {
-                                    dialog.infoMessage({ text: '請輸入可使用天數' });
-                                    return;
-                                }
-
-                                gvc2.closeDialog();
-                                obj.saveButton.event(vm);
-                            }),
-                            obj.saveButton.text
-                        )}
+                  </div>`,
+                  html`<div class="row mt-2">
+                    <div class="col-6">
+                      ${EditorElem.editeInput({
+                        title: html`<h6 class="tx_700">金額</h6>`,
+                        gvc: gvc,
+                        default: vm.value,
+                        type: 'number',
+                        placeHolder: '設定數值',
+                        callback: text => {
+                          vm.value = text;
+                          gvc.notifyDataChange(id);
+                        },
+                      })}
                     </div>
-                </div>
-            </div>`;
-        }, Tool.randomString(5));
-    }
+                    <div class="col-6">
+                      ${EditorElem.editeInput({
+                        title: html`<h6 class="tx_700">可使用天數</h6>`,
+                        gvc: gvc,
+                        default: vm.rebateEndDay,
+                        type: 'number',
+                        placeHolder: '設定數值',
+                        callback: text => {
+                          vm.rebateEndDay = text;
+                          gvc.notifyDataChange(id);
+                        },
+                        unit: '天',
+                        readonly: vm.type !== 'add',
+                      })}
+                      ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px;')}
+                    </div>
+                  </div>`,
+                  html`<div>
+                    ${EditorElem.editeText({
+                      title: html`<h6 class="tx_700">備註</h6>`,
+                      gvc: gvc,
+                      default: vm.note,
+                      placeHolder: '輸入備註',
+                      callback: text => {
+                        vm.note = text;
+                        gvc.notifyDataChange(id);
+                      },
+                    })}
+                  </div>`,
+                ].join(``);
+              },
+              divCreate: {
+                class: `p-2`,
+                style: `display: flex; flex-direction: column;`,
+              },
+            };
+          })}
+          <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+            ${BgWidget.cancel(
+              gvc.event(() => {
+                gvc2.closeDialog();
+              })
+            )}
+            ${BgWidget.save(
+              gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                const day = parseInt(`${vm.rebateEndDay}`, 10);
+                const value = parseInt(`${vm.value}`, 10);
+
+                if (value <= 0) {
+                  dialog.infoMessage({ text: '金額需大於0' });
+                  return;
+                }
+                if (vm.type === 'add' && isNaN(day)) {
+                  dialog.infoMessage({ text: '請輸入可使用天數' });
+                  return;
+                }
+
+                gvc2.closeDialog();
+                obj.saveButton.event(vm);
+              }),
+              obj.saveButton.text
+            )}
+          </div>
+        </div>
+      </div>`;
+    }, Tool.randomString(5));
+  }
 }
 
 (window as any).glitter.setModule(import.meta.url, ShoppingRebate);

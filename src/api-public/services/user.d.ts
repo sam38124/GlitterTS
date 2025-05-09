@@ -1,5 +1,5 @@
-import { IToken } from '../models/Auth.js';
 import express from 'express';
+import { IToken } from '../models/Auth.js';
 interface UserQuery {
     page?: number;
     limit?: number;

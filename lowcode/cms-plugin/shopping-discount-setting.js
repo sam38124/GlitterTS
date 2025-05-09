@@ -429,6 +429,7 @@ export class ShoppingDiscountSetting {
                                                                     limit: 99999,
                                                                     search: data.query,
                                                                     orderString: data.orderString,
+                                                                    only_id: true,
                                                                 }).then(dd => {
                                                                     if (dd.response.data) {
                                                                         resolve(dd.response.data.map((item) => {
@@ -470,6 +471,7 @@ export class ShoppingDiscountSetting {
                                                             page: 0,
                                                             limit: 99999,
                                                             id: voucherData.targetList.join(','),
+                                                            only_id: true,
                                                         }).then(dd => {
                                                             if (dd.response.data) {
                                                                 customVM.dataList = dd.response.data.map((item) => {

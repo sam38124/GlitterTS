@@ -173,14 +173,15 @@ export class ShoppingInvoiceManager {
                 ${BgWidget.grayButton(
                   '匯出',
                   gvc.event(() => {
+                    const limit = 1000;
                     dialog.warningMessage({
-                      text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
+                      text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出${limit}筆資料，是否匯出？`,
                       callback: bool => {
                         if (bool) {
                           dialog.dataLoading({ visible: true });
                           ApiShop.getInvoice({
                             page: 0,
-                            limit: 1000,
+                            limit: limit,
                             search: vm.query || undefined,
                             searchType: vm.queryType || 'order_number',
                             orderString: vm.orderString,
@@ -494,7 +495,6 @@ export class ShoppingInvoiceManager {
   public static replaceOrder(gvc: GVC, vm: any, searchOrder?: any) {
     const glitter = gvc.glitter;
 
-
     let orderData_: {
       id: number;
       cart_token: string;
@@ -537,7 +537,7 @@ export class ShoppingInvoiceManager {
           MerchantTradeNo: string;
           CVSAddress: string;
           note?: string;
-          print_invoice?:string;
+          print_invoice?: string;
           code_note?: string;
           gui_number?: string;
         };
@@ -583,7 +583,7 @@ export class ShoppingInvoiceManager {
     };
     const mainViewID = gvc.glitter.getUUID();
     let dataLoading = true;
-const invoiceData=vm.invoiceData;
+    const invoiceData = vm.invoiceData;
     ApiShop.getOrder({
       page: 0,
       limit: 100,
@@ -593,8 +593,8 @@ const invoiceData=vm.invoiceData;
     }).then((response: any) => {
       orderData_ = response.response;
 
-      orderData_.orderData.user_info=invoiceData.invoice_data.original_data;
-      orderData_.orderData.user_info.print_invoice=(invoiceData.invoice_data.original_data.Print)
+      orderData_.orderData.user_info = invoiceData.invoice_data.original_data;
+      orderData_.orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
       dataLoading = false;
       gvc.notifyDataChange([mainViewID, 'invoiceContent']);
     });
@@ -663,9 +663,11 @@ const invoiceData=vm.invoiceData;
                   const orderData = invoiceData.invoice_data.orderData || orderData_.orderData;
                   console.log(`orderData_.orderData===>`, orderData_.orderData);
                   console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data);
-                  orderData.user_info.invoice_type=invoiceData.invoice_data.original_data.CustomerIdentifier ? `company`:`customer`
-                  orderData.user_info.company=invoiceData.invoice_data.original_data.CustomerName
-                  orderData.user_info.print_invoice=invoiceData.invoice_data.original_data.Print;
+                  orderData.user_info.invoice_type = invoiceData.invoice_data.original_data.CustomerIdentifier
+                    ? `company`
+                    : `customer`;
+                  orderData.user_info.company = invoiceData.invoice_data.original_data.CustomerName;
+                  orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
                   let tax_total = (() => {
                     let total = 0;
                     orderData.lineItems
@@ -1588,7 +1590,6 @@ ${reason}</textarea
                             ),
                           ];
 
-                          
                           if (
                             invoiceData.invoice_data.original_data.Print === '1' &&
                             (window.parent as any).glitter.share.PayConfig.posType === 'SUNMI'

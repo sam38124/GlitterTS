@@ -50,7 +50,7 @@ interface User {
   latest_order_total: number;
   rebate: number;
   member_deadline: string;
-  firstShipment: any;
+  last_has_shipment_number_date: string;
 }
 
 export class UserExcel {
@@ -233,7 +233,7 @@ export class UserExcel {
       return formatJSON({
         最後購買日期: formatDate(user.latest_order_date),
         最後消費金額: user.latest_order_total,
-        最後出貨日期: user.firstShipment ? formatDate(user.firstShipment.orderData.user_info.shipment_date) : '無',
+        最後出貨日期: user.last_has_shipment_number_date ? formatDate(user.last_has_shipment_number_date) : '無',
         累積消費金額: user.checkout_total,
         累積消費次數: user.checkout_count,
       });

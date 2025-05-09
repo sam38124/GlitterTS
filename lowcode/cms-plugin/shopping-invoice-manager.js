@@ -129,14 +129,15 @@ export class ShoppingInvoiceManager {
               <div class="flex-fill"></div>
               <div style="display: flex; gap: 14px;">
                 ${BgWidget.grayButton('匯出', gvc.event(() => {
+                        const limit = 1000;
                         dialog.warningMessage({
-                            text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
+                            text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出${limit}筆資料，是否匯出？`,
                             callback: bool => {
                                 if (bool) {
                                     dialog.dataLoading({ visible: true });
                                     ApiShop.getInvoice({
                                         page: 0,
-                                        limit: 1000,
+                                        limit: limit,
                                         search: vm.query || undefined,
                                         searchType: vm.queryType || 'order_number',
                                         orderString: vm.orderString,
@@ -444,7 +445,7 @@ export class ShoppingInvoiceManager {
         }).then((response) => {
             orderData_ = response.response;
             orderData_.orderData.user_info = invoiceData.invoice_data.original_data;
-            orderData_.orderData.user_info.print_invoice = (invoiceData.invoice_data.original_data.Print);
+            orderData_.orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
             dataLoading = false;
             gvc.notifyDataChange([mainViewID, 'invoiceContent']);
         });
@@ -505,7 +506,9 @@ export class ShoppingInvoiceManager {
                                 const orderData = invoiceData.invoice_data.orderData || orderData_.orderData;
                                 console.log(`orderData_.orderData===>`, orderData_.orderData);
                                 console.log(`invoiceData.invoice_data.orderData=>`, invoiceData.invoice_data);
-                                orderData.user_info.invoice_type = invoiceData.invoice_data.original_data.CustomerIdentifier ? `company` : `customer`;
+                                orderData.user_info.invoice_type = invoiceData.invoice_data.original_data.CustomerIdentifier
+                                    ? `company`
+                                    : `customer`;
                                 orderData.user_info.company = invoiceData.invoice_data.original_data.CustomerName;
                                 orderData.user_info.print_invoice = invoiceData.invoice_data.original_data.Print;
                                 let tax_total = (() => {

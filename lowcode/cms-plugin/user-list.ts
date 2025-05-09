@@ -123,16 +123,20 @@ export class UserList {
           },
           {
             key: '上次登入時間',
-            value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
+            value: html`<div class="fs-7" style="min-width: 160px">
+              ${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}
+            </div>`,
           },
           {
             key: '最後出貨時間',
-            value: `<span class="d-flex w-100 d-flex align-items-center justify-content-center">${dd.firstShipment ? glitter.ut.dateFormat(new Date(dd.firstShipment.orderData.user_info.shipment_date), 'yyyy-MM-dd') : '-'}</span>`,
+            value: html`<div class="fs-7" style="min-width: 160px">
+              ${dd.last_has_shipment_number_date ? Tool.formatDateTime(dd.last_has_shipment_number_date) : '-'}
+            </div>`,
           },
           {
             key: '社群綁定',
             value: (() => {
-              return html`<div class="d-flex align-items-center px-2" style="gap:5px;">
+              return html`<div class="d-flex align-items-center px-2" style="gap: 5px;">
                 ${[
                   {
                     type: 'fb',
@@ -469,6 +473,7 @@ export class UserList {
                                   return ApiUser.getUserListOrders({
                                     ...vm.apiJSON,
                                     all_result: true,
+                                    only_id: true,
                                   }).then(data => {
                                     dialog.dataLoading({ visible: false });
                                     return data.response.allUsers;
@@ -1341,7 +1346,6 @@ export class UserList {
                                                         ].join(BgWidget.mbContainer(18));
                                                       }
                                                     },
-                                                    divCreate: {},
                                                     onCreate: () => {
                                                       if (vmt.loading) {
                                                         ApiUser.getPublicConfig('user_general_tags', 'manager').then(
@@ -1568,7 +1572,6 @@ export class UserList {
                                                 `;
                                               }
                                             },
-                                            divCreate: {},
                                             onCreate: () => {
                                               if (loading) {
                                                 ApiUser.getPublicConfig('member_level_config', 'manager').then(
@@ -1628,6 +1631,7 @@ export class UserList {
                                         <div style="font-size: 16px; font-weight: 400; color: #393939;">${content}</div>
                                       `;
                                     }
+
                                     const firstShipment = (
                                       await ApiShop.getOrder({
                                         page: 0,
@@ -1943,7 +1947,7 @@ export class UserList {
                                           </div>
                                         </div>`,
                                         vm.plan > 0
-                                          ? html` <div class="">
+                                          ? html` <div>
                                               <div class="tx_700 mb-3">社群綁定</div>
                                               ${[
                                                 {
@@ -2047,7 +2051,6 @@ export class UserList {
               );
           }
         },
-        onCreate: () => {},
       };
     });
   }
@@ -2253,7 +2256,6 @@ export class UserList {
           </div>
         `);
       },
-      divCreate: {},
     });
   }
 
@@ -2342,6 +2344,7 @@ export class UserList {
                         page: vmi.page - 1,
                         limit: limit,
                         search: vm.query || undefined,
+                        only_id: true,
                       }).then(data => {
                         vm.dataList = data.response.data;
                         vmi.pageSize = Math.ceil(data.response.total / limit);
