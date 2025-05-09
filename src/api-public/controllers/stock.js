@@ -92,7 +92,7 @@ router.post('/history', async (req, resp) => {
 router.put('/history', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).putHistory(req.body.data));
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).putHistory(req.body.token, req.body.data));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

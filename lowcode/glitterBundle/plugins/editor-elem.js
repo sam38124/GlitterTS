@@ -684,17 +684,7 @@ export class EditorElem {
         return html ` <iframe class="rounded-3" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
     static codeEditor(obj) {
-        var _a;
         const codeID = obj.gvc.glitter.getUUID();
-        console.log(`codeEditor`, {
-            type: 'getData',
-            value: `${obj.structStart ? obj.structStart : `(()=>{`} ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ''}
-                ${obj.structEnd ? obj.structEnd : '})()'}`,
-            language: 'javascript',
-            refactor: true,
-            structStart: obj.structStart,
-            structEnd: obj.structEnd,
-        });
         function getComponent(gvc, height) {
             return gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
@@ -2435,7 +2425,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         .join(html ` <div style="margin-top: 12px;"></div>`);
                 },
                 divCreate: {
-                    class: `${obj.oneLine ? 'd-flex gap-2' : ''} ps-1`,
+                    class: `${obj.oneLine ? 'd-flex flex-wrap gap-2' : ''} ps-1`,
                 },
             };
         })}

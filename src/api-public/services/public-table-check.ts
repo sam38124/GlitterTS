@@ -13,8 +13,7 @@ export class ApiPublic {
   //正在檢查更新的APP
   public static checkingApp: { app_name: string; refer_app: string }[] = [];
   //301轉址
-  public static app301:{ app_name: string; router: {legacy_url:string,new_url:string}[] }[] = [];
-
+  public static app301: { app_name: string; router: { legacy_url: string; new_url: string }[] }[] = [];
 
   public static async createScheme(appName: string) {
     //已通過則直接回傳執行
@@ -32,23 +31,27 @@ export class ApiPublic {
         return dd.app_name === appName;
       })
     ) {
-      const result=await new Promise(resolve => {
+      const result = await new Promise(resolve => {
         const interval = setInterval(() => {
-          if(ApiPublic.checkedApp.find(dd => {
-            return dd.app_name === appName;
-          })){
+          if (
+            ApiPublic.checkedApp.find(dd => {
+              return dd.app_name === appName;
+            })
+          ) {
             resolve(true);
             clearInterval(interval);
-          }else if(!(ApiPublic.checkingApp.find(dd => {
-            return dd.app_name === appName;
-          }))){
+          } else if (
+            !ApiPublic.checkingApp.find(dd => {
+              return dd.app_name === appName;
+            })
+          ) {
             resolve(false);
             clearInterval(interval);
           }
         }, 500);
       });
-      if(result){
-        return
+      if (result) {
+        return;
       }
     }
     ApiPublic.checkingApp.push({
@@ -662,11 +665,10 @@ export class ApiPublic {
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
         },
-                        {
-
-                            scheme: appName,
-                            table: `t_live_comments`,
-                            sql: `(
+        {
+          scheme: appName,
+          table: `t_live_comments`,
+          sql: `(
           \`id\` int NOT NULL AUTO_INCREMENT COMMENT 'Primary Key: Auto-incremented ID', 
           \`interaction_id\` varchar(50) NOT NULL COMMENT 'ID that links to t_live_purchase_interactions',
           \`user_id\` varchar(50) NOT NULL COMMENT 'ID from FB or IG packet which is used to identify the user',
@@ -677,7 +679,7 @@ export class ApiPublic {
           KEY \`index2\` (\`interaction_id\`)
         )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
          `,
-                        },
+        },
         {
           scheme: appName,
           table: `t_check_in_pos`,
@@ -735,10 +737,11 @@ export class ApiPublic {
   KEY \`index4\` (\`spec\`),
   KEY \`index5\` (\`count\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='V1.1'`,
-        },{
-        scheme:appName,
-          table:`visit_logs`,
-          sql:`(
+        },
+        {
+          scheme: appName,
+          table: `visit_logs`,
+          sql: `(
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`date\` DATETIME NOT NULL,
   \`count\` INT NOT NULL,
@@ -747,8 +750,25 @@ export class ApiPublic {
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`date\` ASC) VISIBLE,
   UNIQUE INDEX \`tag_name_UNIQUE\` (\`tag_name\` ASC) VISIBLE);
-          `
-        }
+          `,
+        },
+        {
+          scheme: 't_1725992531001',
+          table: 't_changed_logs',
+          sql: `(
+                \`id\` INT NOT NULL AUTO_INCREMENT,
+                \`entity_table\` varchar(200) NOT NULL COMMENT '關聯的table',
+                \`entity_id\` INT NOT NULL COMMENT '關聯的id',
+                \`type\` varchar(200) DEFAULT NULL COMMENT '可自訂類型',
+                \`note\` TEXT NOT NULL COMMENT '修改內容',
+                \`changed_json\` JSON NOT NULL COMMENT '修改的JSON紀錄',
+                \`changed_source\` varchar(200) NOT NULL COMMENT '修改來源',
+                \`changed_by\` INT NOT NULL COMMENT '修改人',
+                \`changed_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改時間',
+                PRIMARY KEY (\`id\`),
+                UNIQUE KEY \`id_UNIQUE\` (\`id\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+        },
       ];
       for (const b of chunkArray(sqlArray, groupSize)) {
         let check = b.length;
@@ -771,12 +791,15 @@ export class ApiPublic {
       await UpdatedTableChecked.startCheck(appName);
       //賽入301轉址判斷
       ApiPublic.app301.push({
-        app_name:appName,
-        router:(await new User(appName).getConfigV2({
-          key:'domain_301',
-          user_id:'manager'
-        })).list ?? []
-      })
+        app_name: appName,
+        router:
+          (
+            await new User(appName).getConfigV2({
+              key: 'domain_301',
+              user_id: 'manager',
+            })
+          ).list ?? [],
+      });
       //更新檢查通過，推入可執行
       ApiPublic.checkedApp.push({
         app_name: appName,
@@ -789,7 +812,6 @@ export class ApiPublic {
           )
         )[0]['refer_app'],
       });
-
     } catch (e) {
       console.error(e);
       //移除檢查中狀態

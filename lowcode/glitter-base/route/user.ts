@@ -347,7 +347,7 @@ export class ApiUser {
           json.search_type && par.push(`searchType=${json.search_type}`);
           json.only_id && par.push(`only_id=${json.only_id}`);
           json.id && par.push(`id=${json.id}`);
-          
+
           return par.join('&');
         })()}`,
       type: 'GET',
@@ -828,6 +828,20 @@ export class ApiUser {
         'Content-Type': 'application/json',
         Authorization: getConfig().config.token,
       },
+    });
+  }
+
+  public static async getUserPermission() {
+    return await this.getPermission({ page: 0, limit: 1000 }).then(data => {
+      if (!data.result) {
+        return undefined;
+      }
+
+      const find_user = data.response.data.find((data: any) => {
+        return `${data.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}`;
+      });
+
+      return find_user;
     });
   }
 

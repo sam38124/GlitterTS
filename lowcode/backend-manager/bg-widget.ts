@@ -977,8 +977,8 @@ export class BgWidget {
                   obj.default = e.value;
                   obj.oninput && obj.oninput(e.value);
                 })}"
-                onclick="${obj.gvc.event((e)=>{
-                  obj.onclick && obj.onclick(e)
+                onclick="${obj.gvc.event(e => {
+                  obj.onclick && obj.onclick(e);
                 })}"
                 value="${(obj.default ?? '').replace(/"/g, '&quot;')}"
                 ${obj.readonly ? `readonly` : ``}
@@ -2784,7 +2784,7 @@ ${obj.default ?? ''}</textarea
                   [
                     this.searchPlace(
                       gvc.event(e => {
-                        search = e.value;
+                        search = `${e.value}`.trim();
                         gvc.notifyDataChange(id);
                       }),
                       search || '',
@@ -2794,11 +2794,19 @@ ${obj.default ?? ''}</textarea
                     ),
                     this.multiCheckboxContainer(
                       gvc,
-                      data.filter(item => item.name.includes(search)),
+                      data.filter(item => item.name.toLowerCase().includes(search.toLowerCase())),
                       def,
                       stringArray => {
-                        def = stringArray;
-                        callback(stringArray);
+                        def = [
+                          ...new Set(
+                            def
+                              .filter(tag => {
+                                return !tag.toLowerCase().includes(search.toLowerCase());
+                              })
+                              .concat(stringArray)
+                          ),
+                        ];
+                        callback(def);
                       },
                       {
                         single: false,
@@ -3527,6 +3535,175 @@ ${obj.default ?? ''}</textarea
         value="${value}"
       />
     </div>`;
+  }
+
+  static searchTagsFilter(
+    gvc: GVC,
+    def: string[],
+    callback: (data: string[]) => void,
+    placeholder: string,
+    margin?: string
+  ) {
+    const id = gvc.glitter.getUUID();
+    let loading = true;
+    let show = false;
+    let tagList: { key: string; name: string }[] = [];
+    let search = '';
+    let selectTags: string[] = def || [];
+
+    return gvc.bindView({
+      bind: id,
+      view: () => {
+        if (loading) {
+          return '';
+        }
+
+        if (show) {
+          return html`<div
+            style="margin-top: 1px;border: 8px solid #fff; outline: 1px solid #aeaeae; height: 300px; width: 100%; border-radius: 5px; position: absolute; top: 0; background-color: #fff; border-radius: 5px; overflow: auto;"
+          >
+            <div class="position-relative">
+              <div
+                class="w-100 d-flex align-items-center gap-1 position-sticky mb-1"
+                style="top: 0; background-color: #fff;"
+              >
+                <div class="w-100">
+                  <i
+                    class="fa-regular fa-magnifying-glass"
+                    style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+                    aria-hidden="true"
+                  ></i>
+                  <input
+                    class="form-control h-100"
+                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
+                    placeholder="${placeholder}"
+                    onchange="${gvc.event(e => {
+                      search = `${e.value}`.trim();
+                      gvc.notifyDataChange(id);
+                    })}"
+                    value="${search}"
+                  />
+                </div>
+                ${this.customButton({
+                  button: {
+                    color: 'black',
+                    size: 'md',
+                  },
+                  text: {
+                    name: '確認',
+                    style: 'font-size: 14px;',
+                  },
+                  event: gvc.event(() => {
+                    show = false;
+                    gvc.notifyDataChange(id);
+                    callback(selectTags);
+                  }),
+                })}
+              </div>
+              <div class="p-2">
+                ${this.multiCheckboxContainer(
+                  gvc,
+                  tagList.filter(tag => tag.name.toLowerCase().includes(search.toLowerCase())),
+                  selectTags,
+                  text => {
+                    if (search) {
+                      selectTags = [
+                        ...new Set(
+                          selectTags
+                            .filter(tag => {
+                              return !tag.toLowerCase().includes(search.toLowerCase());
+                            })
+                            .concat(text)
+                        ),
+                      ];
+                    } else {
+                      selectTags = text;
+                    }
+                  },
+                  { single: false }
+                )}
+              </div>
+            </div>
+          </div>`;
+        } else {
+          return html`<div
+            class="h-100"
+            onclick="${gvc.event(() => {
+              show = true;
+              gvc.notifyDataChange(id);
+            })}"
+          >
+            <i
+              class="fa-regular fa-magnifying-glass"
+              style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+              aria-hidden="true"
+            ></i>
+            <div
+              class="form-control h-100"
+              style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%; color: #aeaeae; ${selectTags.length >
+                0 && false
+                ? 'padding: 0.3rem 3rem;'
+                : ''}"
+            >
+              ${placeholder}
+              <!-- ${selectTags.length > 0
+                ? html`<div class="d-flex flex-wrap gap-2">
+                    ${selectTags.map(item => this.normalInsignia(`#${item}`)).join('')}
+                  </div>`
+                : placeholder} -->
+            </div>
+          </div>`;
+        }
+      },
+      divCreate: {
+        class: 'w-100 position-relative search-tags-filter',
+        style: `height: 40px !important; margin: ${margin ?? 0};`,
+      },
+      onCreate: async () => {
+        if (loading) {
+          tagList = await ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd: any) => {
+            if (dd.result && dd.response?.value?.list) {
+              return dd.response.value.list.map((item: string) => {
+                return {
+                  key: item,
+                  name: `#${item}`,
+                };
+              });
+            }
+            return [];
+          });
+          loading = false;
+          gvc.notifyDataChange(id);
+        } else if (show) {
+          function hasSearchTagsFilterAncestor(target: EventTarget | null): boolean {
+            let el = target as Element | null;
+
+            for (let i = 0; i < 10 && el; i++) {
+              if (el.classList.contains('search-tags-filter')) {
+                return true;
+              }
+              el = el.parentElement;
+            }
+
+            return false;
+          }
+
+          function clickEvent(event: any) {
+            if (
+              !hasSearchTagsFilterAncestor(event.target) &&
+              !event.target.classList.contains('form-check-input') &&
+              !event.target.classList.contains('form-check-label')
+            ) {
+              show = false;
+              gvc.notifyDataChange(id);
+              window.parent.document.removeEventListener('click', clickEvent);
+            }
+          }
+
+          setTimeout(() => window.parent.document.addEventListener('click', clickEvent), 100);
+        }
+      },
+    });
   }
 
   static activeFilter = '';
@@ -5487,9 +5664,14 @@ ${obj.default ?? ''}</textarea
             if (vm.loading) {
               return html` <div class="my-4">${this.spinner()}</div>`;
             }
-            return html` 
-            <div class="bg-white shadow rounded-3 h-100 d-flex flex-column position-relative overflow-hidden" style="width: 100%; padding-top: 61px;">
-              <div class="w-100 d-flex align-items-center p-3 border-bottom position-absolute" style="background: #F2F2F2;top:0;left:0">
+            return html` <div
+              class="bg-white shadow rounded-3 h-100 d-flex flex-column position-relative overflow-hidden"
+              style="width: 100%; padding-top: 61px;"
+            >
+              <div
+                class="w-100 d-flex align-items-center p-3 border-bottom position-absolute"
+                style="background: #F2F2F2;top:0;left:0"
+              >
                 <div class="tx_700 dialog-title">${obj.title ?? '圖片庫'}</div>
                 <div class="flex-fill"></div>
                 <i

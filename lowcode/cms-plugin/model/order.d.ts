@@ -116,6 +116,7 @@ interface OrderData {
   custom_form_format?: any;
   custom_form_data?: any;
   tags?: string[];
+  fbp?: string;
 }
 
 interface PaymentFlow {

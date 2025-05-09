@@ -1,4 +1,3 @@
-/// <reference types="cookie-parser" />
 import { IToken } from '../models/Auth.js';
 import express from 'express';
 interface UserQuery {

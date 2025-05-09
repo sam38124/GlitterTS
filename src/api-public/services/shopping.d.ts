@@ -605,19 +605,9 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
-    putVariants(query: {
-        id: number;
-        product_id: number;
-        product_content: any;
-        variant_content: any;
-    }[]): Promise<{
+    putVariants(token: any, query: any): Promise<{
         result: string;
-        orderData: {
-            id: number;
-            product_id: number;
-            product_content: any;
-            variant_content: any;
-        }[];
+        orderData: any;
     }>;
     postCustomerInvoice(obj: {
         orderID: any;

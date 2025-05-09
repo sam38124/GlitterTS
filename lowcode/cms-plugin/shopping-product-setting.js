@@ -24,6 +24,7 @@ import { LanguageBackend } from './language-backend.js';
 import { ProductConfig } from './product-config.js';
 import { ShoppingSettingBasic } from './shopping-setting-basic.js';
 import { ShoppingSettingAdvance } from './shopping-setting-advance.js';
+import { ShoppingSettingStockLog } from './shopping-setting-stock-log.js';
 import { ProductInitial } from '../public-models/product.js';
 import { IminModule } from './pos-pages/imin-module.js';
 import { TableStorage } from './module/table-storage.js';
@@ -648,12 +649,7 @@ export class ShoppingProductSetting {
                                 const language_data = postMD.language_data[ShoppingProductSetting.select_language];
                                 imageLibrary.selectImageFromArray(language_data.preview_image, {
                                     gvc: gvc,
-                                    title: html ` <div
-                                      class="d-flex flex-column"
-                                      style=""
-                                    >
-                                      圖片庫
-                                    </div>`,
+                                    title: html ` <div class="d-flex flex-column" style="">圖片庫</div>`,
                                     getSelect: imageUrl => {
                                         variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
                                         gvc.notifyDataChange(id);
@@ -1292,6 +1288,34 @@ export class ShoppingProductSetting {
                             course: '課程',
                         };
                         const categoryTitle = categoryTitleMap[postMD.product_category] || '商品';
+                        const tabJsonData = {
+                            gvc: gvc,
+                            vm2: vm,
+                            vm: obj.vm,
+                            reload: () => {
+                                refreshProductPage();
+                            },
+                            language_data: languageData,
+                            postMD: postMD,
+                            shipment_config: shipment_config,
+                        };
+                        const tabMaps = {
+                            normal: {
+                                title: '基本設定',
+                                page: () => ShoppingSettingBasic.main(tabJsonData),
+                                visible: true,
+                            },
+                            advance: {
+                                title: '進階設定',
+                                page: () => ShoppingSettingAdvance.main(tabJsonData),
+                                visible: true,
+                            },
+                            stock_changed_logs: {
+                                title: '庫存異動',
+                                page: () => ShoppingSettingStockLog.main(tabJsonData),
+                                visible: false,
+                            },
+                        };
                         return [
                             BgWidget.container(html `
               <div class="title-container flex-column flex-sm-row">
@@ -1389,42 +1413,22 @@ export class ShoppingProductSetting {
                                 .join(html ` <div class="mx-1"></div>`)}
                 </div>
               </div>
-              ${BgWidget.tab([
-                                {
-                                    title: '基本設定',
-                                    key: 'normal',
+              ${gvc.bindView({
+                                bind: gvc.glitter.getUUID(),
+                                view: () => {
+                                    return [
+                                        BgWidget.tab(Object.entries(tabMaps)
+                                            .map(([key, data]) => {
+                                            return { key, title: data.title, visible: data.visible };
+                                        })
+                                            .filter(data => data.visible), gvc, vm.show_page, text => {
+                                            vm.show_page = text;
+                                            gvc.notifyDataChange(vm.id);
+                                        }, 'margin-bottom: 0px;'),
+                                        tabMaps[vm.show_page].page(),
+                                    ].join('');
                                 },
-                                {
-                                    title: '進階設定',
-                                    key: 'advance',
-                                },
-                            ], gvc, vm.show_page, text => {
-                                vm.show_page = text;
-                                gvc.notifyDataChange(vm.id);
-                            }, 'margin-bottom: 0px;')}
-              ${vm.show_page === 'normal'
-                                ? ShoppingSettingBasic.main({
-                                    gvc: gvc,
-                                    vm2: vm,
-                                    vm: obj.vm,
-                                    reload: () => {
-                                        refreshProductPage();
-                                    },
-                                    language_data: languageData,
-                                    postMD: postMD,
-                                    shipment_config: shipment_config,
-                                })
-                                : ShoppingSettingAdvance.main({
-                                    gvc: gvc,
-                                    vm2: vm,
-                                    vm: obj.vm,
-                                    reload: () => {
-                                        refreshProductPage();
-                                    },
-                                    language_data: languageData,
-                                    postMD: postMD,
-                                    shipment_config: shipment_config,
-                                })}
+                            })}
             `),
                             html ` <div class="update-bar-container">
               ${obj.type === 'replace'

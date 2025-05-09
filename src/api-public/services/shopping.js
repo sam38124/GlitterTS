@@ -640,6 +640,16 @@ class Shopping {
                 const price = (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
                 price && priceList.push(price);
             };
+            const formatLogistic = (content) => {
+                if (!content.designated_logistics) {
+                    return { type: 'all', list: [] };
+                }
+                const { list, group } = content.designated_logistics;
+                if ((!list || list.length === 0) && (!group || group.length === 0)) {
+                    return { type: 'all', list: [] };
+                }
+                return content.designated_logistics;
+            };
             const processProduct = async (product) => {
                 if (!product || !product.content) {
                     return;
@@ -762,6 +772,7 @@ class Shopping {
                         }
                     });
                 }
+                product.content.designated_logistics = formatLogistic(product.content);
             };
             if (Array.isArray(products.data)) {
                 products.data = products.data.filter(dd => {
@@ -3897,6 +3908,8 @@ class Shopping {
     async putProduct(content) {
         var _a, _b, _c;
         try {
+            const updater_id = `${content.token.userID}`;
+            delete content.token;
             content.type = 'product';
             if (content.language_data) {
                 const language = await app_js_1.App.getSupportLanguage(this.app);
@@ -3918,9 +3931,7 @@ class Shopping {
                 this.setProductCustomizeTagConifg((_a = content.product_customize_tag) !== null && _a !== void 0 ? _a : []),
                 this.setProductGeneralTagConifg((_c = (_b = content.product_tag) === null || _b === void 0 ? void 0 : _b.language) !== null && _c !== void 0 ? _c : []),
             ]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `, [
                 {
                     content: JSON.stringify(content),
@@ -3930,9 +3941,7 @@ class Shopping {
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             if (content.shopee_id) {
                 await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                    product: {
-                        content: content,
-                    },
+                    product: { content },
                     callback: () => { },
                 });
             }
@@ -4272,7 +4281,7 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
         }
     }
-    async putVariants(query) {
+    async putVariants(token, query) {
         try {
             for (const data of query) {
                 await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants

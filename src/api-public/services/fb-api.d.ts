@@ -1,4 +1,3 @@
-/// <reference types="cookie-parser" />
 import { Cart } from './shopping.js';
 import express from 'express';
 import { IToken } from '../models/Auth.js';

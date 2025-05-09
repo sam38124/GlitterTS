@@ -308,9 +308,13 @@ export class EditorElem {
     });
   }
 
-  public static flexMediaManagerV2(obj: { gvc: GVC; data: string[] , event?:{
-    delete?:(index:number)=>void,
-    }} ) {
+  public static flexMediaManagerV2(obj: {
+    gvc: GVC;
+    data: string[];
+    event?: {
+      delete?: (index: number) => void;
+    };
+  }) {
     const data = obj.data;
     obj.gvc.addStyle(`
       .p-hover-image:hover {
@@ -429,7 +433,7 @@ export class EditorElem {
                       <i
                         class="fa-regular fa-trash"
                         onclick="${obj.gvc.event(() => {
-                          if(obj.event?.delete){
+                          if (obj.event?.delete) {
                             obj.event.delete(index);
                           }
                           data.splice(index, 1);
@@ -780,15 +784,6 @@ export class EditorElem {
     structEnd?: string;
   }) {
     const codeID = obj.gvc.glitter.getUUID();
-    console.log(`codeEditor`, {
-      type: 'getData',
-      value: `${obj.structStart ? obj.structStart : `(()=>{`} ${obj.initial ?? ''}
-                ${obj.structEnd ? obj.structEnd : '})()'}`,
-      language: 'javascript',
-      refactor: true,
-      structStart: obj.structStart,
-      structEnd: obj.structEnd,
-    });
 
     function getComponent(gvc: GVC, height: number) {
       return gvc.bindView(() => {
@@ -2811,7 +2806,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
               .join(html` <div style="margin-top: 12px;"></div>`);
           },
           divCreate: {
-            class: `${obj.oneLine ? 'd-flex gap-2' : ''} ps-1`,
+            class: `${obj.oneLine ? 'd-flex flex-wrap gap-2' : ''} ps-1`,
           },
         };
       })}

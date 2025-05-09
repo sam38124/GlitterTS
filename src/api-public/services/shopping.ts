@@ -36,6 +36,7 @@ import { PaymentStrategyFactory } from './factories/payment-strategy-factory.js'
 import { IPaymentStrategy } from './interface/payment-strategy-interface.js';
 import { PaymentService } from './payment-service.js';
 import { CartItem, CheckoutEvent } from './checkout-event.js';
+// import { DiffRecord } from './diff-record.js';
 
 type BindItem = {
   id: string;
@@ -1058,6 +1059,19 @@ export class Shopping {
         price && priceList.push(price);
       };
 
+      const formatLogistic = (content: any) => {
+        if (!content.designated_logistics) {
+          return { type: 'all', list: [] };
+        }
+
+        const { list, group } = content.designated_logistics;
+        if ((!list || list.length === 0) && (!group || group.length === 0)) {
+          return { type: 'all', list: [] };
+        }
+
+        return content.designated_logistics;
+      };
+
       const processProduct = async (product: any) => {
         if (!product || !product.content) {
           return;
@@ -1203,6 +1217,11 @@ export class Shopping {
             }
           });
         }
+
+        product.content.designated_logistics = formatLogistic(product.content);
+
+        // const diff = new DiffRecord(this.app, this.token);
+        // product.content.records = await diff.getProdcutRecord(product.id);
       };
 
       if (Array.isArray(products.data)) {
@@ -5289,6 +5308,9 @@ export class Shopping {
 
   async putProduct(content: any) {
     try {
+      // 初始化資料
+      const updater_id = `${content.token.userID}`;
+      delete content.token;
       content.type = 'product';
 
       // 檢查 seo domain 是否重複
@@ -5320,11 +5342,12 @@ export class Shopping {
         this.setProductGeneralTagConifg(content.product_tag?.language ?? []),
       ]);
 
+      // const diffRecord = new DiffRecord(this.app, this.token);
+      // await diffRecord.postProdcutRecord(updater_id, content.id, content);
+
       // 更新商品
       await db.query(
-        `UPDATE \`${this.app}\`.\`t_manager_post\`
-         SET ?
-         WHERE id = ?
+        `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
         `,
         [
           {
@@ -5340,9 +5363,7 @@ export class Shopping {
       // 同步更新蝦皮
       if (content.shopee_id) {
         await new Shopee(this.app, this.token).asyncStockToShopee({
-          product: {
-            content: content,
-          },
+          product: { content },
           callback: () => {},
         });
       }
@@ -5738,15 +5759,20 @@ export class Shopping {
     }
   }
 
-  async putVariants(query: { id: number; product_id: number; product_content: any; variant_content: any }[]) {
+  async putVariants(token: any, query: any) {
     try {
+      // const diffRecord = new DiffRecord(this.app, this.token);
+
       for (const data of query) {
+        // await diffRecord.postProdcutVariantRecord(token.userID, data.id, data.variant_content);
+
         await db.query(
           `UPDATE \`${this.app}\`.t_variants
            SET ?
            WHERE id = ?`,
           [{ content: JSON.stringify(data.variant_content) }, data.id]
         );
+
         let variants = (
           await db.query(
             `SELECT *

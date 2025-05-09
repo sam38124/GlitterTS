@@ -31,8 +31,8 @@ export class ShoppingSettingAdvance {
       commodity: '商品',
       course: '課程',
     };
-
     const carTitle = categoryTitles[postMD.product_category] || '商品';
+
     return BgWidget.container(
       gvc.bindView(() => {
         const id = gvc.glitter.getUUID();
@@ -224,7 +224,7 @@ export class ShoppingSettingAdvance {
                           BgWidget.inlineCheckBox({
                             title: '',
                             gvc: gvc,
-                            def: [dd.checked ? dd.key : ``],
+                            def: [dd.checked ? dd.key : ''],
                             array: [
                               {
                                 title: dd.title,
@@ -476,7 +476,7 @@ export class ShoppingSettingAdvance {
                         }
                         return stringArray.join('');
                       })),
-                ].join(``)
+                ].join('')
               ),
               BgWidget.mainCard(
                 [
@@ -502,7 +502,7 @@ export class ShoppingSettingAdvance {
                       },
                     ],
                   }),
-                ].join(``)
+                ].join('')
               ),
               BgWidget.mainCard(
                 (() => {
@@ -621,7 +621,7 @@ export class ShoppingSettingAdvance {
                                               gvc.notifyDataChange(priceVM.id);
                                             }
                                           })}"
-                                          ${postMD.multi_sale_price?.some(m => m.type === item.type) ? `checked` : ``}
+                                          ${postMD.multi_sale_price?.some(m => m.type === item.type) ? `checked` : ''}
                                         />
                                       </div>
                                     </div>
@@ -912,7 +912,7 @@ export class ShoppingSettingAdvance {
                       };
                     })
                   )
-                : ``,
+                : '',
               BgWidget.mainCard(
                 obj.gvc.bindView(() => {
                   const id = gvc.glitter.getUUID();
@@ -1103,7 +1103,7 @@ export class ShoppingSettingAdvance {
               .join(html` <div class="my-3"></div>`);
           },
           divCreate: {
-            class: `w-100`,
+            class: 'w-100',
           },
         };
       })

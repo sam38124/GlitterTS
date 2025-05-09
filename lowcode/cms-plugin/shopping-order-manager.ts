@@ -28,7 +28,6 @@ import { LineItem } from './module/data.js';
 import { OrderModule } from './order/order-module.js';
 import { TableStorage } from './module/table-storage.js';
 
-
 const html = String.raw;
 const css = String.raw;
 
@@ -196,11 +195,10 @@ export class ShoppingOrderManager {
           };
 
           return viewMap[vm.type]() ?? '';
-        }catch (e) {
-          console.error(e)
-          return `${e}`
+        } catch (e) {
+          console.error(e);
+          return `${e}`;
         }
-
       },
       onCreate: () => {
         if (vm.loading) {
@@ -1066,7 +1064,7 @@ export class ShoppingOrderManager {
         let userData: any = {};
         let invoiceDataList: any = [];
         let storeList: any = [];
-        let mainViewId=gvc.glitter.getUUID();
+        let mainViewId = gvc.glitter.getUUID();
         let productData: any = [];
         let is_shipment = ['shipment_list_archive', 'shipment_list'].includes(
           (window as any).glitter.getUrlParameter('page')
@@ -1965,7 +1963,7 @@ export class ShoppingOrderManager {
                           return;
                         }
                         (window.parent as any).glitter.setUrlParameter('orderID', undefined);
-                        
+
                         if (backCallback) {
                           backCallback();
                         } else {
@@ -2873,15 +2871,34 @@ export class ShoppingOrderManager {
                         ${[
                           BgWidget.mainCard(html`
                             <div style="font-size: 16px;font-weight: 700;">訂單來源</div>
-                            <div>
+                            <div class="d-flex flex-column gap-1 mt-1">
                               ${(() => {
+                                if (orderData.orderData.fbp) {
+                                  return html`
+                                    <div>FB廣告</div>
+                                    ${BgWidget.blueNote(
+                                      html`複製追蹤碼<i class="fa-regular fa-copy ms-1"></i>`,
+                                      gvc.event(() => {
+                                        navigator.clipboard.writeText(`${orderData.orderData.fbp}`);
+                                        BgWidget.jumpAlert({
+                                          gvc,
+                                          text: '複製成功',
+                                          justify: 'top',
+                                          align: 'center',
+                                        });
+                                      }),
+                                      'font-weight: 500;'
+                                    )}
+                                  `;
+                                }
                                 if (!orderData.orderData.orderSource) {
                                   return '線上';
                                 }
                                 const source: Record<string, string> = {
                                   pos: 'POS',
                                   combine: '合併訂單',
-                                  split: '拆分',
+                                  split: '拆分訂單',
+                                  manual: '手動新增',
                                 };
                                 return source[orderData.orderData.orderSource] ?? '線上';
                               })()}
@@ -3219,7 +3236,7 @@ export class ShoppingOrderManager {
                       ratio: 25,
                     }
                   )}
-                <div style="height:240px;"></div>
+                  <div style="height:240px;"></div>
                   <div class="update-bar-container">
                     <div>
                       ${gvc.bindView(() => {

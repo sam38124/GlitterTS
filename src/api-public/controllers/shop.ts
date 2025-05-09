@@ -747,7 +747,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
   try {
     req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
     let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
-    const order_id = req.query?.orderID  || (return_url.searchParams.get('cart_token')) || '';
+    const order_id = req.query?.orderID || return_url.searchParams.get('cart_token') || '';
     const old_order_id = await redis.getValue(order_id as string);
     const idToQuery: string = old_order_id ? (old_order_id as string) : ((order_id as string) ?? '');
     if (req.query.LinePay && req.query.LinePay === 'true') {
@@ -1288,7 +1288,10 @@ router.put('/product', async (req: express.Request, resp: express.Response) => {
 router.put('/product/variants', async (req: express.Request, resp: express.Response) => {
   try {
     if (await UtPermission.isManager(req)) {
-      return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).putVariants(req.body));
+      return response.succ(
+        resp,
+        await new Shopping(req.get('g-app') as string, req.body.token).putVariants(req.body.token, req.body)
+      );
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
     }

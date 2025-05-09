@@ -46,15 +46,16 @@ export class Tool {
         const date = dateTimeStr ? new Date(dateTimeStr) : new Date();
         if (isNaN(date.getTime()))
             return '';
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return includeSeconds
-            ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-            : `${year}-${month}-${day} ${hours}:${minutes}`;
+        const formatter = new Intl.DateTimeFormat(undefined, {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: includeSeconds ? '2-digit' : undefined,
+            hour12: false,
+        });
+        return formatter.format(date);
     }
     static ObjCompare(obj1, obj2) {
         const Obj1_keys = Object.keys(obj1);
