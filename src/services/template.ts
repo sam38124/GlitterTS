@@ -228,6 +228,34 @@ export class Template {
     if (query_page.includes('#')) {
       query_page = query_page.substring(0, query_page.indexOf('#'));
     }
+    //判斷是條款頁面或部落格列表頁面時
+    if (
+      [
+        'privacy',
+        'term',
+        'refund',
+        'delivery',
+        'blogs',
+        'blog_tag_setting',
+        'blog_global_setting',
+        'pos_setting',
+        'checkout',
+        'fb_live',
+        'ig_live',
+        'line_plus',
+        'shipment_list',
+        'shipment_list_archive',
+        'reconciliation_area',
+        'app-design',
+        'auto_fcm_push',
+        'auto_fcm_advertise',
+        'auto_fcm_history',
+        'auto_fcm_template',
+        'notify_message_list',
+      ].includes(query_page)
+    ) {
+      return 'official-router';
+    }
     if (appName === 'proshake_v2') {
       return query_page;
     }
@@ -263,34 +291,7 @@ export class Template {
         }
       }
     }
-    //判斷是條款頁面或部落格列表頁面時
-    if (
-      [
-        'privacy',
-        'term',
-        'refund',
-        'delivery',
-        'blogs',
-        'blog_tag_setting',
-        'blog_global_setting',
-        'pos_setting',
-        'checkout',
-        'fb_live',
-        'ig_live',
-        'line_plus',
-        'shipment_list',
-        'shipment_list_archive',
-        'reconciliation_area',
-        'app-design',
-        'auto_fcm_push',
-        'auto_fcm_advertise',
-        'auto_fcm_history',
-        'auto_fcm_template',
-        'notify_message_list',
-      ].includes(query_page)
-    ) {
-      return 'official-router';
-    }
+
     if (
       ['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
       appName !== 'cms_system'

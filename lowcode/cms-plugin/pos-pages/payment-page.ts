@@ -559,7 +559,7 @@ export class PaymentPage {
                                           <div
                                             style="flex: 1 1 0; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word"
                                           >
-                                            搜尋會員信箱 / 電話 / 編號
+                                            信箱 / 電話 / 編號
                                           </div>
                                         </div>
                                       </div>

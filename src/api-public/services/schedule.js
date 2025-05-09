@@ -25,7 +25,7 @@ const process_1 = __importDefault(require("process"));
 class Schedule {
     async preload(app) {
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
-        if (brand_type.brand === 'shopnex' && brand_type.domain) {
+        if ((brand_type.brand === 'shopnex' && brand_type.domain) || (app === 'shopnex')) {
             if (!(await this.isDatabasePass(app)))
                 return false;
             await public_table_check_js_1.ApiPublic.createScheme(app);
