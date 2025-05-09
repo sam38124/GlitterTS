@@ -754,7 +754,6 @@ export class BgRecommend {
                                                 BgWidget.title('分潤商品', 'font-size: 16px;'),
                                                 html ` <div class="my-2"></div>`,
                                                 gvc.bindView(() => {
-                                                    var _a;
                                                     const subVM = {
                                                         id: gvc.glitter.getUUID(),
                                                         loading: true,
@@ -770,14 +769,15 @@ export class BgRecommend {
                                                             return products_data;
                                                         });
                                                     }
-                                                    (_a = newOrder.productCheck) !== null && _a !== void 0 ? _a : (newOrder.productCheck = []);
-                                                    const relativeCloneData = structuredClone(newOrder.productCheck);
                                                     return {
                                                         bind: subVM.id,
                                                         view: () => {
+                                                            var _a;
                                                             if (subVM.loading) {
                                                                 return BgWidget.spinner();
                                                             }
+                                                            (_a = newOrder.productCheck) !== null && _a !== void 0 ? _a : (newOrder.productCheck = []);
+                                                            const relativeCloneData = structuredClone(newOrder.productCheck);
                                                             return html `
                                       <div class="d-flex flex-column p-2" style="gap: 18px;">
                                         <div
@@ -792,8 +792,19 @@ export class BgRecommend {
                                                                     gvc: gvc,
                                                                     default: relativeCloneData.map((dd) => dd.id),
                                                                     callback: product_array => {
-                                                                        getSelectProducts(product_array).then(resp => {
-                                                                            newOrder.productCheck = resp;
+                                                                        dialog.dataLoading({ visible: true });
+                                                                        new Promise(resolve => {
+                                                                            if (product_array.length === 0) {
+                                                                                resolve([]);
+                                                                            }
+                                                                            else {
+                                                                                getSelectProducts(product_array).then(resp => {
+                                                                                    resolve(resp);
+                                                                                });
+                                                                            }
+                                                                        }).then(productArray => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            newOrder.productCheck = productArray;
                                                                             subVM.loading = true;
                                                                             gvc.notifyDataChange(subVM.id);
                                                                         });
