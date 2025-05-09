@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
-import { ApiShop } from './shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 export class ApiUser {
     static register(json) {
@@ -312,16 +311,17 @@ export class ApiUser {
         });
     }
     static getUserList(json) {
+        const url = getBaseUrl() +
+            `/api-public/v1/user?${(() => {
+                let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
+                json.search && par.push(`search=${json.search}`);
+                json.search_type && par.push(`searchType=${json.search_type}`);
+                json.only_id && par.push(`only_id=${json.only_id}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&');
+            })()}`;
         return BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/user?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.search_type && par.push(`searchType=${json.search_type}`);
-                    json.only_id && par.push(`only_id=${json.only_id}`);
-                    json.id && par.push(`id=${json.id}`);
-                    return par.join('&');
-                })()}`,
+            url: url,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,
@@ -387,6 +387,7 @@ export class ApiUser {
                 order_string: (_d = json.orderString) !== null && _d !== void 0 ? _d : '',
                 filter_type: (_e = json.filter_type) !== null && _e !== void 0 ? _e : '',
                 all_result: json.all_result ? `${json.all_result}` : '',
+                only_id: json.only_id ? `${json.only_id}` : '',
             }).toString();
             const extraQuery = [...filterString, ...groupString].join('&');
             const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
@@ -405,31 +406,10 @@ export class ApiUser {
                         response: { data: [], total: 0 },
                     };
                 }
-                const array = data.response.data;
-                const allUsers = data.response.allUsers;
-                if (array.length > 0) {
-                    yield Promise.allSettled(array.map((item) => __awaiter(this, void 0, void 0, function* () {
-                        const firstShipment = (yield ApiShop.getOrder({
-                            page: 0,
-                            limit: 1,
-                            data_from: 'manager',
-                            email: item.account || '-1',
-                            phone: item.account || '-1',
-                            valid: true,
-                            is_shipment: true,
-                        })).response.data[0];
-                        if (!item.tag_name) {
-                            item.tag_name = '一般會員';
-                        }
-                        if (firstShipment) {
-                            item.firstShipment = firstShipment;
-                        }
-                    })));
-                }
                 return {
                     response: {
-                        data: array,
-                        allUsers,
+                        data: data.response.data,
+                        allUsers: data.response.allUsers,
                         total: data.response.total,
                         extra: data.response.extra,
                     },

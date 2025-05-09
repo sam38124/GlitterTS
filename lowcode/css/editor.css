@@ -997,7 +997,7 @@ h6 {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 12px;
+  border: 12px solid var(--main-white);
   overflow-y: auto;
   max-height: 400px;
 }

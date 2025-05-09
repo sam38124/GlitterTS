@@ -4127,7 +4127,10 @@ ${obj.default ?? ''}</textarea
                   <div class="c_dialog_main">
                     ${obj.readonly
                       ? ''
-                      : html` <div class="d-flex" style="gap: 12px;">
+                      : html` <div
+                          class="d-flex position-sticky px-1"
+                          style="gap: 12px; top: 0; background-color: #fff;"
+                        >
                           ${this.searchFilter(
                             gvc.event((e, event) => {
                               vm.query = e.value;

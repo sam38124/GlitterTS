@@ -83,15 +83,16 @@ export class ShoppingAllowanceManager {
               <div class="flex-fill"></div>
               <div style="display: flex; gap: 14px;">
                 ${BgWidget.grayButton('匯出', gvc.event(() => {
+                        const limit = 1000;
                         let dialog = new ShareDialog(glitter);
                         dialog.warningMessage({
-                            text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出1000筆資料，是否匯出？`,
+                            text: `系統將以目前列表搜尋的訂單結果匯出<br />最多匯出${limit}筆資料，是否匯出？`,
                             callback: bool => {
                                 if (bool) {
                                     dialog.dataLoading({ visible: true });
                                     ApiShop.getInvoice({
                                         page: 0,
-                                        limit: 1000,
+                                        limit: limit,
                                         search: vm.query || undefined,
                                         searchType: vm.queryType || 'cart_token',
                                         orderString: vm.orderString,

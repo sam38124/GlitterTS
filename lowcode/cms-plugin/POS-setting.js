@@ -364,7 +364,7 @@ export class POSSetting {
               >
                 <div
                   class="d-flex flex-column position-relative"
-                  style="width: 542px;padding: 32px;background-color: white;border-radius: 10px;max-width: calc(100% - 20px);overflow-y:auto;max-height:calc(100% - 20px);"
+                  style="width: 542px;padding: 24px;background-color: white;border-radius: 10px;max-width: calc(100% - 20px);overflow-y:auto;max-height:calc(100% - 20px);"
                   onclick="${gvc.event((_, event) => event.stopPropagation())}"
                 >
                   <div class="w-100 d-block d-sm-flex flex-column flex-sm-row m" style="gap:24px;">
@@ -564,7 +564,7 @@ export class POSSetting {
                                         class: 'd-flex align-items-center justify-content-center',
                                         style: `
                               flex: 1;
-                              padding: 12px 24px;
+                              padding: 12px 12px;
                               font-size: 20px;
                               color: #fff;
                               font-weight: 500;

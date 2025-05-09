@@ -186,31 +186,6 @@ class Template {
         if (query_page.includes('#')) {
             query_page = query_page.substring(0, query_page.indexOf('#'));
         }
-        if (appName === 'proshake_v2') {
-            return query_page;
-        }
-        console.log(`query_page`, query_page);
-        if (page === 'index-app') {
-            const count = await database_1.default.query(`select count(1)
-         from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-         where appName = ${database_1.default.escape(appName)}
-           and tag = 'index-app'`, []);
-            if (count[0]['count(1)'] === 0) {
-                const copyPageData = await database_1.default.execute(`select *
-           from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-           where appName = ${database_1.default.escape(appName)}
-             and tag = 'index'`, []);
-                for (const dd of copyPageData) {
-                    await database_1.default.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
-                                                                     \`name\`,
-                                                                     \`config\`, \`page_config\`, page_type)
-                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
-                        ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
-            `, [dd.userID, appName, 'index-app', dd.group || '未分類', 'APP首頁樣式']);
-                }
-            }
-        }
         if ([
             'privacy',
             'term',
@@ -235,6 +210,31 @@ class Template {
             'notify_message_list',
         ].includes(query_page)) {
             return 'official-router';
+        }
+        if (appName === 'proshake_v2') {
+            return query_page;
+        }
+        console.log(`query_page`, query_page);
+        if (page === 'index-app') {
+            const count = await database_1.default.query(`select count(1)
+         from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+         where appName = ${database_1.default.escape(appName)}
+           and tag = 'index-app'`, []);
+            if (count[0]['count(1)'] === 0) {
+                const copyPageData = await database_1.default.execute(`select *
+           from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+           where appName = ${database_1.default.escape(appName)}
+             and tag = 'index'`, []);
+                for (const dd of copyPageData) {
+                    await database_1.default.execute(`
+                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
+                                                                     \`name\`,
+                                                                     \`config\`, \`page_config\`, page_type)
+                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
+                        ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
+            `, [dd.userID, appName, 'index-app', dd.group || '未分類', 'APP首頁樣式']);
+                }
+            }
         }
         if (['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
             appName !== 'cms_system') {

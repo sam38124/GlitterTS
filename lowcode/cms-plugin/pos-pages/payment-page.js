@@ -460,8 +460,9 @@ export class PaymentPage {
                                                                     return new Promise(resolve => {
                                                                         ApiUser.getUserList({
                                                                             page: 0,
-                                                                            limit: 50,
+                                                                            limit: 99999,
                                                                             search: data.query,
+                                                                            only_id: true,
                                                                         }).then(dd => {
                                                                             if (dd.response.data) {
                                                                                 resolve(dd.response.data.map((item) => {
@@ -489,7 +490,7 @@ export class PaymentPage {
                                           <div
                                             style="flex: 1 1 0; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word"
                                           >
-                                            搜尋會員信箱 / 電話 / 編號
+                                            信箱 / 電話 / 編號
                                           </div>
                                         </div>
                                       </div>
@@ -2201,7 +2202,7 @@ export class PaymentPage {
                         placeholder="請輸入統一編號"
                         value="${c_vm.value}"
                         onclick="${gvc.event(() => {
-                                PosFunction.setMoney(gvc, c_vm.value || '0', (text) => {
+                                PosFunction.setMoney(gvc, c_vm.value || '0', text => {
                                     c_vm.value = `${text}`;
                                     gvc.recreateView();
                                 }, '統一編號');

@@ -44,7 +44,7 @@ export class ShoppingRebate {
                     if (status === 1) {
                         if (dataList.length === 0) {
                             dialog.checkYesOrNot({
-                                callback: (bool) => {
+                                callback: bool => {
                                     if (bool) {
                                         showUsersDialog(dataList, callback);
                                     }
@@ -54,7 +54,7 @@ export class ShoppingRebate {
                         }
                         else {
                             dialog.checkYesOrNot({
-                                callback: (bool) => {
+                                callback: bool => {
                                     if (bool) {
                                         callback(dataList);
                                     }
@@ -69,13 +69,14 @@ export class ShoppingRebate {
                 },
                 default: defaultValue,
                 api: (data) => {
-                    return new Promise((resolve) => {
+                    return new Promise(resolve => {
                         ApiUser.getUserListOrders({
                             page: 0,
                             limit: 99999,
                             search: data.query,
                             orderString: data.orderString,
-                        }).then((dd) => {
+                            only_id: true,
+                        }).then(dd => {
                             if (dd.response.data) {
                                 vm.dataList = dd.response.data
                                     .filter((item) => {
@@ -104,15 +105,15 @@ export class ShoppingRebate {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.title('購物金紀錄')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton('新增紀錄', gvc.event(() => {
+              <div class="title-container">
+                ${BgWidget.title('購物金紀錄')}
+                <div class="flex-fill"></div>
+                ${BgWidget.darkButton('新增紀錄', gvc.event(() => {
                             this.newRebateDialog({
                                 gvc: gvc,
                                 saveButton: {
-                                    event: (obj) => {
-                                        showUsersDialog([], (dataList) => {
+                                    event: obj => {
+                                        showUsersDialog([], dataList => {
                                             dialog.dataLoading({
                                                 text: '發送中...',
                                                 visible: true,
@@ -130,7 +131,7 @@ export class ShoppingRebate {
                                                 })(),
                                                 note: obj.note,
                                                 rebateEndDay: obj.rebateEndDay,
-                                            }).then((result) => {
+                                            }).then(result => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (result.response.result) {
                                                     dialog.successMessage({ text: `設定成功` });
@@ -149,8 +150,8 @@ export class ShoppingRebate {
                                 },
                             });
                         }))}
-                                </div>
-                                ${BgWidget.container(BgWidget.mainCard([
+              </div>
+              ${BgWidget.container(BgWidget.mainCard([
                             BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(vm.id);
@@ -160,13 +161,13 @@ export class ShoppingRebate {
                                 view: () => {
                                     return BgWidget.tableV3({
                                         gvc: gvc,
-                                        getData: (vmi) => {
+                                        getData: vmi => {
                                             const limit = 15;
                                             ApiWallet.getRebate({
                                                 page: vmi.page - 1,
                                                 limit: limit,
                                                 search: vm.query || undefined,
-                                            }).then((data) => {
+                                            }).then(data => {
                                                 function getDatalist() {
                                                     return data.response.data.map((dd) => {
                                                         var _a, _b;
@@ -214,7 +215,10 @@ export class ShoppingRebate {
                                                                 key: '此筆可使用餘額',
                                                                 value: (() => {
                                                                     const now = new Date();
-                                                                    if (dd.origin > 0 && dd.remain > 0 && now > new Date(dd.created_at) && now < new Date(dd.deadline)) {
+                                                                    if (dd.origin > 0 &&
+                                                                        dd.remain > 0 &&
+                                                                        now > new Date(dd.created_at) &&
+                                                                        now < new Date(dd.deadline)) {
                                                                         return html `<span class="tx_700 text-success">+ ${dd.remain}</span>`;
                                                                     }
                                                                     return html `<span class="tx_700">0</span>`;
@@ -222,7 +226,9 @@ export class ShoppingRebate {
                                                             },
                                                             {
                                                                 key: '備註',
-                                                                value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
+                                                                value: `<span class="fs-7">${typeof dd.note === 'string'
+                                                                    ? dd.note
+                                                                    : ((_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註')}</span>`,
                                                             },
                                                             {
                                                                 key: '建立時間',
@@ -248,7 +254,7 @@ export class ShoppingRebate {
                                 },
                             }),
                         ].join('')) + BgWidget.mbContainer(120))}
-                            `);
+            `);
                     }
                     else if (vm.type == 'replace') {
                         return UserList.userInformationDetail({
@@ -268,7 +274,7 @@ export class ShoppingRebate {
     static newRebateDialog(obj) {
         const html = String.raw;
         const gvc = obj.gvc;
-        return gvc.glitter.innerDialog((gvc2) => {
+        return gvc.glitter.innerDialog(gvc2 => {
             const vm = {
                 type: 'add',
                 value: '0',
@@ -276,18 +282,18 @@ export class ShoppingRebate {
                 rebateEndDay: '0',
             };
             return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width: 90%; width: 400px;">
-                <div>
-                    <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
-                        <span class="ps-2 tx_700">新增紀錄</span>
-                    </div>
-                    ${gvc.bindView(() => {
+        <div>
+          <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
+            <span class="ps-2 tx_700">新增紀錄</span>
+          </div>
+          ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: id,
                     view: () => {
                         return [
                             html `<div>
-                                        ${EditorElem.radio({
+                    ${EditorElem.radio({
                                 title: html `<h6 class="tx_700">類型</h6>`,
                                 gvc: gvc,
                                 def: vm.type,
@@ -295,55 +301,55 @@ export class ShoppingRebate {
                                     { title: '新增', value: 'add' },
                                     { title: '減少', value: 'minus' },
                                 ],
-                                callback: (text) => {
+                                callback: text => {
                                     vm.type = text;
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                    </div>`,
+                  </div>`,
                             html `<div class="row mt-2">
-                                        <div class="col-6">
-                                            ${EditorElem.editeInput({
+                    <div class="col-6">
+                      ${EditorElem.editeInput({
                                 title: html `<h6 class="tx_700">金額</h6>`,
                                 gvc: gvc,
                                 default: vm.value,
                                 type: 'number',
                                 placeHolder: '設定數值',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.value = text;
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                        </div>
-                                        <div class="col-6">
-                                            ${EditorElem.editeInput({
+                    </div>
+                    <div class="col-6">
+                      ${EditorElem.editeInput({
                                 title: html `<h6 class="tx_700">可使用天數</h6>`,
                                 gvc: gvc,
                                 default: vm.rebateEndDay,
                                 type: 'number',
                                 placeHolder: '設定數值',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.rebateEndDay = text;
                                     gvc.notifyDataChange(id);
                                 },
                                 unit: '天',
                                 readonly: vm.type !== 'add',
                             })}
-                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px;')}
-                                        </div>
-                                    </div>`,
+                      ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px;')}
+                    </div>
+                  </div>`,
                             html `<div>
-                                        ${EditorElem.editeText({
+                    ${EditorElem.editeText({
                                 title: html `<h6 class="tx_700">備註</h6>`,
                                 gvc: gvc,
                                 default: vm.note,
                                 placeHolder: '輸入備註',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.note = text;
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                    </div>`,
+                  </div>`,
                         ].join(``);
                     },
                     divCreate: {
@@ -352,11 +358,11 @@ export class ShoppingRebate {
                     },
                 };
             })}
-                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                        ${BgWidget.cancel(gvc.event(() => {
+          <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+            ${BgWidget.cancel(gvc.event(() => {
                 gvc2.closeDialog();
             }))}
-                        ${BgWidget.save(gvc.event(() => {
+            ${BgWidget.save(gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 const day = parseInt(`${vm.rebateEndDay}`, 10);
                 const value = parseInt(`${vm.value}`, 10);
@@ -371,9 +377,9 @@ export class ShoppingRebate {
                 gvc2.closeDialog();
                 obj.saveButton.event(vm);
             }), obj.saveButton.text)}
-                    </div>
-                </div>
-            </div>`;
+          </div>
+        </div>
+      </div>`;
         }, Tool.randomString(5));
     }
 }

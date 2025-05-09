@@ -641,7 +641,6 @@ export class BgSNS {
             ApiSns.delete({
                 id: vm.data.name,
             }).then(r => {
-                console.log('res -- ', r);
                 dialog.dataLoading({ visible: false });
                 if (r.result) {
                     vm.status = 'list';
@@ -837,7 +836,7 @@ export class BgSNS {
         function setUserList() {
             let n = 0;
             postData.userList = [];
-            dialog.dataLoading({ visible: true, text: '更新預計寄件人...' });
+            dialog.dataLoading({ visible: true, text: '1更新預計寄件人...' });
             new Promise(resolve => {
                 const si = setInterval(() => {
                     if (postData.tagList.length === n) {
@@ -869,6 +868,7 @@ export class BgSNS {
                             page: 0,
                             limit: 99999,
                             id: tagData.filter.join(','),
+                            only_id: true,
                         }).then(dd => {
                             dd.response.data.map((user) => {
                                 if (user.userData.email && user.userData.email.length > 0 && user.userData.phone) {
@@ -891,6 +891,7 @@ export class BgSNS {
                                     page: 0,
                                     limit: 99999,
                                     group: { type: 'level', tag: id },
+                                    only_id: true,
                                 }).then(data => {
                                     data.response.data.map((user) => {
                                         if (user.userData.email && user.userData.phone) {
@@ -924,6 +925,7 @@ export class BgSNS {
                                     page: 0,
                                     limit: 99999,
                                     group: { type: type },
+                                    only_id: true,
                                 }).then(data => {
                                     let dataArray = data.response.data;
                                     if (data.response.extra) {
@@ -957,6 +959,7 @@ export class BgSNS {
                             page: 0,
                             limit: 99999,
                             filter: { birth: tagData.filter },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email && user.userData.phone) {
@@ -975,6 +978,7 @@ export class BgSNS {
                             page: 0,
                             limit: 99999,
                             filter: { tags: tagData.filter },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email) {
@@ -995,6 +999,7 @@ export class BgSNS {
                             page: 0,
                             limit: 99999,
                             filter: { rebate: { key: 'moreThan', value: tagData.filter } },
+                            only_id: true,
                         }).then(data => {
                             data.response.data.map((user) => {
                                 if (user.userData.email && user.userData.phone) {
@@ -1069,9 +1074,13 @@ export class BgSNS {
           <div style="display:flex; align-items: center; gap: 18px; margin: 8px 0;">
             <div class="tx_normal">${postData.userList.length}人</div>
             ${BgWidget.grayButton('查看名單', gvc.event(() => {
+                    const dialog = new ShareDialog(gvc.glitter);
                     if (postData.userList.length === 0) {
-                        const dialog = new ShareDialog(gvc.glitter);
                         dialog.infoMessage({ text: '目前無預計寄件的顧客' });
+                        return;
+                    }
+                    if (postData.userList.length > 500) {
+                        dialog.infoMessage({ text: '預覽人數超過500筆，請減少名單人數後再次開啟' });
                         return;
                     }
                     const userVM = {
@@ -1089,6 +1098,7 @@ export class BgSNS {
                                     page: 0,
                                     limit: 99999,
                                     id: postData.userList.map(user => { var _a; return (_a = user.id) !== null && _a !== void 0 ? _a : 0; }).join(','),
+                                    only_id: true,
                                 }).then(dd => {
                                     if (dd.response.data) {
                                         userVM.dataList = dd.response.data.map((item) => {
@@ -1253,8 +1263,8 @@ export class BgSNS {
                                                             ApiUser.getUserList({
                                                                 page: 0,
                                                                 limit: 99999,
-                                                                only_id: true,
                                                                 search: data.query,
+                                                                only_id: true,
                                                             }).then(dd => {
                                                                 if (dd.response.data) {
                                                                     vm.dataList = dd.response.data

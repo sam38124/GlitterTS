@@ -2753,7 +2753,8 @@ export class Shopping {
         if (voucher.reBackType === 'shipment_free') {
           // 判斷使用的物流是否為優惠券所指定
           const isSelectShipment: () => boolean = () => {
-            if (voucher.selectShipment.type === 'all') {
+
+            if (!voucher.selectShipment || voucher.selectShipment.type === 'all') {
               return true;
             }
             return voucher.selectShipment.list.includes(cart.user_info.shipment);

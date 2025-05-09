@@ -984,6 +984,7 @@ export class BgNotify {
               page: 0,
               limit: 99999,
               id: tagData.filter.join(','),
+              only_id: true,
             }).then(dd => {
               dd.response.data.map((user: any) => {
                 if (user.userData.email && user.userData.email.length > 0) {
@@ -1005,6 +1006,7 @@ export class BgNotify {
                   page: 0,
                   limit: 99999,
                   group: { type: 'level', tag: id },
+                  only_id: true,
                 }).then(data => {
                   data.response.data.map((user: any) => {
                     if (user.userData.email) {
@@ -1037,6 +1039,7 @@ export class BgNotify {
                   page: 0,
                   limit: 99999,
                   group: { type: type },
+                  only_id: true,
                 }).then(data => {
                   // 加入額外的會員資料，例如有訂閱但未註冊者
                   let dataArray = data.response.data;
@@ -1070,6 +1073,7 @@ export class BgNotify {
               page: 0,
               limit: 99999,
               filter: { birth: tagData.filter },
+              only_id: true,
             }).then(data => {
               data.response.data.map((user: any) => {
                 if (user.userData.email) {
@@ -1087,6 +1091,7 @@ export class BgNotify {
               page: 0,
               limit: 99999,
               filter: { tags: tagData.filter },
+              only_id: true,
             }).then(data => {
               data.response.data.map((user: any) => {
                 if (user.userData.email) {
@@ -1106,6 +1111,7 @@ export class BgNotify {
               page: 0,
               limit: 99999,
               filter: { rebate: { key: 'moreThan', value: tagData.filter } },
+              only_id: true,
             }).then(data => {
               data.response.data.map((user: any) => {
                 if (user.userData.email) {
@@ -1183,14 +1189,22 @@ export class BgNotify {
             ${BgWidget.grayButton(
               '查看名單',
               gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+
                 if (postData.userList.length === 0) {
-                  const dialog = new ShareDialog(gvc.glitter);
                   dialog.infoMessage({ text: '目前無預計寄件的顧客' });
                   return;
                 }
+
+                if (postData.userList.length > 500) {
+                  dialog.infoMessage({ text: '預覽人數超過500筆，請減少名單人數後再次開啟' });
+                  return;
+                }
+
                 const userVM = {
                   dataList: [] as { key: string; value: string; note: string }[],
                 };
+
                 BgWidget.selectDropDialog({
                   gvc: gvc,
                   title: '預計寄件顧客',
@@ -1203,6 +1217,7 @@ export class BgNotify {
                         page: 0,
                         limit: 99999,
                         id: postData.userList.map(user => user.id ?? 0).join(','),
+                        only_id: true,
                       }).then(dd => {
                         if (dd.response.data) {
                           userVM.dataList = dd.response.data.map(
@@ -1369,8 +1384,8 @@ export class BgNotify {
                                           ApiUser.getUserList({
                                             page: 0,
                                             limit: 99999,
-                                            only_id: true,
                                             search: data.query,
+                                            only_id: true,
                                           }).then(dd => {
                                             if (dd.response.data) {
                                               vm.dataList = dd.response.data

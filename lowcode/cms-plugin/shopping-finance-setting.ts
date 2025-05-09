@@ -273,7 +273,7 @@ export class ShoppingFinanceSetting {
                   h = html` <div class="px-md-0 px-2 mb-2">
                       ${BgWidget.normalInsignia('透過線上金流，消費者可於線上進行結帳付款')}
                     </div>
-                    <div class="row">
+                    <div class="row m-0">
                       ${PaymentConfig.onlinePay
                         .filter(item => item.type !== 'pos')
                         .map(dd => {
@@ -285,6 +285,7 @@ export class ShoppingFinanceSetting {
                             >
                              
                               <div
+                                class="pt-4"
                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
@@ -310,8 +311,7 @@ export class ShoppingFinanceSetting {
                                   </div>
                                 </div>
                               </div>
-                              <div class="border-top w-100"></div>
-                              <div class="w-100 d-flex align-items-center justify-content-end fw-500" style="">
+                              <div class="position-absolute " style="right:10px;top:10px;">
                                 ${BgWidget.customButton({
                                   button: {
                                     color: 'gray',
@@ -689,15 +689,16 @@ export class ShoppingFinanceSetting {
                         '透過設定線下金流，結帳後訂單將進入手動核款的流程，亦可使用超商取貨付款'
                       )}
                     </div>
-                    <div class="row">
+                    <div class="row m-0">
                       ${offlinePayArray
                         .map((dd: any) => {
                           return html` <div class="col-12 col-lg-3 col-md-4 p-0 p-md-2">
                             <div
-                              class="w-100 position-relative main-card"
+                              class="w-100 position-relative main-card "
                               style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start;gap:10px;  display: inline-flex;"
                             >
                               <div
+                                class="pt-4"
                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
@@ -729,10 +730,9 @@ export class ShoppingFinanceSetting {
                                   </div>
                                 </div>
                               </div>
-                              <div class="border-top w-100"></div>
                               <div
-                                class=" w-100 d-flex align-items-center justify-content-end fw-500 ${dd.hide_setting ? `d-none` : ''}"
-                                style=""
+                                class=" position-absolute ${dd.hide_setting ? `d-none` : ''}"
+                                style="right:10px;top:10px;"
                               >
                                 ${BgWidget.customButton({
                                   button: {
@@ -818,7 +818,7 @@ export class ShoppingFinanceSetting {
                   h = html`<div class="px-md-0 px-2 mb-2">
                       ${BgWidget.normalInsignia('設定實體店面所需串接的付款方式')}
                     </div>
-                    <div class="row">
+                    <div class="row m-0">
                       ${PaymentConfig.onlinePay
                         .filter(item => item.type === 'pos')
                         .map(dd => {
@@ -827,7 +827,7 @@ export class ShoppingFinanceSetting {
                               class="w-100 position-relative main-card"
                               style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex;"
                             >
-                              <div
+                              <div class="pt-4"
                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
@@ -853,8 +853,8 @@ export class ShoppingFinanceSetting {
                                   </div>
                                 </div>
                               </div>
-                              <div class="border-top w-100"></div>
-                              <div class="w-100 d-flex align-items-center justify-content-end fw-500" style="cursor:pointer;">
+                       
+                              <div class="position-absolute"  style="right:10px;top:10px;">
                                 ${BgWidget.customButton({
                                   button: {
                                     color: 'gray',

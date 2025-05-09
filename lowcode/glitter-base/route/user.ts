@@ -338,18 +338,20 @@ export class ApiUser {
     search_type?: string;
     only_id?: boolean;
   }) {
-    return BaseApi.create({
-      url:
-        getBaseUrl() +
-        `/api-public/v1/user?${(() => {
-          let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-          json.search && par.push(`search=${json.search}`);
-          json.search_type && par.push(`searchType=${json.search_type}`);
-          json.only_id && par.push(`only_id=${json.only_id}`);
-          json.id && par.push(`id=${json.id}`);
+    const url =
+      getBaseUrl() +
+      `/api-public/v1/user?${(() => {
+        let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
+        json.search && par.push(`search=${json.search}`);
+        json.search_type && par.push(`searchType=${json.search_type}`);
+        json.only_id && par.push(`only_id=${json.only_id}`);
+        json.id && par.push(`id=${json.id}`);
 
-          return par.join('&');
-        })()}`,
+        return par.join('&');
+      })()}`;
+
+    return BaseApi.create({
+      url: url,
       type: 'GET',
       headers: {
         'g-app': getConfig().config.appName,
@@ -426,6 +428,7 @@ export class ApiUser {
     filter_type?: string;
     with_level?: boolean;
     all_result?: boolean;
+    only_id?: boolean;
   }) {
     const filterString = this.formatFilterString(json.filter);
     const groupString = this.userListGroupString(json.group);
@@ -440,6 +443,7 @@ export class ApiUser {
       order_string: json.orderString ?? '',
       filter_type: json.filter_type ?? '',
       all_result: json.all_result ? `${json.all_result}` : '',
+      only_id: json.only_id ? `${json.only_id}` : '',
     }).toString();
 
     const extraQuery = [...filterString, ...groupString].join('&');
@@ -462,37 +466,10 @@ export class ApiUser {
         };
       }
 
-      const array = data.response.data;
-      const allUsers = data.response.allUsers;
-
-      if (array.length > 0) {
-        await Promise.allSettled(
-          array.map(async (item: any) => {
-            const firstShipment = (
-              await ApiShop.getOrder({
-                page: 0,
-                limit: 1,
-                data_from: 'manager',
-                email: item.account || '-1',
-                phone: item.account || '-1',
-                valid: true,
-                is_shipment: true,
-              })
-            ).response.data[0];
-            if (!item.tag_name) {
-              item.tag_name = '一般會員'; // 失敗時提供預設值
-            }
-            if (firstShipment) {
-              item.firstShipment = firstShipment;
-            }
-          })
-        );
-      }
-
       return {
         response: {
-          data: array,
-          allUsers,
+          data: data.response.data,
+          allUsers: data.response.allUsers,
           total: data.response.total,
           extra: data.response.extra,
         },

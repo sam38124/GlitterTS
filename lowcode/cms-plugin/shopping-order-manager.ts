@@ -403,6 +403,7 @@ export class ShoppingOrderManager {
                       page: 0,
                       limit: 99999,
                       filter_type: 'watch',
+                      only_id: true,
                     }),
                   ]).then(dataArray => {
                     return [dataArray[0], dataArray[1].response.data];
@@ -4443,8 +4444,9 @@ export class ShoppingOrderManager {
                                           return new Promise(resolve => {
                                             ApiUser.getUserList({
                                               page: 0,
-                                              limit: 50,
+                                              limit: 99999,
                                               search: data.query,
+                                              only_id: true,
                                             }).then(dd => {
                                               if (dd.response.data) {
                                                 resolve(

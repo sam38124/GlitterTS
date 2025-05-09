@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -61,6 +71,7 @@ const auto_fcm_js_1 = require("../../public-config-initial/auto-fcm.js");
 const phone_verify_js_1 = require("./phone-verify.js");
 const update_progress_track_js_1 = require("../../update-progress-track.js");
 const fb_api_js_1 = require("./fb-api.js");
+const shopping_1 = require("./shopping");
 class User {
     constructor(app, token) {
         this.normalMember = {
@@ -1050,6 +1061,7 @@ class User {
         var _a, _b, _c;
         try {
             const checkPoint = new ut_timer_1.UtTimer('GET-USER-LIST').checkPoint;
+            const _shopping = new shopping_1.Shopping(this.app, this.token);
             const orderCountingSQL = await this.getCheckoutCountingModeSQL();
             const querySql = ['1=1'];
             const noRegisterUsers = [];
@@ -1304,14 +1316,12 @@ class User {
                     limit: param === null || param === void 0 ? void 0 : param.limit,
                 });
                 const levelData = (_b = (await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' })).levels) !== null && _b !== void 0 ? _b : [];
-                const getUsers = (await database_1.default.query(dataSQL, [])).map((dd) => {
-                    dd.pwd = undefined;
-                    const find_level = levelData.find((d1) => {
-                        return dd.member_level === d1.id;
-                    });
-                    dd.tag_name = find_level ? find_level.tag_name : '一般會員';
-                    return dd;
-                });
+                const getUsers = await database_1.default.query(dataSQL, []);
+                for (const user of getUsers) {
+                    user.pwd = undefined;
+                    const find_level = levelData.find((d1) => user.member_level === d1.id);
+                    user.tag_name = find_level ? find_level.tag_name : '一般會員';
+                }
                 checkPoint('getUsers');
                 if (param) {
                     const dataArray = [];
@@ -1368,6 +1378,16 @@ class User {
                     user.last_order_total = user.last_order_total || 0;
                     user.order_count = user.order_count || 0;
                     user.total_amount = user.total_amount || 0;
+                    console.log('shipmentOrder', user.email);
+                    const shipmentOrder = await _shopping.getCheckOut({
+                        page: 0,
+                        limit: 1,
+                        email: user.email,
+                        is_shipment: true,
+                    });
+                    if (shipmentOrder.data[0]) {
+                        user.last_has_shipment_number_date = shipmentOrder.data[0].shipment_date;
+                    }
                 };
                 if (Array.isArray(userData) && userData.length > 0) {
                     const chunkSize = 100;

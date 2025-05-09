@@ -29,7 +29,7 @@ export class Schedule {
 
   async preload(app: string) {
     const brand_type = await App.checkBrandAndMemberType(app);
-    if (brand_type.brand === 'shopnex' && brand_type.domain) {
+    if ((brand_type.brand === 'shopnex' && brand_type.domain) || (app === 'shopnex') ) {
       if (!(await this.isDatabasePass(app))) return false;
       await ApiPublic.createScheme(app);
       return true;

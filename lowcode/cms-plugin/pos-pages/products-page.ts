@@ -108,7 +108,10 @@ export class ProductsPage {
 
     function loadData() {
       let category = vm.categories.find((category: any) => category.select == true);
-      dialog.dataLoading({ visible: true });
+      if((!vm.productSearch) || !vm.productSearch.length){
+        dialog.dataLoading({ visible: true });
+      }
+      // dialog.dataLoading({ visible: true });
       ApiShop.getProduct({
         page: pVM.pageIndex - 1,
         collection: category.key == 'all' ? '' : category.key,
@@ -119,9 +122,12 @@ export class ProductsPage {
         whereStore: POSSetting.config.where_store,
         orderBy: 'created_time_desc',
       }).then(res => {
+        if((!vm.productSearch) || !vm.productSearch.length){
+          dialog.dataLoading({ visible: false });
+        }
         vm.productSearch = res.response.data;
         pVM.pageSize = Math.ceil(res.response.total / parseInt(pVM.limit as any, 10));
-        dialog.dataLoading({ visible: false });
+        // dialog.dataLoading({ visible: false });
         gvc.notifyDataChange(`productShow`);
       });
     }
@@ -183,7 +189,7 @@ export class ProductsPage {
           },
           divCreate: {
             class: `d-flex px-3 `,
-            style: `width:100%;overflow: scroll;padding-bottom:32px;${document.body.clientWidth > 992 ? `padding-left:32px !important;padding-right:32px !important;` : `padding-top:20px;`}`,
+            style: `width:100%;overflow: scroll;${document.body.clientWidth > 992 ? `padding-left:32px !important;padding-right:32px !important;padding-bottom:32px;` : `padding-top:20px;padding-bottom:20px;`}`,
           },
         })}
         ${gvc.bindView(() => {
@@ -199,7 +205,7 @@ export class ProductsPage {
               }
               let maxwidth = (parent.offsetWidth - 72 - (rowItem - 1) * 26) / rowItem;
               if (document.body.offsetWidth < 600) {
-                maxwidth += 10;
+                maxwidth += 30;
               }
 
               if (vm.productSearch.length > 0) {
@@ -279,7 +285,7 @@ export class ProductsPage {
               if (document.body.offsetWidth < 800) {
                 return {
                   class: `d-flex flex-wrap w-100 product-show`,
-                  style: `overflow:scroll;max-height:100%;padding-left:24px;padding-right:24px;justify-content: space-between;padding-bottom:100px;`,
+                  style: `overflow:scroll;max-height:100%;padding-left:12px;padding-right:12px;justify-content: space-between;padding-bottom:100px;`,
                 };
               } else {
                 return {
