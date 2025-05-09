@@ -5,8 +5,8 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { CheckInput } from '../modules/checkInput.js';
-import { Tool } from '../modules/tool.js';
 import { TableStorage } from './module/table-storage.js';
+import { VendorExcel } from './module/vendor-excel.js';
 const html = String.raw;
 export class StockVendors {
     static main(gvc) {
@@ -62,7 +62,7 @@ export class StockVendors {
                     },
                     {
                         key: '聯絡人姓名',
-                        value: `<span class="fs-7">${dd.manager_name}</span>`,
+                        value: `<span class="fs-7">${dd.manager_name || '（尚未填寫）'}</span>`,
                     },
                 ];
             });
@@ -70,9 +70,15 @@ export class StockVendors {
         return BgWidget.container(html ` <div class="title-container">
           ${BgWidget.title('供應商管理')}
           <div class="flex-fill"></div>
-          ${BgWidget.grayButton('新增供應商', gvc.event(() => {
-            vm.type = 'create';
-        }))}
+          <div class="d-flex align-items-center gap-2">
+            ${[
+            BgWidget.grayButton('匯入', gvc.event(() => VendorExcel.importDialog(gvc, () => gvc.notifyDataChange(vm.id)))),
+            BgWidget.grayButton('匯出', gvc.event(() => VendorExcel.exportDialog(gvc))),
+            BgWidget.grayButton('新增供應商', gvc.event(() => {
+                vm.type = 'create';
+            })),
+        ].join('')}
+          </div>
         </div>
         ${BgWidget.container(BgWidget.mainCard([
             (() => {
@@ -289,13 +295,6 @@ export class StockVendors {
             });
         });
     }
-    static getNewID(list) {
-        let newId;
-        do {
-            newId = `vendor_${Tool.randomString(6)}`;
-        } while (list.some((item) => item.id === newId));
-        return newId;
-    }
     static verifyStoreForm(glitter, type, data, callback) {
         const dialog = new ShareDialog(glitter);
         if (CheckInput.isEmpty(data.name)) {
@@ -314,6 +313,12 @@ export class StockVendors {
         this.getPublicData().then((vendors) => {
             var _a;
             vendors.list = (_a = vendors.list) !== null && _a !== void 0 ? _a : [];
+            const find_vendor = vendors.list.find((item) => item.name === data.name);
+            if (find_vendor && find_vendor.id !== data.id) {
+                dialog.dataLoading({ visible: false });
+                dialog.infoMessage({ text: `供應商「${data.name}」已存在` });
+                return;
+            }
             if (type === 'replace') {
                 const vendor = vendors.list.find((item) => item.id === data.id);
                 if (vendor) {
@@ -321,7 +326,7 @@ export class StockVendors {
                 }
             }
             else {
-                data.id = this.getNewID(vendors.list);
+                data.id = VendorExcel.getNewID(vendors.list);
                 vendors.list.push(data);
             }
             ApiUser.setPublicConfig({
