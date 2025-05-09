@@ -191,8 +191,7 @@ export class imageLibrary {
                                                     function itemClick() {
                                                         var _a;
                                                         if (vm.type == 'folder') {
-                                                            console.log("vm.link --", vm.link);
-                                                            vm.type = 'folderEdit';
+                                                            vm.type = 'folder';
                                                             that.selectImageLibrary(gvc, selectData => {
                                                                 vm.link = selectData;
                                                                 gvc.notifyDataChange(vm.id);
@@ -509,7 +508,6 @@ export class imageLibrary {
                             }
                             if (vm.type == 'folderViewToEdit') {
                                 vm.type = 'folderView';
-                                console.log("vm.link --", vm.link);
                                 yield that.selectImageLibrary(gvc, selectData => {
                                     vm.link = selectData;
                                     gvc.notifyDataChange(vm.id);
@@ -1023,6 +1021,7 @@ export class imageLibrary {
                 });
             },
             footer_html: (gvc) => {
+                const footerType = vm.type;
                 const dialog = new ShareDialog(cf.gvc.glitter);
                 function clearNoNeedData(items) {
                     items.map(dd => {

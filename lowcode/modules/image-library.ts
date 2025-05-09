@@ -16,6 +16,14 @@ export type FileItem = {
   id: string;
 };
 
+type KeyType =
+  | 'file'
+  | 'folder'
+  | 'folderView'
+  | 'folderEdit'
+  | 'folderADD'
+  | 'folderViewToEdit';
+
 const html = String.raw;
 const css = String.raw;
 
@@ -48,7 +56,7 @@ export class imageLibrary {
       selected: boolean;
       query: string;
       orderString: string;
-      type: string;
+      type: KeyType
       tag?: string;
       newFolder: FileItem;
     } = {
@@ -249,9 +257,8 @@ export class imageLibrary {
 
                             function itemClick() {
                               if (vm.type == 'folder') {
-                                console.log("vm.link --" , vm.link);
                                 //編輯資料夾內容
-                                vm.type = 'folderEdit';
+                                vm.type = 'folder';
                                 that.selectImageLibrary(
                                   gvc,
                                   selectData => {
@@ -576,7 +583,7 @@ export class imageLibrary {
                           ? '700'
                           : '500'};cursor: pointer;"
                         onclick="${gvc.event(e => {
-                          vm.type = data.key;
+                          vm.type = data.key as KeyType;
                           vm.query = '';
                           gvc.notifyDataChange(vm.id);
                         })}"
@@ -589,7 +596,6 @@ export class imageLibrary {
               }
               if (vm.type == 'folderViewToEdit'){
                 vm.type = 'folderView';
-                console.log("vm.link --" , vm.link);
                 await that.selectImageLibrary(
                   gvc,
                   selectData => {
@@ -1164,7 +1170,16 @@ export class imageLibrary {
           label: string;
           onClick: () => void;
         };
+        // type KeyType =
+        //   | 'file'
+        //   | 'folder'
+        //   | 'folderView'
+        //   | 'folderEdit'
+        //   | 'folderADD'
+        //   | 'folderViewToEdit';
+        const footerType = vm.type
         const dialog = new ShareDialog(cf.gvc.glitter);
+
 
         function clearNoNeedData(items: FileItem[]) {
           items.map(dd => {
@@ -1240,7 +1255,6 @@ export class imageLibrary {
             },
           ];
         }
-
         function getDefaultButtons(gvc: GVC, save: Function, dialog: ShareDialog): BtnDef[] {
           const finishLabel = cf.key === 'album' ? '建立' : '完成';
           const cancelLabel = cf.key === 'album' ? '返回' : '取消';
@@ -1324,11 +1338,11 @@ export class imageLibrary {
             },
           ];
         }
-
         const defs = vm.type === 'folderEdit' ? getFolderEditButtons(gvc, save) : getDefaultButtons(gvc, save, dialog);
         return gvc.bindView({
           bind:vm.footer_id,
           view:()=>{
+
             return defs
               .map(d => {
                 const widget =
