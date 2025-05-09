@@ -274,10 +274,10 @@ export class OrderModule {
     // 處理訂單連結
 
     const orderNumbers = record.match(/{{order=(\d+[a-zA-Z]?)}}/g) || [];
-    console.log("orderNumbers - ", orderNumbers);
+    console.log('orderNumbers - ', orderNumbers);
     orderNumbers.map((order: string) => {
       const pureOrder = order.replace(/{{order=|}}/g, '');
-      console.log("pureOrder -- " , pureOrder );
+      console.log('pureOrder -- ', pureOrder);
       record = record.replace(
         order,
         BgWidget.blueNote(
@@ -426,7 +426,7 @@ export class OrderModule {
                         }
 
                         const storeKeys = Object.keys(dd.deduction_log || {});
-                        //todo 不能變更為負數 
+                        //todo 不能變更為負數
                         if (storeKeys.length > 0) {
                           let selectStore = '';
                           for (const key of storeKeys) {
@@ -815,17 +815,19 @@ export class OrderModule {
               return BgWidget.spinner();
             } else {
               return [
-                BgWidget.searchPlace(
-                  gvc2.event(e => {
-                    vmt.search = e.value;
-                    vmt.loading = true;
-                    gvc2.notifyDataChange(vmt.id);
-                  }),
-                  vmt.search,
-                  '搜尋標籤',
-                  '0',
-                  '0'
-                ),
+                html`<div class="position-sticky px-1" style="top: 0; background-color: #fff;">
+                  ${BgWidget.searchPlace(
+                    gvc2.event(e => {
+                      vmt.search = e.value;
+                      vmt.loading = true;
+                      gvc2.notifyDataChange(vmt.id);
+                    }),
+                    vmt.search,
+                    '搜尋標籤',
+                    '0',
+                    '0'
+                  )}
+                </div>`,
                 BgWidget.renderOptions(gvc2, vmt),
               ].join(BgWidget.mbContainer(18));
             }

@@ -411,8 +411,8 @@ export class BgProduct {
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
-                    <div class="d-flex" style="gap: 12px;">
+                  <div class="c_dialog_main" style="gap: 18px; max-height: 500px;">
+                    <div class="position-sticky px-1" style="top: 0; background-color: #fff;">
                       ${BgWidget.searchFilter(gvc.event((e, event) => {
                         vm.query = e.value;
                         vm.loading = true;
@@ -771,11 +771,13 @@ export class BgProduct {
                         }
                         else {
                             return [
-                                BgWidget.searchPlace(gvc2.event(e => {
+                                html `<div class="position-sticky px-1" style="top: 0; background-color: #fff;">
+                  ${BgWidget.searchPlace(gvc2.event(e => {
                                     vmt.search = e.value;
                                     vmt.loading = true;
                                     gvc2.notifyDataChange(vmt.id);
-                                }), vmt.search, '搜尋標籤', '0', '0'),
+                                }), vmt.search, '搜尋標籤', '0', '0')}
+                </div>`,
                                 BgWidget.renderOptions(gvc2, vmt),
                             ].join(BgWidget.mbContainer(18));
                         }
