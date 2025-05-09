@@ -20,6 +20,7 @@ export class imageLibrary {
         const gvc = cf.gvc;
         const vm = {
             id: cf.gvc.glitter.getUUID(),
+            footer_id: gvc.glitter.getUUID(),
             link: [],
             selected: false,
             loading: true,
@@ -190,7 +191,8 @@ export class imageLibrary {
                                                     function itemClick() {
                                                         var _a;
                                                         if (vm.type == 'folder') {
-                                                            vm.tag = fileItem.title;
+                                                            console.log("vm.link --", vm.link);
+                                                            vm.type = 'folderEdit';
                                                             that.selectImageLibrary(gvc, selectData => {
                                                                 vm.link = selectData;
                                                                 gvc.notifyDataChange(vm.id);
@@ -436,6 +438,7 @@ export class imageLibrary {
                         view: () => __awaiter(this, void 0, void 0, function* () {
                             var _a, _b, _c;
                             const dialog = new ShareDialog(cf.gvc.glitter);
+                            gvc.notifyDataChange(vm.footer_id);
                             function drawBreadcrumb() {
                                 return html `
                   <div class="d-flex" style="margin: 20px 0">
@@ -503,6 +506,18 @@ export class imageLibrary {
                     `;
                                 })
                                     .join('');
+                            }
+                            if (vm.type == 'folderViewToEdit') {
+                                vm.type = 'folderView';
+                                console.log("vm.link --", vm.link);
+                                yield that.selectImageLibrary(gvc, selectData => {
+                                    vm.link = selectData;
+                                    gvc.notifyDataChange(vm.id);
+                                }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                    key: 'folderEdit',
+                                    mul: true,
+                                    tag: vm.tag,
+                                });
                             }
                             if (vm.type == 'folderADD') {
                                 function pushFolder(folder, imageArray) {
@@ -1105,7 +1120,8 @@ export class imageLibrary {
                             type: 'edit',
                             label: '編輯',
                             onClick: () => {
-                                vm.type = 'folderEdit';
+                                vm.type = 'folderViewToEdit';
+                                gvc.notifyDataChange(vm.id);
                             },
                         },
                         {
@@ -1167,21 +1183,29 @@ export class imageLibrary {
                         },
                     ];
                 }
-                const defs = cf.key === 'folderEdit' ? getFolderEditButtons(gvc, save) : getDefaultButtons(gvc, save, dialog);
-                return defs
-                    .map(d => {
-                    const widget = d.type === 'cancel' ? BgWidget.cancel : d.type === 'danger' ? BgWidget.danger : BgWidget.save;
-                    if (d.type == 'edit') {
-                        if (vm.type == 'folder') {
-                            return widget(gvc.event(d.onClick), d.label);
-                        }
-                        return '';
+                const defs = vm.type === 'folderEdit' ? getFolderEditButtons(gvc, save) : getDefaultButtons(gvc, save, dialog);
+                return gvc.bindView({
+                    bind: vm.footer_id,
+                    view: () => {
+                        return defs
+                            .map(d => {
+                            const widget = (d.type === 'cancel' || d.type === 'edit') ? BgWidget.cancel : d.type === 'danger' ? BgWidget.danger : BgWidget.save;
+                            if (d.type == 'edit') {
+                                if (vm.type == 'folderView') {
+                                    return widget(gvc.event(d.onClick), d.label);
+                                }
+                                return '';
+                            }
+                            else {
+                                return widget(gvc.event(d.onClick), d.label);
+                            }
+                        })
+                            .join('');
+                    }, divCreate: {
+                        class: 'w-100 d-flex align-items-center justify-content-end',
+                        style: 'gap:14px'
                     }
-                    else {
-                        return widget(gvc.event(d.onClick), d.label);
-                    }
-                })
-                    .join('');
+                });
             },
             closeCallback: () => {
                 if (cf.cancelEvent) {
