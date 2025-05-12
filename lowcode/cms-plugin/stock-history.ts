@@ -852,7 +852,6 @@ export class StockHistory {
                   hiddenPageSplit: true,
                 });
               },
-              divCreate: {},
               onCreate: () => {
                 if (loading) {
                   loading = false;
@@ -1976,27 +1975,24 @@ export class StockHistory {
                                     return StockHistory.vendorForm(gvc2, newVendorData);
                                   },
                                   footer_html: gvc2 => {
-                                    return `${BgWidget.cancel(
-                                      gvc2.event(() => {
-                                        gvc2.closeDialog();
-                                      })
-                                    )}
-                                                            ${BgWidget.save(
-                                                              gvc2.event(() => {
-                                                                StockVendors.verifyStoreForm(
-                                                                  glitter,
-                                                                  'create',
-                                                                  newVendorData,
-                                                                  response => {
-                                                                    gvc2.closeDialog();
-                                                                    vm.data.content.vendor = response.id;
-                                                                    loading = true;
-                                                                    gvc.notifyDataChange(id);
-                                                                  }
-                                                                );
-                                                              }),
-                                                              '完成'
-                                                            )}`;
+                                    return [
+                                      BgWidget.cancel(
+                                        gvc2.event(() => {
+                                          gvc2.closeDialog();
+                                        })
+                                      ),
+                                      BgWidget.save(
+                                        gvc2.event(() => {
+                                          StockVendors.verifyStoreForm(glitter, 'create', newVendorData, response => {
+                                            gvc2.closeDialog();
+                                            vm.data.content.vendor = response.id;
+                                            loading = true;
+                                            gvc.notifyDataChange(id);
+                                          });
+                                        }),
+                                        '完成'
+                                      ),
+                                    ].join('');
                                   },
                                 });
                               },
@@ -2004,7 +2000,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('vendor_manager', 'manager').then((dd: any) => {
@@ -2079,27 +2074,24 @@ export class StockHistory {
                                     return StockHistory.storeForm(gvc2, newStoreData);
                                   },
                                   footer_html: gvc2 => {
-                                    return `${BgWidget.cancel(
-                                      gvc2.event(() => {
-                                        gvc2.closeDialog();
-                                      })
-                                    )}
-                                                            ${BgWidget.save(
-                                                              gvc2.event(() => {
-                                                                StockStores.verifyStoreForm(
-                                                                  glitter,
-                                                                  'create',
-                                                                  newStoreData,
-                                                                  response => {
-                                                                    gvc2.closeDialog();
-                                                                    vm.data.content.store_in = response.id;
-                                                                    loading = true;
-                                                                    gvc.notifyDataChange(id);
-                                                                  }
-                                                                );
-                                                              }),
-                                                              '完成'
-                                                            )}`;
+                                    return [
+                                      BgWidget.cancel(
+                                        gvc2.event(() => {
+                                          gvc2.closeDialog();
+                                        }),
+                                        BgWidget.save(
+                                          gvc2.event(() => {
+                                            StockStores.verifyStoreForm(glitter, 'create', newStoreData, response => {
+                                              gvc2.closeDialog();
+                                              vm.data.content.store_in = response.id;
+                                              loading = true;
+                                              gvc.notifyDataChange(id);
+                                            });
+                                          }),
+                                          '完成'
+                                        )
+                                      ),
+                                    ].join('');
                                   },
                                 });
                               },
@@ -2107,7 +2099,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2175,7 +2166,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2236,7 +2226,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2306,7 +2295,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -3445,7 +3433,6 @@ export class StockHistory {
     let product_list = data.content.product_list;
     if (ids.length === 0) {
       callback([]);
-      // callback(product_list);
       return;
     }
 
