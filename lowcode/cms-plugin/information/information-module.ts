@@ -3,11 +3,13 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { FilterOptions } from '../filter-options.js';
 
+type PageType = 'basic' | 'function' | 'global';
+
 export type ViewModel = {
   id: string;
   tableId: string;
   filterId: string;
-  type: 'basic' | 'function' | 'global';
+  type: PageType;
   data: any;
   SEOData: any;
   domain: any;

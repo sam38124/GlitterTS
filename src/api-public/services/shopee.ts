@@ -64,6 +64,7 @@ export class Shopee {
             return `https://partner.shopeemobile.com`
         }
     }
+
     public static get partner_id() {
         if (process.env.shopee_beta === 'true') {
             return process.env.shopee_test_partner_id
@@ -71,6 +72,7 @@ export class Shopee {
             return process.env.shopee_partner_id
         }
     }
+
     public static get partner_key() {
         if (process.env.shopee_beta === 'true') {
             return process.env.shopee_test_partner_key
@@ -185,6 +187,7 @@ export class Shopee {
     }
 
     public static getItemProgress:string[]=[]
+
     public async getItemList(start: string, end: string, index: number = 0) {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = Shopee.partner_id??"";
@@ -607,6 +610,7 @@ export class Shopee {
             }
         }
     }
+
     public async asyncStockToShopee(obj:{
         product:any,
         access_token?:string,
@@ -704,6 +708,7 @@ export class Shopee {
             }
         }
     }
+
     public async asyncStockFromShopnex(): Promise<any> {
         let origData: any = {};
         try {
@@ -743,6 +748,7 @@ export class Shopee {
 
         }
     }
+
     public async fetchShopeeAccessToken(): Promise<any> {
         try {
             const sqlData = await db.execute(
@@ -799,6 +805,9 @@ export class Shopee {
             console.error("Database query for Shopee access token failed:", e);
         }
     }
+
+
+
     public getInitial(obj: any) {
         function getEmptyLanguageData() {
             return {

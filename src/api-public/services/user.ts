@@ -778,7 +778,7 @@ export class User {
           algorithm: 'ES256',
           header: {
             alg: 'ES256',
-            kid: config.key_id, // Key ID, should store in a safe place on server side
+            kid: config.key_id, // Key ID should store in a safe place on the server side
           },
         }
       );
@@ -1309,7 +1309,7 @@ export class User {
               })
             : users.map((item: { userID: number }) => item.userID).filter(item => item);
 
-          query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
+          query.id = ids.length > 0 ? ids.filter((id:any) => id).join(',') : '0,0';
         } else {
           query.id = '0,0';
         }
