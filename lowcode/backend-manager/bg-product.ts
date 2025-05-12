@@ -1076,7 +1076,7 @@ export class BgProduct {
         }
 
         return result
-          .filter(item => item.lang === defaultLanguage)
+          .filter(item => item.tag && item.lang === defaultLanguage)
           .map(item => {
             return {
               key: item.tag,
@@ -1091,7 +1091,7 @@ export class BgProduct {
   static async getProductManagerTag() {
     return await ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd: any) => {
       if (dd.result && dd.response?.value?.list) {
-        return dd.response.value.list.map((item: string) => {
+        return dd.response.value.list.filter(Boolean).map((item: string) => {
           return {
             key: item,
             name: `#${item}`,

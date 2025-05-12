@@ -173,8 +173,6 @@ export class POSSetting {
   }
 
   static initial(gvc: GVC) {
-
-
     gvc.glitter.share.editorViewModel = { app_config_original: {} };
     gvc.glitter.share.shop_config = { shop_name: '' };
 
@@ -191,7 +189,7 @@ export class POSSetting {
     });
   }
 
-  static setSaasBrand(){
+  static setSaasBrand() {
     if (window.location.href.includes('smartshop')) {
       (window as any).glitterBase = 'hd_saas';
     } else {
@@ -396,7 +394,6 @@ export class POSSetting {
     function changeSelectVariant(product: any) {
       let emptyArray: any[] = [];
       product.content.specs.forEach((spec: any) => {
-        console.log(spec.option);
         emptyArray.push(spec.option.find((opt: any) => opt.select == true).title);
       });
       return product.content.variants.find((variant: any) => arraysEqual(variant.spec, emptyArray));
@@ -871,13 +868,7 @@ export class POSSetting {
       query: '',
       productSearch: [],
       categorySearch: true,
-      categories: [
-        {
-          key: 'all',
-          value: '全部商品',
-          select: true,
-        },
-      ],
+      categories: [],
     };
 
     let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
@@ -980,7 +971,6 @@ export class POSSetting {
       PayConfig.pos_config = res.response.value;
       vm.loading = false;
       gvc.notifyDataChange(vm.id);
-      console.log(`PayConfig.pos_config=>`,PayConfig.pos_config)
     });
 
     if (vm.type === 'home') {
@@ -1389,21 +1379,20 @@ export class POSSetting {
                             <div class="dropdown-menu position-absolute" style="top:50px; right: 0;">
                               ${[
                                 ...[
-                                
                                   ...(PayConfig.deviceType === 'pos'
                                     ? [
-                                      html`<a
-                                        class="dropdown-item cursor_pointer d-flex align-items-center"
-                                        style="gap:10px;"
-                                        onclick="${gvc.event(() => {
-                                          CreditCard.refundView(gvc)
-                                        })}"
-                                      ><i
-                                        class="fa-regular fa-credit-card d-flex align-items-center justify-content-center"
-                                        style="width:20px;"
-                                      ></i
-                                      >信用卡刷退</a
-                                      >`,
+                                        html`<a
+                                          class="dropdown-item cursor_pointer d-flex align-items-center"
+                                          style="gap:10px;"
+                                          onclick="${gvc.event(() => {
+                                            CreditCard.refundView(gvc);
+                                          })}"
+                                          ><i
+                                            class="fa-regular fa-credit-card d-flex align-items-center justify-content-center"
+                                            style="width:20px;"
+                                          ></i
+                                          >信用卡刷退</a
+                                        >`,
                                         html` <a
                                           class="dropdown-item cursor_pointer d-flex align-items-center"
                                           style="gap:10px;"

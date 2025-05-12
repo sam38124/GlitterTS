@@ -840,7 +840,7 @@ export class BgProduct {
                         });
                     }
                     return result
-                        .filter(item => item.lang === defaultLanguage)
+                        .filter(item => item.tag && item.lang === defaultLanguage)
                         .map(item => {
                         return {
                             key: item.tag,
@@ -857,7 +857,7 @@ export class BgProduct {
             return yield ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd) => {
                 var _a, _b;
                 if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
-                    return dd.response.value.list.map((item) => {
+                    return dd.response.value.list.filter(Boolean).map((item) => {
                         return {
                             key: item,
                             name: `#${item}`,

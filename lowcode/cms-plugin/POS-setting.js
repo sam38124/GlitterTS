@@ -342,7 +342,6 @@ export class POSSetting {
         function changeSelectVariant(product) {
             let emptyArray = [];
             product.content.specs.forEach((spec) => {
-                console.log(spec.option);
                 emptyArray.push(spec.option.find((opt) => opt.select == true).title);
             });
             return product.content.variants.find((variant) => arraysEqual(variant.spec, emptyArray));
@@ -766,13 +765,7 @@ export class POSSetting {
             query: '',
             productSearch: [],
             categorySearch: true,
-            categories: [
-                {
-                    key: 'all',
-                    value: '全部商品',
-                    select: true,
-                },
-            ],
+            categories: [],
         };
         let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
         glitter.share.reloadPosPage = () => gvc.notifyDataChange(vm.id);
@@ -870,7 +863,6 @@ export class POSSetting {
             PayConfig.pos_config = res.response.value;
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
-            console.log(`PayConfig.pos_config=>`, PayConfig.pos_config);
         });
         if (vm.type === 'home') {
             vm.type = 'menu';
@@ -1277,17 +1269,17 @@ export class POSSetting {
                                         ...(PayConfig.deviceType === 'pos'
                                             ? [
                                                 html `<a
-                                        class="dropdown-item cursor_pointer d-flex align-items-center"
-                                        style="gap:10px;"
-                                        onclick="${gvc.event(() => {
+                                          class="dropdown-item cursor_pointer d-flex align-items-center"
+                                          style="gap:10px;"
+                                          onclick="${gvc.event(() => {
                                                     CreditCard.refundView(gvc);
                                                 })}"
-                                      ><i
-                                        class="fa-regular fa-credit-card d-flex align-items-center justify-content-center"
-                                        style="width:20px;"
-                                      ></i
-                                      >信用卡刷退</a
-                                      >`,
+                                          ><i
+                                            class="fa-regular fa-credit-card d-flex align-items-center justify-content-center"
+                                            style="width:20px;"
+                                          ></i
+                                          >信用卡刷退</a
+                                        >`,
                                                 html ` <a
                                           class="dropdown-item cursor_pointer d-flex align-items-center"
                                           style="gap:10px;"
