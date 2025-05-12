@@ -13,6 +13,7 @@ import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { TableStorage } from './module/table-storage.js';
+import { StockExcel } from './module/stock-excel.js';
 
 const html = String.raw;
 
@@ -725,6 +726,27 @@ export class StockHistory {
           })
         )}${BgWidget.title(`${typeData.name}核對`)}
         <div class="flex-fill"></div>
+        <div class="d-flex" style="gap: 14px;">
+          ${vm.data.type === 'checking' && [2, 4, 5].includes(vm.data.status)
+            ? BgWidget.grayButton(
+                '匯入',
+                gvc.event(() => {
+                  StockExcel.importDialog(gvc, vm.data.content.product_list, (updateList: ContentProduct[]) => {
+                    vm.data.content.product_list = updateList;
+                    gvc.notifyDataChange(vm.id);
+                  });
+                })
+              )
+            : ''}
+          ${vm.data.type === 'checking' && [2, 4, 5].includes(vm.data.status)
+            ? BgWidget.grayButton(
+                '匯出',
+                gvc.event(() => {
+                  StockExcel.exportChecking(gvc, vm.data.order_id, vm.data.content.product_list);
+                })
+              )
+            : ''}
+        </div>
       </div>
       <div class="title-container">
         ${BgWidget.tab(
