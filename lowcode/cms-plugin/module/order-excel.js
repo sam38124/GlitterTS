@@ -887,13 +887,13 @@ OrderExcel.getCustomizeMap = (order) => __awaiter(void 0, void 0, void 0, functi
         ['電話', 'phone'],
         ['信箱', 'email'],
     ];
-    receipt.list.map((d1) => {
-        var _b;
-        if (!viewModel.find(dd => {
-            return dd[1] === d1.key;
-        })) {
-            customizeMap.set(`收件人資訊 - ${d1.title}`, order ? ((_b = order.orderData.user_info[d1.key]) !== null && _b !== void 0 ? _b : '-') : '-');
-        }
-    });
+    if (receipt === null || receipt === void 0 ? void 0 : receipt.list) {
+        receipt.list.map((d1) => {
+            var _b;
+            if (!viewModel.find(dd => dd[1] === d1.key)) {
+                customizeMap.set(`收件人資訊 - ${d1.title}`, order ? ((_b = order.orderData.user_info[d1.key]) !== null && _b !== void 0 ? _b : '-') : '-');
+            }
+        });
+    }
     return customizeMap;
 });

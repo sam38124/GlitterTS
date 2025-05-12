@@ -2705,58 +2705,58 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         const height = (_b = obj.height) !== null && _b !== void 0 ? _b : 500;
         const closeHeight = 56;
         obj.gvc.addStyle(`
-            .box-container-${text} {
-                position: relative;
-                height: ${closeHeight}px;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                overflow-y: hidden;
-                transition: height 0.3s ease-out;
-            }
-            .box-container-${text}.open-box {
-                max-height: ${height}px;
-                height: ${height}px;
-                overflow-y: auto;
-            }
-            .box-navbar-${text} {
-                position: sticky;
-                top: 0;
-                min-height: 20px;
-                background-color: #fff;
-                z-index: 10;
-                display: flex;
-                padding: 15px 20px;
-                align-items: flex-start;
-                justify-content: space-between;
-                cursor: pointer;
-            }
-            .arrow-icon-${text} {
-                color: #393939 !important;
-                box-shadow: none !important;
-                background-color: #fff !important;
-                background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
-                background-repeat: no-repeat;
-                cursor: pointer;
-                height: 1rem;
-                border: 0;
-                margin-top: 0.35rem;
-                transition: transform 0.3s;
-            }
-            .arrow-icon-${text}.open-box {
-                margin-top: 0.15rem;
-                transform: rotate(180deg);
-            }
-            .box-inside-${text} {
-                padding: 0 1.5rem 1.5rem;
-                overflow-y: auto;
-            }
+      .box-container-${text} {
+        position: relative;
+        height: ${closeHeight}px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow-y: hidden;
+        transition: height 0.3s ease-out;
+      }
+      .box-container-${text}.open-box {
+        max-height: ${height}px;
+        height: ${height}px;
+        overflow-y: auto;
+      }
+      .box-navbar-${text} {
+        position: sticky;
+        top: 0;
+        min-height: 20px;
+        background-color: #fff;
+        z-index: 10;
+        display: flex;
+        padding: 15px 20px;
+        align-items: flex-start;
+        justify-content: space-between;
+        cursor: pointer;
+      }
+      .arrow-icon-${text} {
+        color: #393939 !important;
+        box-shadow: none !important;
+        background-color: #fff !important;
+        background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
+        background-repeat: no-repeat;
+        cursor: pointer;
+        height: 1rem;
+        border: 0;
+        margin-top: 0.35rem;
+        transition: transform 0.3s;
+      }
+      .arrow-icon-${text}.open-box {
+        margin-top: 0.15rem;
+        transform: rotate(180deg);
+      }
+      .box-inside-${text} {
+        padding: 0 1.5rem 1.5rem;
+        overflow-y: auto;
+      }
 
-            @media (max-width: 768px) {
-                .box-inside-${text} {
-                    padding: 1rem;
-                }
-            }
-        `);
+      @media (max-width: 768px) {
+        .box-inside-${text} {
+          padding: 1rem;
+        }
+      }
+    `);
         return obj.gvc.bindView({
             bind: bvid,
             view: () => {
@@ -2942,74 +2942,28 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         let tagList = [];
         let search = '';
         let selectTags = def || [];
+        gvc.addStyle(`
+      .select-tag-dialog {
+        margin-top: 1px;
+        border: 8px solid #fff;
+        outline: 1px solid #aeaeae;
+        height: 300px;
+        width: 100%;
+        border-radius: 5px;
+        position: absolute;
+        top: 0;
+        background-color: #fff;
+        border-radius: 5px;
+        overflow: auto;
+      }
+    `);
         return gvc.bindView({
             bind: id,
             view: () => {
                 if (loading) {
                     return '';
                 }
-                if (show) {
-                    return html `<div
-            style="margin-top: 1px;border: 8px solid #fff; outline: 1px solid #aeaeae; height: 300px; width: 100%; border-radius: 5px; position: absolute; top: 0; background-color: #fff; border-radius: 5px; overflow: auto;"
-          >
-            <div class="position-relative">
-              <div
-                class="w-100 d-flex align-items-center gap-1 position-sticky mb-1"
-                style="top: 0; background-color: #fff;"
-              >
-                <div class="w-100">
-                  <i
-                    class="fa-regular fa-magnifying-glass"
-                    style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
-                    aria-hidden="true"
-                  ></i>
-                  <input
-                    class="form-control h-100"
-                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
-                    placeholder="${placeholder}"
-                    onchange="${gvc.event(e => {
-                        search = `${e.value}`.trim();
-                        gvc.notifyDataChange(id);
-                    })}"
-                    value="${search}"
-                  />
-                </div>
-                ${this.customButton({
-                        button: {
-                            color: 'black',
-                            size: 'md',
-                        },
-                        text: {
-                            name: '確認',
-                            style: 'font-size: 14px;',
-                        },
-                        event: gvc.event(() => {
-                            show = false;
-                            gvc.notifyDataChange(id);
-                            callback(selectTags);
-                        }),
-                    })}
-              </div>
-              <div class="p-2">
-                ${this.multiCheckboxContainer(gvc, tagList.filter(tag => tag.name.toLowerCase().includes(search.toLowerCase())), selectTags, text => {
-                        if (search) {
-                            selectTags = [
-                                ...new Set(selectTags
-                                    .filter(tag => {
-                                    return !tag.toLowerCase().includes(search.toLowerCase());
-                                })
-                                    .concat(text)),
-                            ];
-                        }
-                        else {
-                            selectTags = text;
-                        }
-                    }, { single: false })}
-              </div>
-            </div>
-          </div>`;
-                }
-                else {
+                if (!show) {
                     return html `<div
             class="h-100"
             onclick="${gvc.event(() => {
@@ -3024,20 +2978,69 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
             ></i>
             <div
               class="form-control h-100"
-              style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%; color: #aeaeae; ${selectTags.length >
-                        0 && false
-                        ? 'padding: 0.3rem 3rem;'
-                        : ''}"
+              style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%; color: #aeaeae;"
             >
               ${placeholder}
-              <!-- ${selectTags.length > 0
-                        ? html `<div class="d-flex flex-wrap gap-2">
-                    ${selectTags.map(item => this.normalInsignia(`#${item}`)).join('')}
-                  </div>`
-                        : placeholder} -->
             </div>
           </div>`;
                 }
+                return html `<div class="select-tag-dialog">
+          <div class="position-relative">
+            <div
+              class="w-100 d-flex align-items-center gap-1 position-sticky mb-1 top-0"
+              style="background-color: #fff;"
+            >
+              <div class="w-100">
+                <i
+                  class="fa-regular fa-magnifying-glass"
+                  style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+                  aria-hidden="true"
+                ></i>
+                <input
+                  class="form-control h-100"
+                  style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
+                  placeholder="${placeholder}"
+                  onchange="${gvc.event(e => {
+                    search = `${e.value}`.trim();
+                    gvc.notifyDataChange(id);
+                })}"
+                  value="${search}"
+                />
+              </div>
+              ${this.customButton({
+                    button: {
+                        color: 'black',
+                        size: 'md',
+                    },
+                    text: {
+                        name: '確認',
+                        style: 'font-size: 14px;',
+                    },
+                    event: gvc.event(() => {
+                        show = false;
+                        gvc.notifyDataChange(id);
+                        callback(selectTags);
+                    }),
+                })}
+            </div>
+            <div class="p-2">
+              ${this.multiCheckboxContainer(gvc, tagList.filter(tag => tag.name.toLowerCase().includes(search.toLowerCase())), selectTags, text => {
+                    if (search) {
+                        selectTags = [
+                            ...new Set(selectTags
+                                .filter(tag => {
+                                return !tag.toLowerCase().includes(search.toLowerCase());
+                            })
+                                .concat(text)),
+                        ];
+                    }
+                    else {
+                        selectTags = text;
+                    }
+                }, { single: false })}
+            </div>
+          </div>
+        </div>`;
             },
             divCreate: {
                 class: 'w-100 position-relative search-tags-filter',
@@ -3049,10 +3052,7 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                         var _b, _c;
                         if (dd.result && ((_c = (_b = dd.response) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.list)) {
                             return dd.response.value.list.map((item) => {
-                                return {
-                                    key: item,
-                                    name: `#${item}`,
-                                };
+                                return { key: item, name: `#${item}` };
                             });
                         }
                         return [];
@@ -3315,16 +3315,16 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
             def: JSON.parse(JSON.stringify(obj.default)),
         };
         obj.gvc.addStyle(`
-            .${vm.random}-opt {
-                background-color: white;
-                gap: 24px;
-                padding: 6px;
-            }
-            .${vm.random}-opt:hover {
-                border-radius: 5px;
-                background-color: #e8e8e8;
-            }
-        `);
+      .${vm.random}-opt {
+        background-color: white;
+        gap: 24px;
+        padding: 6px;
+      }
+      .${vm.random}-opt:hover {
+        border-radius: 5px;
+        background-color: #e8e8e8;
+      }
+    `);
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
@@ -4284,31 +4284,31 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         })();
         const transX = obj.align === 'center' ? '-50%' : '0';
         obj.gvc.addStyle(`
-            .bounce-effect-${className} {
-                animation: bounce 0.5s alternate;
-                animation-iteration-count: 2;
-                position: fixed;
-                ${fixedStyle}
-                background-color: #393939;
-                opacity: 0.85;
-                color: white;
-                padding: 10px;
-                border-radius: 8px;
-                width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 120}px;
-                text-align: center;
-                z-index: 11;
-                transform: translateX(${transX});
-            }
+      .bounce-effect-${className} {
+        animation: bounce 0.5s alternate;
+        animation-iteration-count: 2;
+        position: fixed;
+        ${fixedStyle}
+        background-color: #393939;
+        opacity: 0.85;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        width: ${(_b = obj.width) !== null && _b !== void 0 ? _b : 120}px;
+        text-align: center;
+        z-index: 11;
+        transform: translateX(${transX});
+      }
 
-            @keyframes bounce {
-                0% {
-                    transform: translate(${transX}, 0);
-                }
-                100% {
-                    transform: translate(${transX}, -6px);
-                }
-            }
-        `);
+      @keyframes bounce {
+        0% {
+          transform: translate(${transX}, 0);
+        }
+        100% {
+          transform: translate(${transX}, -6px);
+        }
+      }
+    `);
         const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {

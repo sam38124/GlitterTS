@@ -411,8 +411,8 @@ export class BgProduct {
               </div>
               <div class="c_dialog">
                 <div class="c_dialog_body">
-                  <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
-                    <div class="d-flex" style="gap: 12px;">
+                  <div class="c_dialog_main" style="gap: 18px; max-height: 500px;">
+                    <div class="position-sticky px-1" style="top: 0; background-color: #fff;">
                       ${BgWidget.searchFilter(gvc.event((e, event) => {
                         vm.query = e.value;
                         vm.loading = true;
@@ -771,11 +771,13 @@ export class BgProduct {
                         }
                         else {
                             return [
-                                BgWidget.searchPlace(gvc2.event(e => {
+                                html `<div class="position-sticky px-1" style="top: 0; background-color: #fff;">
+                  ${BgWidget.searchPlace(gvc2.event(e => {
                                     vmt.search = e.value;
                                     vmt.loading = true;
                                     gvc2.notifyDataChange(vmt.id);
-                                }), vmt.search, '搜尋標籤', '0', '0'),
+                                }), vmt.search, '搜尋標籤', '0', '0')}
+                </div>`,
                                 BgWidget.renderOptions(gvc2, vmt),
                             ].join(BgWidget.mbContainer(18));
                         }
@@ -838,7 +840,7 @@ export class BgProduct {
                         });
                     }
                     return result
-                        .filter(item => item.lang === defaultLanguage)
+                        .filter(item => item.tag && item.lang === defaultLanguage)
                         .map(item => {
                         return {
                             key: item.tag,
@@ -855,7 +857,7 @@ export class BgProduct {
             return yield ApiUser.getPublicConfig('product_manager_tags', 'manager').then((dd) => {
                 var _a, _b;
                 if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
-                    return dd.response.value.list.map((item) => {
+                    return dd.response.value.list.filter(Boolean).map((item) => {
                         return {
                             key: item,
                             name: `#${item}`,

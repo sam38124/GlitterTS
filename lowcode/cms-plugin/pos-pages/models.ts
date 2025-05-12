@@ -16,7 +16,7 @@ export class OrderDetail {
     spec: string[];
     count: number;
     sale_price: number;
-    custom_price?:any;
+    custom_price?: any;
     sku: string;
     product_category?: string;
   }[];
@@ -131,6 +131,10 @@ export type ViewModel = {
   order: any;
   productSearch: any[];
   categorySearch: boolean;
-  categories: any[];
+  categories: {
+    key: string;
+    value: string;
+    select?: boolean;
+  }[];
   loading: boolean;
 };

@@ -250,10 +250,10 @@ export class OrderModule {
     }
     static formatRecord(gvc, vm, orderID, record) {
         const orderNumbers = record.match(/{{order=(\d+[a-zA-Z]?)}}/g) || [];
-        console.log("orderNumbers - ", orderNumbers);
+        console.log('orderNumbers - ', orderNumbers);
         orderNumbers.map((order) => {
             const pureOrder = order.replace(/{{order=|}}/g, '');
-            console.log("pureOrder -- ", pureOrder);
+            console.log('pureOrder -- ', pureOrder);
             record = record.replace(order, BgWidget.blueNote(`#${pureOrder}`, gvc.event(() => {
                 vm.data.cart_token = pureOrder;
                 vm.type = 'replace';
@@ -718,11 +718,13 @@ export class OrderModule {
                         }
                         else {
                             return [
-                                BgWidget.searchPlace(gvc2.event(e => {
+                                html `<div class="position-sticky px-1" style="top: 0; background-color: #fff;">
+                  ${BgWidget.searchPlace(gvc2.event(e => {
                                     vmt.search = e.value;
                                     vmt.loading = true;
                                     gvc2.notifyDataChange(vmt.id);
-                                }), vmt.search, '搜尋標籤', '0', '0'),
+                                }), vmt.search, '搜尋標籤', '0', '0')}
+                </div>`,
                                 BgWidget.renderOptions(gvc2, vmt),
                             ].join(BgWidget.mbContainer(18));
                         }
