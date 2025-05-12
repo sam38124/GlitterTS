@@ -179,7 +179,7 @@ export class StockExcel {
     // 處理 JSON, 判斷欄位是否顯示
     const formatJSON = (obj: Record<string, any>) => Object.fromEntries(Object.entries(obj));
 
-    // 供應商基本欄位物件
+    // 盤點單基本欄位物件
     const getBasicJSON = (product: ContentProduct) => {
       return formatJSON({
         商品: product.title,

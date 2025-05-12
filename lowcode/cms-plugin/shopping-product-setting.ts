@@ -318,18 +318,17 @@ export class ShoppingProductSetting {
                                                   width: 40,
                                                   class: 'rounded border me-2',
                                                 })}
-                                                <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center gap-2">
+                                                  ${Tool.truncateString(
+                                                    dd.content.title,
+                                                    dd.content.shopee_id ? 16 : 20
+                                                  )}
                                                   ${dd.content.shopee_id
-                                                    ? html`<div style="margin-bottom: -10px;">
-                                                        <div
-                                                          class="insignia"
-                                                          style="background: orangered;color: white;"
-                                                        >
-                                                          蝦皮
-                                                        </div>
-                                                      </div> `
+                                                    ? html`<img
+                                                        src="${ShoppingProductSetting.shopeeImage}"
+                                                        style="width: 20px; height: 20px;"
+                                                      />`
                                                     : ''}
-                                                  <div>${Tool.truncateString(dd.content.title)}</div>
                                                 </div>
                                               </div>`,
                                             },
@@ -2033,6 +2032,9 @@ export class ShoppingProductSetting {
         return BgWidget.secondaryInsignia('草稿');
     }
   }
+
+  static shopeeImage =
+    'https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png';
 }
 
 (window as any).glitter.setModule(import.meta.url, ShoppingProductSetting);
