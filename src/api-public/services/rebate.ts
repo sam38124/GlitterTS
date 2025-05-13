@@ -399,33 +399,26 @@ export class Rebate {
         amount,
         msg: '',
       };
+
       if (!(await this.mainStatus())) {
         errorObj.msg = '購物金功能關閉中';
         return errorObj;
       }
+
       if (recentRebate + amount < 0) {
         errorObj.msg = proof?.order_id ? '購物金餘額不足' : '扣除金額請勿大於餘額';
         return errorObj;
       }
+
       if (amount > 0) {
         if (proof) {
           delete proof.deadTime;
           delete proof.setCreatedAt;
         }
         await db.execute(insertSQL, [user_id, amount, amount, note, proof ?? {}, nowTime, nowTime, deadTime]);
-      }
-      if (amount < 0) {
+      } else if (amount < 0) {
         await this.updateOldestRebate(user_id, amount);
-        await db.execute(insertSQL, [
-          user_id,
-          amount,
-          0,
-          note,
-          proof && proof.type ? { type: proof.type } : {},
-          nowTime,
-          nowTime,
-          null,
-        ]);
+        await db.execute(insertSQL, [user_id, amount, 0, note, proof ?? {}, nowTime, nowTime, null]);
       }
 
       return {
