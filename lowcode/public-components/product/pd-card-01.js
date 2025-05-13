@@ -206,20 +206,29 @@ export class ProductCard01 {
         })}"
         />
         <div class="child add-cart-child">
-          <div
-            class="w-100 h-100 p-3 add-cart-text"
-            onclick="${gvc.event((e, event) => {
-            event.stopPropagation();
-            PdClass.addCartAction({
-                gvc: gvc,
-                titleFontColor: titleFontColor,
-                prod: prod,
-                vm: vm,
-            });
-        })}"
-          >
-            <i class="fa-regular fa-cart-shopping me-2"></i>${Language.text('add_to_cart')}
-          </div>
+          ${(() => {
+            const isAllUnderstocking = prod.variants.every((item) => item.show_understocking === 'true');
+            const stockTotal = prod.variants.reduce((sum, item) => sum + item.stock, 0);
+            const isSoldOut = isAllUnderstocking && stockTotal === 0;
+            return html `<div
+              class="w-100 h-100 p-3 add-cart-text"
+              onclick="${gvc.event((_, event) => {
+                event.stopPropagation();
+                if (!isSoldOut) {
+                    PdClass.addCartAction({
+                        gvc: gvc,
+                        titleFontColor: titleFontColor,
+                        prod: prod,
+                        vm: vm,
+                    });
+                }
+            })}"
+            >
+              ${isSoldOut
+                ? html `<i class="fa-solid fa-ban me-2"></i>${Language.text('sold_out')}`
+                : html `<i class="fa-regular fa-cart-shopping me-2"></i>${Language.text('add_to_cart')}`}
+            </div>`;
+        })()}
         </div>
       </div>
       <div class="card-collapse-parent cursor_pointer">

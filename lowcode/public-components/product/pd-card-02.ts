@@ -212,7 +212,7 @@ export class ProductCard02 {
           })}"
         />
       </div>
-      
+
       <div class="card-collapse-parent">
         <div class="d-flex card-title-container justify-content-between align-items-center">
           <div class="row gx-0 mb-1" style="max-width:calc(100% - 50px);">
@@ -238,21 +238,30 @@ export class ProductCard02 {
             </div>
           </div>
           <div class="add-cart-child">
-            <div
-              class="w-100 h-100 p-3 add-cart-text"
-              style="border-radius: 50%; color: ${borderButtonText}; border: 1px solid ${borderButtonBgr};"
-              onclick="${gvc.event((e, event) => {
-                event.stopPropagation();
-                PdClass.addCartAction({
-                  gvc: gvc,
-                  titleFontColor: titleFontColor,
-                  prod: prod,
-                  vm: vm,
-                });
-              })}"
-            >
-              <i class="fa-solid fa-cart-plus"></i>
-            </div>
+            ${(() => {
+              const isAllUnderstocking = prod.variants.every((item: any) => item.show_understocking === 'true');
+              const stockTotal = prod.variants.reduce((sum: number, item: any) => sum + item.stock, 0);
+              const isSoldOut = isAllUnderstocking && stockTotal === 0;
+
+              return html`<div
+                class="w-100 h-100 p-3 add-cart-text"
+                style="border-radius: 50%; color: ${borderButtonText}; border: 1px solid ${borderButtonBgr};"
+                onclick="${gvc.event((_, event) => {
+                  event.stopPropagation();
+
+                  if (!isSoldOut) {
+                    PdClass.addCartAction({
+                      gvc: gvc,
+                      titleFontColor: titleFontColor,
+                      prod: prod,
+                      vm: vm,
+                    });
+                  }
+                })}"
+              >
+                ${isSoldOut ? html`<i class="fa-solid fa-ban"></i>` : html`<i class="fa-solid fa-cart-plus"></i>`}
+              </div>`;
+            })()}
           </div>
         </div>
       </div>

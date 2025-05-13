@@ -274,6 +274,7 @@ export class Language {
             { key: 'send_to_user_email', tw: '傳送至用戶信箱', cn: '传送至用户邮箱', en: 'Send to user email' },
             { key: 'mobile_barcode_device', tw: '手機條碼載具', cn: '手机条码载具', en: 'Mobile barcode device' },
             { key: 'add_to_cart', tw: '加入購物車', cn: '加入购物车', en: 'Add to Cart' },
+            { key: 'sold_out', tw: '商品已售完', cn: '商品已售罄', en: 'Sold Out' },
             { key: 'preorder_item', tw: '預購商品', cn: '预购商品', en: 'Preorder Item' },
             { key: 'confirm_select', tw: '確認選擇', cn: '确认选择', en: 'Confirm selection' },
             { key: 'add_to_cart_success', tw: '加入成功', cn: '加入成功', en: 'Added successfully' },
