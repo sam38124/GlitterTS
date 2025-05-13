@@ -567,7 +567,6 @@ class Shopee {
                                  WHERE (content ->>'$.type'='product')
                                    AND (content ->>'$.shopee_id' IS NOT NULL AND content ->>'$.shopee_id' <> '')`, []);
             let temp = await this.fetchShopeeAccessToken();
-            console.log("here 2 oK");
             return Promise.all(origData.map((product) => new Promise((resolve, reject) => {
                 try {
                     this.asyncStockToShopee({

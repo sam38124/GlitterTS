@@ -82,7 +82,6 @@ router.get('/listenMessage', async (req, resp) => {
 });
 router.post('/syncStock', async (req, resp) => {
     try {
-        console.log("here 1 oK");
         const res = await new shopee_1.Shopee(req.get('g-app'), req.body.token).asyncStockFromShopnex();
         return response_1.default.succ(resp, {
             "result": "OK",
