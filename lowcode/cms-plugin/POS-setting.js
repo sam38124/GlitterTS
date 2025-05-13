@@ -30,6 +30,7 @@ import { PosWidget } from './pos-widget.js';
 import { SaasOffer } from '../saas-offer.js';
 import { Language } from '../glitter-base/global/language.js';
 import { CreditCard } from './pos-pages/credit-card.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 const html = String.raw;
 export class POSSetting {
     static loginManager(gvc, mode, result) {
@@ -491,9 +492,9 @@ export class POSSetting {
                                   </svg>
                                 </div>
                               </div>
-                              <div class="d-flex mt-2 align-items-center justify-content-end ">
-                                <span
-                                  >${(() => {
+                              <div class="d-flex flex-column gap-1 mt-2 align-items-end justify-content-center">
+                                <div>
+                                  ${(() => {
                                         if (selectVariant.show_understocking === 'false') {
                                             return '此商品未追蹤庫存數量';
                                         }
@@ -502,8 +503,67 @@ export class POSSetting {
                                             return `庫存數量: ${selectVariant.exhibition_active_stock}`;
                                         }
                                         return `庫存數量: ${selectVariant.stock}`;
-                                    })()}</span
-                                >
+                                    })()}
+                                </div>
+                                ${selectVariant.show_understocking === 'false'
+                                        ? ''
+                                        : BgWidget.blueNote('查看其他庫存點', gvc.event(() => {
+                                            BgWidget.settingDialog({
+                                                gvc,
+                                                title: '其他庫存點',
+                                                innerHTML: () => {
+                                                    return BgWidget.tableV3({
+                                                        gvc,
+                                                        filter: [],
+                                                        getData: vmi => {
+                                                            const dataList = [];
+                                                            function callback() {
+                                                                vmi.pageSize = 1;
+                                                                vmi.originalData = dataList;
+                                                                vmi.tableData = getDatalist();
+                                                                vmi.loading = false;
+                                                                vmi.callback();
+                                                            }
+                                                            function getDatalist() {
+                                                                return dataList.map((dd) => {
+                                                                    return [
+                                                                        {
+                                                                            key: '門市名稱',
+                                                                            value: `<span class="fs-7">${dd.name}</span>`,
+                                                                        },
+                                                                        {
+                                                                            key: '數量',
+                                                                            value: `<span class="fs-7">${dd.count || 0}</span>`,
+                                                                        },
+                                                                    ];
+                                                                });
+                                                            }
+                                                            ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
+                                                                var _a;
+                                                                if (dd.result && Array.isArray((_a = dd.response.value) === null || _a === void 0 ? void 0 : _a.list)) {
+                                                                    dd.response.value.list.map((store) => {
+                                                                        var _a, _b, _c;
+                                                                        const n = (_c = (_b = (_a = selectVariant.stockList) === null || _a === void 0 ? void 0 : _a[store.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
+                                                                        dataList.push({
+                                                                            name: store.name,
+                                                                            count: n > 0 ? n : 0,
+                                                                        });
+                                                                    });
+                                                                }
+                                                                callback();
+                                                            });
+                                                        },
+                                                        rowClick: () => { },
+                                                        hiddenPageSplit: true,
+                                                    });
+                                                },
+                                                footer_html: (fGVC) => {
+                                                    return [
+                                                        BgWidget.save(fGVC.event(() => gvc.closeDialog()), '確認'),
+                                                    ].join();
+                                                },
+                                            });
+                                        }))}
                               </div>
                             `;
                                 },
