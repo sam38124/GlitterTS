@@ -154,6 +154,7 @@ export class Language {
             },
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
             { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
+            { key: 'cart_subtotal', tw: '購物車小計', cn: '购物车小计', en: `Cart Subtotal` },
             {
                 key: 'free_shipping_achieved',
                 tw: '已達成免運費',
