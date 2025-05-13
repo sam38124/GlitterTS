@@ -121,7 +121,9 @@ export class CheckoutIndex {
         function refreshCartData() {
             apiCart = getCartData();
             const dialog = new ShareDialog(gvc.glitter);
-            dialog.dataLoading({ visible: true });
+            if (!loadings.page) {
+                dialog.dataLoading({ visible: true });
+            }
             const beta = false;
             if (!beta) {
                 new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
@@ -269,7 +271,7 @@ export class CheckoutIndex {
                 gvc.addMtScript([
                     {
                         src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
-                    },
+                    }
                 ], () => { }, () => { });
                 vm.cartData = FakeOrder.data;
                 ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
@@ -3078,7 +3080,7 @@ export class CheckoutIndex {
                     class: `check_out_cart_data text-start`,
                     style: gvc.glitter.getUrlParameter('page') === 'checkout'
                         ? `background:#f0f0f0;`
-                        : `background:#f0f0f0;padding-top:10px;border-radius:10px;`,
+                        : `background:#f0f0f0;padding-top:10px;border-radius:10px;max-width:1200px;margin:0 auto;`,
                 },
                 onCreate: () => {
                     if (gvc.glitter.getUrlParameter('page') !== 'checkout') {

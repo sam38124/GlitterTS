@@ -148,7 +148,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
-                return await seo_config_js_1.SeoConfig.seoDetail(dd.appName, req, resp);
+                return await seo_config_js_1.SeoConfig.seoDetail(dd.appName, req, resp, true);
             },
             sitemap: async (req, resp) => {
                 var _a;

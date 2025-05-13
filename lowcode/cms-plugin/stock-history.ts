@@ -13,6 +13,7 @@ import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { TableStorage } from './module/table-storage.js';
+import { StockExcel } from './module/stock-excel.js';
 
 const html = String.raw;
 
@@ -725,6 +726,27 @@ export class StockHistory {
           })
         )}${BgWidget.title(`${typeData.name}核對`)}
         <div class="flex-fill"></div>
+        <div class="d-flex" style="gap: 14px;">
+          ${vm.data.type === 'checking' && [2, 4, 5].includes(vm.data.status)
+            ? BgWidget.grayButton(
+                '匯入',
+                gvc.event(() => {
+                  StockExcel.importDialog(gvc, vm.data.content.product_list, (updateList: ContentProduct[]) => {
+                    vm.data.content.product_list = updateList;
+                    gvc.notifyDataChange(vm.id);
+                  });
+                })
+              )
+            : ''}
+          ${vm.data.type === 'checking' && [2, 4, 5].includes(vm.data.status)
+            ? BgWidget.grayButton(
+                '匯出',
+                gvc.event(() => {
+                  StockExcel.exportChecking(gvc, vm.data.order_id, vm.data.content.product_list);
+                })
+              )
+            : ''}
+        </div>
       </div>
       <div class="title-container">
         ${BgWidget.tab(
@@ -852,7 +874,6 @@ export class StockHistory {
                   hiddenPageSplit: true,
                 });
               },
-              divCreate: {},
               onCreate: () => {
                 if (loading) {
                   loading = false;
@@ -1976,27 +1997,24 @@ export class StockHistory {
                                     return StockHistory.vendorForm(gvc2, newVendorData);
                                   },
                                   footer_html: gvc2 => {
-                                    return `${BgWidget.cancel(
-                                      gvc2.event(() => {
-                                        gvc2.closeDialog();
-                                      })
-                                    )}
-                                                            ${BgWidget.save(
-                                                              gvc2.event(() => {
-                                                                StockVendors.verifyStoreForm(
-                                                                  glitter,
-                                                                  'create',
-                                                                  newVendorData,
-                                                                  response => {
-                                                                    gvc2.closeDialog();
-                                                                    vm.data.content.vendor = response.id;
-                                                                    loading = true;
-                                                                    gvc.notifyDataChange(id);
-                                                                  }
-                                                                );
-                                                              }),
-                                                              '完成'
-                                                            )}`;
+                                    return [
+                                      BgWidget.cancel(
+                                        gvc2.event(() => {
+                                          gvc2.closeDialog();
+                                        })
+                                      ),
+                                      BgWidget.save(
+                                        gvc2.event(() => {
+                                          StockVendors.verifyStoreForm(glitter, 'create', newVendorData, response => {
+                                            gvc2.closeDialog();
+                                            vm.data.content.vendor = response.id;
+                                            loading = true;
+                                            gvc.notifyDataChange(id);
+                                          });
+                                        }),
+                                        '完成'
+                                      ),
+                                    ].join('');
                                   },
                                 });
                               },
@@ -2004,7 +2022,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('vendor_manager', 'manager').then((dd: any) => {
@@ -2079,27 +2096,24 @@ export class StockHistory {
                                     return StockHistory.storeForm(gvc2, newStoreData);
                                   },
                                   footer_html: gvc2 => {
-                                    return `${BgWidget.cancel(
-                                      gvc2.event(() => {
-                                        gvc2.closeDialog();
-                                      })
-                                    )}
-                                                            ${BgWidget.save(
-                                                              gvc2.event(() => {
-                                                                StockStores.verifyStoreForm(
-                                                                  glitter,
-                                                                  'create',
-                                                                  newStoreData,
-                                                                  response => {
-                                                                    gvc2.closeDialog();
-                                                                    vm.data.content.store_in = response.id;
-                                                                    loading = true;
-                                                                    gvc.notifyDataChange(id);
-                                                                  }
-                                                                );
-                                                              }),
-                                                              '完成'
-                                                            )}`;
+                                    return [
+                                      BgWidget.cancel(
+                                        gvc2.event(() => {
+                                          gvc2.closeDialog();
+                                        }),
+                                        BgWidget.save(
+                                          gvc2.event(() => {
+                                            StockStores.verifyStoreForm(glitter, 'create', newStoreData, response => {
+                                              gvc2.closeDialog();
+                                              vm.data.content.store_in = response.id;
+                                              loading = true;
+                                              gvc.notifyDataChange(id);
+                                            });
+                                          }),
+                                          '完成'
+                                        )
+                                      ),
+                                    ].join('');
                                   },
                                 });
                               },
@@ -2107,7 +2121,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2175,7 +2188,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2236,7 +2248,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -2306,7 +2317,6 @@ export class StockHistory {
                           });
                         }
                       },
-                      divCreate: {},
                       onCreate: () => {
                         if (loading) {
                           ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
@@ -3445,7 +3455,6 @@ export class StockHistory {
     let product_list = data.content.product_list;
     if (ids.length === 0) {
       callback([]);
-      // callback(product_list);
       return;
     }
 

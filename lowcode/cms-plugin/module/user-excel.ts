@@ -364,13 +364,19 @@ export class UserExcel {
         dialog.dataLoading({ visible: false });
 
         const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
-        if (jsonData.length > setUserEmails.length) {
+        if (jsonData.filter((user)=>{
+          return user['電子信箱']
+        }).length > setUserEmails.filter((dd)=>{
+          return dd
+        }).length) {
           dialog.errorMessage({ text: '會員電子信箱不可重複' });
           return;
         }
 
         const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
-        if (jsonData.length > setUserPhones.length) {
+        if (jsonData.filter((user)=>{
+          return user['電話']
+        }).length > setUserPhones.length) {
           dialog.errorMessage({ text: '會員電話不可重複' });
           return;
         }
@@ -378,8 +384,8 @@ export class UserExcel {
         for (let i = 0; i < jsonData.length; i++) {
           const user = jsonData[i];
 
-          if (!user['電子信箱']) {
-            dialog.errorMessage({ text: '會員電子信箱不可為空' });
+          if (!user['電子信箱'] && !user['電話']) {
+            dialog.errorMessage({ text: '電話或信箱擇一必填' });
             return;
           }
 
@@ -406,7 +412,7 @@ export class UserExcel {
           };
 
           jsonData[i] = {
-            account: userData.email,
+            account: userData.email | userData.phone,
             pwd: gvc.glitter.getUUID(),
             userData: userData,
           };

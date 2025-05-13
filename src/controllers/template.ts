@@ -57,7 +57,10 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     const seo = await SeoConfig.seoDetail(req.query.appName as string, req, resp);
     let language: LanguageLocation = req.headers['language'] as any;
     req.query.language = language;
-    const result = await new Template(req.body.token).getPage(req.query as any);
+    const result = await new Template(req.body.token).getPage({
+      ...req.query,
+      req:req
+    });
     let redirect = '';
     if (result.length === 0) {
       try {
@@ -99,7 +102,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     }
     let preload_data = {};
     if (req.query.preload) {
-      preload_data = await App.preloadPageData(req.query.appName as any, req.query.tag as string, language);
+      preload_data = await App.preloadPageData(req.query.appName as any, req.query.tag as string, language,req);
     }
     return response.succ(resp, {
       result: result,

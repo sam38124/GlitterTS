@@ -3,6 +3,7 @@ import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+import { ApiUser } from '../glitter-base/route/user.js';
 
 
 export class ApiPageConfig {
@@ -123,7 +124,8 @@ export class ApiPageConfig {
                     (request.type) && (query.push(`type=${request.type}`));
                     (request.page_type) && (query.push(`page_type=${request.page_type}`));
                     (request.me) && (query.push(`me=${request.me}`));
-                    (request.favorite) && (query.push(`favorite=${request.favorite}`))
+                    (request.favorite) && (query.push(`favorite=${request.favorite}`));
+                  (window as any).page_refer && query.push(`page_refer=${(window as any).page_refer}`);
                     return query.join('&')
                 })()
             ,
@@ -191,7 +193,7 @@ export class ApiPageConfig {
     public static setPage(data: {
         "id": number
         "appName": "lionDesign",
-        "tag": "home",
+        "tag"?: any,
         "group"?: "首頁相關",
         "name"?: "首頁",
         "config"?: [],
@@ -199,17 +201,47 @@ export class ApiPageConfig {
         "page_type"?: string,
         favorite?: number,
         preview_image?: string
-    }) {
+    }):Promise<{
+      result: boolean
+    }> {
+
+      if(data.tag==='c_header' && ['pages/','hidden/','shop/'].find((dd)=>{
+        return (window.parent as any).glitter.getUrlParameter('page').startsWith(dd)
+      })){
+       return  new Promise(async (resolve,reject)=>{
+         (data.config as any)[0].is_customer_header=true
+         await ApiUser.setPublicConfig({
+           key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
+           value: data.config,
+           user_id: 'manager',
+         })
+         resolve({
+           result: true
+         })
+       })
+        // return BaseApi.create({
+        //   "url": config.url + `/api/v1/template`,
+        //   "type": "PUT",
+        //   "timeout": 0,
+        //   "headers": {
+        //     "Content-Type": "application/json",
+        //     "Authorization": config.token
+        //   },
+        //   data: JSON.stringify(data)
+        // })
+      }else{
         return BaseApi.create({
-            "url": config.url + `/api/v1/template`,
-            "type": "PUT",
-            "timeout": 0,
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": config.token
-            },
-            data: JSON.stringify(data)
+          "url": config.url + `/api/v1/template`,
+          "type": "PUT",
+          "timeout": 0,
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": config.token
+          },
+          data: JSON.stringify(data)
         })
+      }
+
     }
 
     public static addPage(data: {

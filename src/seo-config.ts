@@ -12,6 +12,7 @@ import { Language } from './Language.js';
 import express from 'express';
 import { Private_config } from './services/private_config.js';
 import process from 'process';
+import { fa } from '@faker-js/faker';
 
 const html = String.raw;
 
@@ -396,8 +397,10 @@ export class SeoConfig {
   }
 
   // 所有內容
-  public static async seoDetail(in_app:string,req: express.Request, resp: express.Response){
+  public static async seoDetail(in_app:string,req: express.Request, resp: express.Response,initial:boolean=false){
     const og_url = req.headers['x-original-url'];
+
+
     try {
       if (req.query.state === 'google_login') {
         req.query.page = 'login';
@@ -490,15 +493,18 @@ export class SeoConfig {
         req_type: 'file',
         req: req,
       });
-      console.log(`app_info==>`,{
-        page:req.query.page,
-        appName:appName
-      })
+      if(req.query.refer_page || ['pages/','hidden/','shop/'].find(dd => {
+        return `${req.query.page ?? ''}`.startsWith(dd)
+      })){
+        req.query.page_refer = req.query.page;
+        console.log(`req.query.page_refer`,req.query.page_refer)
+      }
       //取得SEO頁面資訊
-      let data = await Seo.getPageInfo(appName, req.query.page as string, language);
+      let data = await Seo.getPageInfo(appName, req.query.page as string, language,req);
+      console.log(`initial-data:`, data);
       //首頁SEO
       let home_page_data = await (async () => {
-        return await Seo.getPageInfo(appName, 'index', language);
+        return await Seo.getPageInfo(appName, 'index', language,req);
       })();
       if(`${req.query.page}`.startsWith('products/') && !data){
         data=home_page_data
@@ -555,7 +561,9 @@ export class SeoConfig {
         const preload =
           req.query.isIframe === 'true'
             ? {}
-            : await App.preloadPageData(appName, req.query.page as any, language);
+            : await App.preloadPageData(appName, req.query.page as any, language,req);
+
+
         data.page_config = data.page_config ?? {};
         data.page_config.seo = data.page_config.seo ?? {};
         const seo_detail = await getSeoDetail(appName, req);
@@ -578,11 +586,8 @@ export class SeoConfig {
         let distribution_code = '';
         req.query.page = req.query.page || 'index';
         if ((req.query.page as string).split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
-          distribution_code = `
-                                    localStorage.setItem('distributionCode','');
-                                `;
+          distribution_code = `localStorage.setItem('distributionCode','');`;
         }
-        console.log(`req.query.page`,req.query.page)
         //分銷連結頁面SEO
         if (
           (req.query.page as string).split('/')[0] === 'distribution' &&
@@ -781,6 +786,7 @@ export class SeoConfig {
 
 `
         ].join('');
+
         return {
           head: head,
           body: ``,

@@ -15,6 +15,7 @@ const html = String.raw;
 export class Sy04 {
   public static main(gvc: GVC, widget: any, subData: any) {
     return HeadInitial.initial({
+      widget:widget,
       browser: () => {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {

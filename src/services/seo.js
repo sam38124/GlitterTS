@@ -8,9 +8,12 @@ const database_js_1 = __importDefault(require("../modules/database.js"));
 const config_js_1 = require("../config.js");
 const template_js_1 = require("./template.js");
 class Seo {
-    static async getPageInfo(appName, query_page, language) {
-        let page = await template_js_1.Template.getRealPage(query_page, appName);
+    static async getPageInfo(appName, query_page, language, req) {
+        let page = await template_js_1.Template.getRealPage(query_page, appName, req);
         if (page === 'official-router') {
+            appName = 'cms_system';
+        }
+        else if (page === 'page-show-router') {
             appName = 'cms_system';
         }
         const page_db = (() => {
@@ -37,7 +40,7 @@ class Seo {
                                     and \`${config_js_1.saasConfig.SAAS_NAME}\`.${page_db}.appName = \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName;
         `, []))[0];
         if (!page_data && (language != 'zh-TW')) {
-            return await Seo.getPageInfo(appName, query_page, 'zh-TW');
+            return await Seo.getPageInfo(appName, query_page, 'zh-TW', req);
         }
         else {
             return page_data;
@@ -75,7 +78,7 @@ class Seo {
                                           where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
             `, []))[0]['tag'];
         }
-        let data = await Seo.getPageInfo(appName, redirect, 'zh-TW');
+        let data = await Seo.getPageInfo(appName, redirect, 'zh-TW', req);
         let query_stack = [];
         if (req.query.type) {
             query_stack.push(`type=${req.query.type}`);

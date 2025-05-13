@@ -2936,7 +2936,7 @@
         };
 
         function execute() {
-          fetch(window.glitterBackend + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent((typeof cf === 'object') ? cf.tag : tag)}&preload=true`, requestOptions)
+          fetch(window.glitterBackend + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent((typeof cf === 'object') ? cf.tag : tag)}&preload=true&page_refer=${encodeURIComponent(window.page_refer || '')}`, requestOptions)
             .then(response => response.json())
             .then(response => {
               for (const b of response.result) {

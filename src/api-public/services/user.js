@@ -428,27 +428,30 @@ class User {
                         client_id: lineData.id,
                     }),
                 })
-                    .then(response => {
+                    .then((response) => {
                     resolve(response.data);
                 })
-                    .catch(error => {
+                    .catch((error) => {
                     resolve(false);
                 });
             });
             if (!line_profile.email) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
+            console.log(`line_login_profile`, line_profile);
             const app = this.app;
             async function getUsData() {
+                var _a;
                 return (await database_1.default.execute(`select *
            from \`${app}\`.t_user
            where (userData ->>'$.email' = ?)
               or (userData ->>'$.lineID' = ?)
+              or (userData ->>'$.phone' = ?)
            ORDER BY CASE
                         WHEN (userData ->>'$.lineID' = ?) THEN 1
                         ELSE 3
                         END
-          `, [line_profile.email, userData.sub, userData.sub]));
+          `, [line_profile.email, userData.sub, (_a = line_profile.phone_number) !== null && _a !== void 0 ? _a : 'alkms', userData.sub]));
             }
             let findList = await getUsData();
             if (!findList[0]) {
@@ -463,6 +466,7 @@ class User {
                         name: userData.name || '未命名',
                         lineID: userData.sub,
                         email: line_profile.email,
+                        phone: line_profile.phone
                     },
                     1,
                 ]);
@@ -2054,15 +2058,28 @@ class User {
     }
     async resetPwd(user_id_and_account, newPwd) {
         try {
-            await database_1.default.query(`update \`${this.app}\`.t_user
+            if (user_id_and_account.includes('@')) {
+                await database_1.default.query(`update \`${this.app}\`.t_user
          SET ?
          WHERE 1 = 1
            and ((userData ->>'$.email' = ?))`, [
-                {
-                    pwd: await tool_1.default.hashPwd(newPwd),
-                },
-                user_id_and_account,
-            ]);
+                    {
+                        pwd: await tool_1.default.hashPwd(newPwd),
+                    },
+                    user_id_and_account,
+                ]);
+            }
+            else {
+                await database_1.default.query(`update \`${this.app}\`.t_user
+         SET ?
+         WHERE 1 = 1
+           and ((userData ->>'$.phone' = ?))`, [
+                    {
+                        pwd: await tool_1.default.hashPwd(newPwd),
+                    },
+                    user_id_and_account,
+                ]);
+            }
             return {
                 result: true,
             };
@@ -2478,7 +2495,15 @@ class User {
         const code = tool_js_1.default.randomNumber(6);
         await redis_js_1.default.setValue(`forget-${email}`, code);
         await redis_js_1.default.setValue(`forget-count-${email}`, '0');
-        (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
+        if (email.includes('@')) {
+            (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
+        }
+        else {
+            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update', 'zh-TW');
+            data.content = data.content.replace(`@{{code}}`, code);
+            const sns = new sms_js_1.SMS(this.app, this.token);
+            await sns.sendSNS({ data: data.content, phone: email }, () => { });
+        }
     }
     static async ipInfo(ip) {
         try {

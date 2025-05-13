@@ -456,9 +456,9 @@ class App {
             throw exception_1.default.BadRequestError('ERROR', 'checkBrandAndMemberType error' + error, null);
         }
     }
-    static async preloadPageData(appName, refer_page, language) {
+    static async preloadPageData(appName, refer_page, language, req) {
         const start = new Date().getTime();
-        const page = await template_js_1.Template.getRealPage(refer_page, appName);
+        const page = await template_js_1.Template.getRealPage(refer_page, appName, req);
         console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
         const app = new App();
         const preloadData = {
@@ -472,6 +472,7 @@ class App {
             appName: appName,
             tag: page,
             language: language,
+            req: req
         }))[0];
         const event_list = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
         const index = `TriggerEvent.create(import.meta.url,`;
@@ -506,6 +507,7 @@ class App {
                                 appName: dd.data.refer_app || appName,
                                 tag: dd.data.tag,
                                 language: language,
+                                req: req
                             }))[0];
                             if (pageData && pageData.config) {
                                 preloadData.component.push(pageData);

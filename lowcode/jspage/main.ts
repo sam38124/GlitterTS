@@ -265,7 +265,66 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     content.language_data[glitter.getUrlParameter('language')].config
                   ) {
                     content.config = content.language_data[glitter.getUrlParameter('language')].config;
+                  };
+                  if(!content.config.find((dd:any)=>{
+                    return dd.data.tag==='c_header'
+                  })){
+                    glitter.share.header_refer='def'
+                    content.config=[
+                      {
+                        "id": "sbscs0ses1sfs1sa",
+                        "js": "./official_view_component/official.js",
+                        "css": {"class": {}, "style": {}},
+                        "data": {
+                          "tag": "c_header",
+                          "_gap": "",
+                          "attr": [],
+                          "elem": "div",
+                          "list": [],
+                          "inner": "",
+                          "_other": {},
+                          "_border": {},
+                          "_margin": {},
+                          "_radius": "",
+                          "_padding": {},
+                          "_reverse": "false",
+                          "carryData": {},
+                          "_max_width": "",
+                          "_background": "",
+                          "_style_refer": "global",
+                          "_hor_position": "center",
+                          "refer_form_data": {},
+                          "_background_setting": {"type": "none"}
+                        },
+                        "list": [],
+                        "type": "component",
+                        "class": "",
+                        "index": 0,
+                        "label": "標頭",
+                        "style": "",
+                        "global": [],
+                        "mobile": {"data": {}, "refer": "custom"},
+                        "toggle": true,
+                        "desktop": {"data": {}, "refer": "custom"},
+                        "stylist": [],
+                        "version": "v2",
+                        "visible": true,
+                        "dataType": "static",
+                        "deletable": "false",
+                        "style_from": "code",
+                        "classDataType": "static",
+                        "editor_bridge": {},
+                        "preloadEvenet": {},
+                        "container_fonts": 0,
+                        "mobile_editable": [],
+                        "desktop_editable": [],
+                        "refreshAllParameter": {},
+                        "refreshComponentParameter": {},
+                        "formData": {}
+                      }
+                    ].concat(content.config);
                   }
+                  glitter.share.header_refer='custom'
                   d2.response.result[0].config = content.config;
                   resolve(d2.response.result[0]);
                 });
@@ -515,12 +574,26 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         config: content.config,
                       },
                     };
-                    content.language_data[glitter.getUrlParameter('language')].config = config;
+                    content.language_data[glitter.getUrlParameter('language')].config = config.filter((dd:any)=>{
+                      return !dd.is_customer_header;
+                    });
+
+                    console.log(`config-save==>`,config)
+                    //is_customer_header
+                    // await ApiUser.setPublicConfig({
+                    //   key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
+                    //   value: [ config.find((dd:any)=>{
+                    //     return dd.is_customer_header;
+                    //   })],
+                    //   user_id: 'manager',
+                    // });
+
                     Article.put(data.response.data[0]).then(response => {
                       resolve(response && response.result);
                     });
                   });
                 } else {
+
                   ApiPageConfig.setPage({
                     id: (viewModel.data! as any).id,
                     appName: gBundle.appName,
@@ -556,6 +629,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             dialog.errorMessage({ text: '伺服器錯誤' });
             return;
           }
+        };
+        if(glitter.share.is_blog_editor() && glitter.share.header_refer==='def'){
+          await ApiUser.setPublicConfig({
+            key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
+            value: null,
+            user_id: 'manager',
+          });
+          location.reload()
         }
         dialog.dataLoading({ visible: false });
         dialog.successMessage({ text: '儲存成功' });
@@ -1011,27 +1092,32 @@ function initialEditor(gvc: GVC, viewModel: any) {
   //跳轉至編輯器頁面功能
   glitter.share.switch_to_web_builder = (page: string, device: string) => {
     glitter.closeDrawer();
-    glitter.changePage(
-      'jspage/main.js',
-      page,
-      true,
-      {
-        appName: (window.parent as any).glitter.getUrlParameter('appName'),
-      },
-      {
-        backGroundColor: `transparent;`,
-        carry_search: [
-          {
-            key: 'device',
-            value: device,
-          },
-          {
-            key: 'function',
-            value: 'user-editor',
-          },
-        ],
-      }
-    );
+    glitter.setUrlParameter('device', device);
+    glitter.setUrlParameter('page', page);
+    glitter.setUrlParameter('function', 'user-editor');
+    glitter.setUrlParameter('appName', (window.parent as any).glitter.getUrlParameter('appName'));
+    location.reload()
+    // glitter.changePage(
+    //   'jspage/main.js',
+    //   page,
+    //   true,
+    //   {
+    //     appName: (window.parent as any).glitter.getUrlParameter('appName'),
+    //   },
+    //   {
+    //     backGroundColor: `transparent;`,
+    //     carry_search: [
+    //       {
+    //         key: 'device',
+    //         value: device,
+    //       },
+    //       {
+    //         key: 'function',
+    //         value: 'user-editor',
+    //       },
+    //     ],
+    //   }
+    // );
   };
   //續費功能
   glitter.share.subscription = async (title: string) => {

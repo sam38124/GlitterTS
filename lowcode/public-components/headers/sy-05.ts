@@ -15,6 +15,7 @@ const html = String.raw;
 export class Sy05 {
     public static main(gvc: GVC, widget: any, subData: any) {
       return HeadInitial.initial({
+        widget:widget,
         browser:()=>{
           let changePage = (index: string, type: 'page' | 'home', subData: any) => {
           };

@@ -18,6 +18,7 @@ export class ThirdPartyLine {
                             id: string;
                             secret: string;
                             message_token: string;
+                          support_scope:string[]
                         };
                     } = {
                         loading: true,
@@ -26,12 +27,14 @@ export class ThirdPartyLine {
                             id: '',
                             secret: '',
                             message_token: '',
+                          support_scope:[]
                         },
                     };
 
                     ApiUser.getPublicConfig(key, 'manager').then((dd) => {
                         vm.loading = false;
                         dd.response.value && (vm.data = dd.response.value);
+                        vm.data.support_scope=vm.data.support_scope ?? [];
                         gvc.notifyDataChange(id);
                     });
 
@@ -86,6 +89,37 @@ export class ThirdPartyLine {
                                                             vm.data.message_token = text;
                                                         },
                                                     }),
+                                                  BgWidget.inlineCheckBox({
+                                                    title: 'LINE登入請求額外資料',
+                                                    gvc: gvc,
+                                                    def: vm.data.support_scope,
+                                                    array: [
+                                                      {
+                                                        value: 'phone',
+                                                        title: '電話',
+                                                      },
+                                                      {
+                                                        title: '地址',
+                                                        value: 'address',
+                                                      },
+                                                      {
+                                                        title: '真實姓名',
+                                                        value: 'real_name',
+                                                      },
+                                                      {
+                                                        title: '性別',
+                                                        value: 'gender',
+                                                      },
+                                                      {
+                                                        title: '生日',
+                                                        value: 'birthdate',
+                                                      },
+                                                    ],
+                                                    callback: (array: any) => {
+                                                      vm.data.support_scope=array;
+                                                    },
+                                                    type: 'multiple',
+                                                  }),
                                                     html`<div
                                                         onclick="${gvc.event(() => {
                                                             const dialog = new ShareDialog(gvc.glitter);

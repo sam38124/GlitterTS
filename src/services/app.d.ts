@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 import { LanguageLocation } from '../Language.js';
+import express from 'express';
 export declare class App {
     token?: IToken;
     static getAdConfig(app: string, key: string): Promise<any>;
@@ -41,7 +42,7 @@ export declare class App {
         plan: any;
         user_id: any;
     }>;
-    static preloadPageData(appName: string, refer_page: string, language: LanguageLocation): Promise<any>;
+    static preloadPageData(appName: string, refer_page: string, language: LanguageLocation, req: express.Request): Promise<any>;
     setAppConfig(config: {
         appName: string;
         data: any;

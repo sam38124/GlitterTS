@@ -954,55 +954,56 @@ export class ShoppingDiscountSetting {
                         .map(str => html`<div>${str}</div>`)
                         .join(BgWidget.horizontalLine())
                     ),
-                    BgWidget.mainCard(
-                      gvc.bindView(() => {
-                        const id = glitter.getUUID();
-                        const originForType = String(voucherData.for);
-                        voucherData.forKey = voucherData.forKey ?? [];
-                        let defKeys: any = {
-                          collection: JSON.parse(JSON.stringify(voucherData.forKey)),
-                          product: JSON.parse(JSON.stringify(voucherData.forKey)),
-                          manager_tag: JSON.parse(JSON.stringify(voucherData.forKey)),
-                        };
+                    ...(['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) ? []:[
+                      BgWidget.mainCard(
+                        gvc.bindView(() => {
+                          const id = glitter.getUUID();
+                          const originForType = String(voucherData.for);
+                          voucherData.forKey = voucherData.forKey ?? [];
+                          let defKeys: any = {
+                            collection: JSON.parse(JSON.stringify(voucherData.forKey)),
+                            product: JSON.parse(JSON.stringify(voucherData.forKey)),
+                            manager_tag: JSON.parse(JSON.stringify(voucherData.forKey)),
+                          };
 
-                        return {
-                          bind: id,
-                          dataList: [
-                            { obj: voucherData, key: 'method' },
-                            { obj: voucherData, key: 'reBackType' },
-                          ],
-                          view: () => {
-                            return [
-                              ...(() => {
-                                if (['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) {
-                                  return [];
-                                }
+                          return {
+                            bind: id,
+                            dataList: [
+                              { obj: voucherData, key: 'method' },
+                              { obj: voucherData, key: 'reBackType' },
+                            ],
+                            view: () => {
+                              return [
+                                ...(() => {
+                                  if (['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) {
+                                    return [];
+                                  }
 
-                                const valueInput = (obj: { startText?: string; endText?: string }) => {
-                                  return BgWidget.editeInput({
-                                    gvc: gvc,
-                                    type: 'number',
-                                    divStyle: 'width:150px;',
-                                    title: '',
-                                    default: voucherData.value,
-                                    placeHolder: '',
-                                    callback: text => {
-                                      const texInt = parseInt(text, 10);
-                                      if (voucherData.method === 'percent' && (texInt > 100 || texInt < 0)) {
-                                        dialog.infoMessage({ text: '數值需介於0~100' });
-                                        gvc.notifyDataChange(id);
-                                        gvc.notifyDataChange(pageVM.countingID);
-                                      } else {
-                                        voucherData.value = text;
-                                      }
-                                    },
-                                    startText: obj.startText,
-                                    endText: obj.endText,
-                                  });
-                                };
+                                  const valueInput = (obj: { startText?: string; endText?: string }) => {
+                                    return BgWidget.editeInput({
+                                      gvc: gvc,
+                                      type: 'number',
+                                      divStyle: 'width:150px;',
+                                      title: '',
+                                      default: voucherData.value,
+                                      placeHolder: '',
+                                      callback: text => {
+                                        const texInt = parseInt(text, 10);
+                                        if (voucherData.method === 'percent' && (texInt > 100 || texInt < 0)) {
+                                          dialog.infoMessage({ text: '數值需介於0~100' });
+                                          gvc.notifyDataChange(id);
+                                          gvc.notifyDataChange(pageVM.countingID);
+                                        } else {
+                                          voucherData.value = text;
+                                        }
+                                      },
+                                      startText: obj.startText,
+                                      endText: obj.endText,
+                                    });
+                                  };
 
-                                return [
-                                  html` <div>
+                                  return [
+                                    html` <div>
                                     <div class="tx_700">折扣金額</div>
                                     ${BgWidget.mbContainer(18)}
                                     ${BgWidget.multiCheckboxContainer(
@@ -1028,15 +1029,15 @@ export class ShoppingDiscountSetting {
                                       { single: true }
                                     )}
                                   </div>`,
-                                ];
-                              })(),
-                              ...(() => {
-                                if (voucherData.trigger === 'distribution') {
-                                  return [];
-                                }
+                                  ];
+                                })(),
+                                ...(() => {
+                                  if (voucherData.trigger === 'distribution') {
+                                    return [];
+                                  }
 
-                                return [
-                                  html`
+                                  return [
+                                    html`
                                     <div class="tx_700">套用至</div>
                                     ${BgWidget.mbContainer(18)}
                                     ${EditorElem.radio({
@@ -1074,35 +1075,35 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">標籤列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton(
-                                                        '選擇標籤',
-                                                        gvc.event(() => {
-                                                          BgProduct.useProductTags({
-                                                            gvc,
-                                                            config_key: 'product_manager_tags',
-                                                            def:
-                                                              originForType === 'manager_tag' && voucherData.forKey
-                                                                ? voucherData.forKey.map(item => `${item}`)
-                                                                : [],
-                                                            callback: async value => {
-                                                              voucherData.forKey = value;
-                                                              defKeys.manager_tag = value;
-                                                              subVM.dataList = value;
-                                                              gvc.notifyDataChange(subVM.id);
-                                                            },
-                                                          });
-                                                        }),
-                                                        { textStyle: 'font-weight: 400;' }
-                                                      )}
+                                                  '選擇標籤',
+                                                  gvc.event(() => {
+                                                    BgProduct.useProductTags({
+                                                      gvc,
+                                                      config_key: 'product_manager_tags',
+                                                      def:
+                                                        originForType === 'manager_tag' && voucherData.forKey
+                                                          ? voucherData.forKey.map(item => `${item}`)
+                                                          : [],
+                                                      callback: async value => {
+                                                        voucherData.forKey = value;
+                                                        defKeys.manager_tag = value;
+                                                        subVM.dataList = value;
+                                                        gvc.notifyDataChange(subVM.id);
+                                                      },
+                                                    });
+                                                  }),
+                                                  { textStyle: 'font-weight: 400;' }
+                                                )}
                                                     </div>
                                                     ${obj.gvc.map(
-                                                      subVM.dataList.map((opt, index) => {
-                                                        return html` <div
+                                                  subVM.dataList.map((opt, index) => {
+                                                    return html` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}. #${opt}</span>
                                                         </div>`;
-                                                      })
-                                                    )}
+                                                  })
+                                                )}
                                                   </div>
                                                 `;
                                               },
@@ -1131,35 +1132,35 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">分類列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton(
-                                                        '選擇分類',
-                                                        gvc.event(() => {
-                                                          BgProduct.collectionsDialog({
-                                                            gvc: gvc,
-                                                            default: voucherData.forKey ?? [],
-                                                            callback: async value => {
-                                                              voucherData.forKey = value;
-                                                              defKeys.collection = value;
-                                                              subVM.dataList = await BgProduct.getCollectiosOpts(value);
-                                                              subVM.loading = true;
-                                                              gvc.notifyDataChange(subVM.id);
-                                                            },
-                                                          });
-                                                        }),
-                                                        { textStyle: 'font-weight: 400;' }
-                                                      )}
+                                                  '選擇分類',
+                                                  gvc.event(() => {
+                                                    BgProduct.collectionsDialog({
+                                                      gvc: gvc,
+                                                      default: voucherData.forKey ?? [],
+                                                      callback: async value => {
+                                                        voucherData.forKey = value;
+                                                        defKeys.collection = value;
+                                                        subVM.dataList = await BgProduct.getCollectiosOpts(value);
+                                                        subVM.loading = true;
+                                                        gvc.notifyDataChange(subVM.id);
+                                                      },
+                                                    });
+                                                  }),
+                                                  { textStyle: 'font-weight: 400;' }
+                                                )}
                                                     </div>
                                                     ${obj.gvc.map(
-                                                      subVM.dataList.map((opt: OptionsItem, index) => {
-                                                        return html` <div
+                                                  subVM.dataList.map((opt: OptionsItem, index) => {
+                                                    return html` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}. ${opt.value}</span>
                                                           ${opt.note
-                                                            ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> `
-                                                            : ''}
+                                                      ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> `
+                                                      : ''}
                                                         </div>`;
-                                                      })
-                                                    )}
+                                                  })
+                                                )}
                                                   </div>
                                                 `;
                                               },
@@ -1207,45 +1208,45 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">商品列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton(
-                                                        '選擇商品',
-                                                        gvc.event(() => {
-                                                          BgProduct.productsDialog({
-                                                            gvc: gvc,
-                                                            default: voucherData.forKey ?? [],
-                                                            callback: async value => {
-                                                              voucherData.forKey = value;
-                                                              defKeys.product = value;
-                                                              subVM.dataList = await BgProduct.getProductOpts(
-                                                                voucherData.forKey
-                                                              );
-                                                              subVM.loading = true;
-                                                              gvc.notifyDataChange(subVM.id);
-                                                            },
-                                                          });
-                                                        }),
-                                                        { textStyle: 'font-weight: 400;' }
-                                                      )}
+                                                  '選擇商品',
+                                                  gvc.event(() => {
+                                                    BgProduct.productsDialog({
+                                                      gvc: gvc,
+                                                      default: voucherData.forKey ?? [],
+                                                      callback: async value => {
+                                                        voucherData.forKey = value;
+                                                        defKeys.product = value;
+                                                        subVM.dataList = await BgProduct.getProductOpts(
+                                                          voucherData.forKey
+                                                        );
+                                                        subVM.loading = true;
+                                                        gvc.notifyDataChange(subVM.id);
+                                                      },
+                                                    });
+                                                  }),
+                                                  { textStyle: 'font-weight: 400;' }
+                                                )}
                                                     </div>
                                                     ${subVM.dataList
-                                                      .map((opt: OptionsItem, index) => {
-                                                        return html` <div
+                                                  .map((opt: OptionsItem, index) => {
+                                                    return html` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}.</span>
                                                           ${BgWidget.validImageBox({
-                                                            gvc: gvc,
-                                                            image: opt.image,
-                                                            width: 40,
-                                                          })}
+                                                      gvc: gvc,
+                                                      image: opt.image,
+                                                      width: 40,
+                                                    })}
                                                           <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
                                                             ${opt.value}
                                                           </div>
                                                           ${opt.note
-                                                            ? html` <div class="tx_gray_12">${opt.note}</div> `
-                                                            : ''}
+                                                      ? html` <div class="tx_gray_12">${opt.note}</div> `
+                                                      : ''}
                                                         </div>`;
-                                                      })
-                                                      .join(``)}
+                                                  })
+                                                  .join(``)}
                                                   </div>
                                                 `;
                                               },
@@ -1276,13 +1277,15 @@ export class ShoppingDiscountSetting {
                                       }
                                     })()}
                                   `,
-                                ];
-                              })(),
-                            ].join(BgWidget.horizontalLine());
-                          },
-                        };
-                      })
-                    ),
+                                  ];
+                                })(),
+                              ].join(BgWidget.horizontalLine());
+                            },
+                          };
+                        })
+                      )
+                    ]
+                    ,
                     ['giveaway', 'add_on_items'].includes(voucherData.reBackType)
                       ? BgWidget.mainCard(rebackProduct())
                       : '',

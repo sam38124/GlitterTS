@@ -146,9 +146,11 @@ export class CheckoutIndex {
       //重取購物車資料
       apiCart = getCartData();
       const dialog = new ShareDialog(gvc.glitter);
-      dialog.dataLoading({ visible: true });
+      //初次載入不需要加載動畫
+      if(!loadings.page){
+        dialog.dataLoading({ visible: true });
+      }
       const beta = false;
-
       if (!beta) {
         new Promise(async resolve => {
           new Promise(resolve => {
@@ -318,7 +320,7 @@ export class CheckoutIndex {
           [
             {
               src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
-            },
+            }
           ],
           () => {},
           () => {}
@@ -3374,7 +3376,7 @@ export class CheckoutIndex {
               style:
                 gvc.glitter.getUrlParameter('page') === 'checkout'
                   ? `background:#f0f0f0;`
-                  : `background:#f0f0f0;padding-top:10px;border-radius:10px;`,
+                  : `background:#f0f0f0;padding-top:10px;border-radius:10px;max-width:1200px;margin:0 auto;`,
             },
             onCreate: () => {
               if (gvc.glitter.getUrlParameter('page') !== 'checkout') {

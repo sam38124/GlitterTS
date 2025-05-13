@@ -223,19 +223,25 @@ export class UserExcel {
                     const jsonData = yield Excel.parseExcelToJson(gvc, target.files[0]);
                     dialog.dataLoading({ visible: false });
                     const setUserEmails = [...new Set(jsonData.map(user => user['電子信箱']))];
-                    if (jsonData.length > setUserEmails.length) {
+                    if (jsonData.filter((user) => {
+                        return user['電子信箱'];
+                    }).length > setUserEmails.filter((dd) => {
+                        return dd;
+                    }).length) {
                         dialog.errorMessage({ text: '會員電子信箱不可重複' });
                         return;
                     }
                     const setUserPhones = [...new Set(jsonData.map(user => user['電話']))];
-                    if (jsonData.length > setUserPhones.length) {
+                    if (jsonData.filter((user) => {
+                        return user['電話'];
+                    }).length > setUserPhones.length) {
                         dialog.errorMessage({ text: '會員電話不可重複' });
                         return;
                     }
                     for (let i = 0; i < jsonData.length; i++) {
                         const user = jsonData[i];
-                        if (!user['電子信箱']) {
-                            dialog.errorMessage({ text: '會員電子信箱不可為空' });
+                        if (!user['電子信箱'] && !user['電話']) {
+                            dialog.errorMessage({ text: '電話或信箱擇一必填' });
                             return;
                         }
                         const userData = {
@@ -260,7 +266,7 @@ export class UserExcel {
                             rebate: user['購物金餘額'],
                         };
                         jsonData[i] = {
-                            account: userData.email,
+                            account: userData.email | userData.phone,
                             pwd: gvc.glitter.getUUID(),
                             userData: userData,
                         };

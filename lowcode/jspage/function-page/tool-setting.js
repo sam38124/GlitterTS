@@ -219,7 +219,14 @@ export class ToolSetting {
                       <div
                         style="align-self: stretch; color: #393939; font-size: 15px;  font-weight: 400; word-wrap: break-word"
                       >
-                        ${refer_widget.template_config.name}
+                        ${(() => {
+                                if ((dd.tag === '標頭元件') && gvc.glitter.share.is_blog_editor()) {
+                                    return gvc.glitter.share.editorViewModel.selectItem.label;
+                                }
+                                else {
+                                    return refer_widget.template_config.name;
+                                }
+                            })()}
                       </div>
                     </div>
 
@@ -354,3 +361,4 @@ ToolSetting.tool_setting_list = [
         hint: `用戶於首頁時會彈跳出來的輪播廣告`,
     },
 ];
+window.glitter.setModule(import.meta.url, ToolSetting);
