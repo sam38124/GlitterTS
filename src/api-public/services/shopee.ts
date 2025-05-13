@@ -124,6 +124,8 @@ export class Shopee {
     return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`;
   }
 
+
+
   public async getToken(code: string, shop_id: string) {
     const timestamp = Math.floor(Date.now() / 1000);
     const partner_id = Shopee.partner_id ?? '';

@@ -20,6 +20,25 @@ export class ApiShopee {
     });
   }
 
+  public static generateOrderAuth(redirect: string) {
+    BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/shopee/getOrderAuth`,
+      type: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: getConfig().config.token,
+      },
+      data: JSON.stringify({
+        redirect: redirect,
+      }),
+    }).then(r => {
+      console.log('r.response.result -- ', r.response.result);
+      localStorage.setItem('shopee', window.parent.location.href);
+      window.parent.location.href = r.response.result;
+    });
+  }
+
   public static getToken(code: string, shop_id: number) {
     BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/shopee/getToken`,

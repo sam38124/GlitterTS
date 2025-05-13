@@ -321,6 +321,15 @@ export class MarketShopee {
                     授權蝦皮
                   </button>
                   <button
+                    class="shopee-btn mt-3"
+                    onclick="${gvc.event(() => {
+                            localStorage.setItem('shopee', window.parent.location.href);
+                            ApiShopee.generateOrderAuth(window.parent.location.href);
+                        })}"
+                  >
+                    授權蝦皮訂單同步
+                  </button>
+                  <button
                     id=""
                     class="shopee-btn mt-3 d-none"
                     onclick="${gvc.event(() => {

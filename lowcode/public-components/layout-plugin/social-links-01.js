@@ -81,7 +81,6 @@ export class SocialLinks01 {
             bind: vm.id,
             view: () => {
                 return html `
-      <div style="width: 100%;height: 300vh;"></div>
       <div class="floating-action-panel">
         <div class="social-links">
           ${socialList

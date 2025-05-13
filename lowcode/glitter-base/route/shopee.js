@@ -18,6 +18,24 @@ export class ApiShopee {
             window.parent.location.href = r.response.result;
         });
     }
+    static generateOrderAuth(redirect) {
+        BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/shopee/getOrderAuth`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                redirect: redirect,
+            }),
+        }).then(r => {
+            console.log('r.response.result -- ', r.response.result);
+            localStorage.setItem('shopee', window.parent.location.href);
+            window.parent.location.href = r.response.result;
+        });
+    }
     static getToken(code, shop_id) {
         BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/shopee/getToken`,
