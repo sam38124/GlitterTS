@@ -89,47 +89,45 @@ export class UMReceive {
                   </div>`;
                 })
                 .join('')}
-              <div
-                class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
-                onclick="${gvc.event(() => {
-                  vm.userData.receive_list = vm.dataList
-                    .map((data: any) => {
-                      const temp = {} as any;
-                      vm.dataKeys.map(key => {
-                        temp[key] = data[key];
+              <div class="d-flex justify-content-end">
+                <div
+                  class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
+                  onclick="${gvc.event(() => {
+                    vm.userData.receive_list = vm.dataList
+                      .map((data: any) => {
+                        const temp = {} as any;
+                        vm.dataKeys.map(key => {
+                          temp[key] = data[key];
+                        });
+                        return temp;
+                      })
+                      .filter((data: any) => {
+                        return Object.values(data).some(Boolean);
                       });
-                      return temp;
-                    })
-                    .filter((data: any) => {
-                      return Object.values(data).some(Boolean);
+
+                    ApiUser.updateUserData({
+                      userData: vm.userData,
+                    }).then(res => {
+                      dialog.dataLoading({ visible: false });
+                      if (!res.result && res.response.data.msg === 'email-verify-false') {
+                        dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
+                      } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
+                        dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
+                      } else if (!res.result && res.response.data.msg === 'phone-exists') {
+                        dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
+                      } else if (!res.result && res.response.data.msg === 'email-exists') {
+                        dialog.errorMessage({ text: Language.text('email_already_exists') });
+                      } else if (!res.result) {
+                        dialog.errorMessage({ text: Language.text('update_exception') });
+                      } else {
+                        dialog.successMessage({ text: Language.text('change_success') });
+                        gvc.recreateView();
+                      }
                     });
-
-                  vm.dataKeys.map(key => {
-                    vm.userData[key] = vm.dataList[0][key];
-                  });
-
-                  ApiUser.updateUserData({
-                    userData: vm.userData,
-                  }).then(res => {
-                    dialog.dataLoading({ visible: false });
-                    if (!res.result && res.response.data.msg === 'email-verify-false') {
-                      dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
-                    } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
-                      dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
-                    } else if (!res.result && res.response.data.msg === 'phone-exists') {
-                      dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
-                    } else if (!res.result && res.response.data.msg === 'email-exists') {
-                      dialog.errorMessage({ text: Language.text('email_already_exists') });
-                    } else if (!res.result) {
-                      dialog.errorMessage({ text: Language.text('update_exception') });
-                    } else {
-                      dialog.successMessage({ text: Language.text('change_success') });
-                      gvc.recreateView();
-                    }
-                  });
-                })}"
-              >
-                ${Language.text('confirm')}
+                  })}"
+                >
+                  ${Language.text('confirm')}
+                </div>
               </div>
             </div>
           </div>
@@ -146,8 +144,6 @@ export class UMReceive {
 
               if (vm.userData.receive_list) {
                 vm.dataList = [...vm.userData.receive_list, ...new Array(3 - vm.userData.receive_list.length).fill({})];
-              } else {
-                vm.dataList[0] = vm.userData;
               }
 
               // dataArray[1] => funnyForm

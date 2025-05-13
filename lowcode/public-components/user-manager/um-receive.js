@@ -86,9 +86,10 @@ export class UMReceive {
                   </div>`;
                 })
                     .join('')}
-              <div
-                class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
-                onclick="${gvc.event(() => {
+              <div class="d-flex justify-content-end">
+                <div
+                  class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
+                  onclick="${gvc.event(() => {
                     vm.userData.receive_list = vm.dataList
                         .map((data) => {
                         const temp = {};
@@ -99,9 +100,6 @@ export class UMReceive {
                     })
                         .filter((data) => {
                         return Object.values(data).some(Boolean);
-                    });
-                    vm.dataKeys.map(key => {
-                        vm.userData[key] = vm.dataList[0][key];
                     });
                     ApiUser.updateUserData({
                         userData: vm.userData,
@@ -128,8 +126,9 @@ export class UMReceive {
                         }
                     });
                 })}"
-              >
-                ${Language.text('confirm')}
+                >
+                  ${Language.text('confirm')}
+                </div>
               </div>
             </div>
           </div>
@@ -143,9 +142,6 @@ export class UMReceive {
                         vm.userData = dataArray[0].response.userData;
                         if (vm.userData.receive_list) {
                             vm.dataList = [...vm.userData.receive_list, ...new Array(3 - vm.userData.receive_list.length).fill({})];
-                        }
-                        else {
-                            vm.dataList[0] = vm.userData;
                         }
                         vm.funnyForm = dataArray[1];
                         vm.dataKeys = vm.funnyForm.map((item) => item.key).filter(Boolean);
