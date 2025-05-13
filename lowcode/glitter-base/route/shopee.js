@@ -10,11 +10,11 @@ export class ApiShopee {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                "redirect": redirect
-            })
+                redirect: redirect,
+            }),
         }).then(r => {
-            console.log("r.response.result -- ", r.response.result);
-            localStorage.setItem("shopee", window.parent.location.href);
+            console.log('r.response.result -- ', r.response.result);
+            localStorage.setItem('shopee', window.parent.location.href);
             window.parent.location.href = r.response.result;
         });
     }
@@ -28,11 +28,11 @@ export class ApiShopee {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                "code": code,
-                "shop_id": shop_id
-            })
+                code: code,
+                shop_id: shop_id,
+            }),
         }).then(r => {
-            console.log("r -- ", r);
+            console.log('r -- ', r);
         });
     }
     static getItemList(start, end, callback) {
@@ -45,10 +45,11 @@ export class ApiShopee {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                "start": start,
-                "end": end
-            })
+                start: start,
+                end: end,
+            }),
         }).then(r => {
+            console.log('r -- ', r);
             callback(r.response);
         });
     }
@@ -74,6 +75,24 @@ export class ApiShopee {
                 'g-app': getConfig().config.appName,
                 Authorization: getConfig().config.token,
             },
+        });
+    }
+    static getOrderList(start, end, callback) {
+        BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/shopee/getOrderList`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                start: start,
+                end: end,
+            }),
+        }).then(r => {
+            console.log('r -- ', r);
+            callback(r.response);
         });
     }
 }

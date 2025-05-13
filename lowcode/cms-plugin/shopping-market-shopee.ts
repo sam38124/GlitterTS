@@ -4,6 +4,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShopee } from '../glitter-base/route/shopee.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
+import { response } from 'express';
 
 const css = String.raw;
 
@@ -37,7 +38,8 @@ export class MarketShopee {
             bind: blockID,
             view: async () => {
               if (first) {
-                loading = (await ApiShopee.syncStatus()).response.result;
+                let res = await ApiShopee.syncStatus();
+                loading = res.response.result;
                 first = false;
               }
               return [
@@ -77,7 +79,7 @@ export class MarketShopee {
                   clearInterval(gvc.glitter.share.shopee_interval);
                 }
                 gvc.glitter.share.shopee_interval = setTimeout(() => {
-                  gvc.notifyDataChange(id);
+                  gvc.notifyDataChange(blockID);
                 }, 1000);
               });
             },
@@ -374,67 +376,39 @@ export class MarketShopee {
                   title: '匯入蝦皮商品',
                   url: '',
                   click: blockID => {
-                    drawDialog((startDate,endDate ,gvc)=>{
+                    drawDialog((startDate,endDate ,gvcDialog)=>{
                       const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                       const endTime = Math.floor(new Date(endDate).getTime() / 1000);
 
-                      ApiShopee.getItemList(startTime, endTime, (response: any) => {});
-                      gvc.closeDialog();
+                      ApiShopee.getItemList(startTime, endTime, (response: any) => {
+                        gvcDialog.closeDialog();
+                        gvc.notifyDataChange(blockID);
+                      });
+
                       loading = true;
-                      reload(blockID);
                     })
                   },
                 }),
-                BgWidget.mbContainer(18),
                 // BgWidget.mbContainer(18),
-                // BgWidget.mainCard(html`
-                //     ${gvc.bindView(() => {
-                //         const id = gvc.glitter.getUUID()
-                //         return {
-                //             bind: id,
-                //             view: () => {
-                //                 return [
-                //                     html`
-                //                         <div class="tx_700 d-flex flex-column">是否自動同步庫存
-                //                         </div>
-                //                         ${BgWidget.grayNote('啟用庫存同步功能，即會自動同步蝦皮庫存，避免商品超賣。')}
-                //                         <div class="cursor_pointer form-check form-switch ms-0 ps-0"
-                //                              style="">
-                //                             <input
-                //                                     class="form-check-input m-0"
-                //                                     type="checkbox"
-                //                                     onchange="${gvc.event((e, event) => {
-                //                                         vm.config.auto_async=!vm.config.auto_async;
-                //                                         save_shopee()
-                //                                     })}"
-                //                                     ${vm.config.auto_async ? `checked`:``}
-                //                             />
-                //                         </div>
-                //                     `
-                //                 ].join('')
-                //             },
-                //             divCreate: {
-                //                 class: `d-flex flex-column`, style: 'gap:8px;'
-                //             }
-                //         }
-                //     })}
-                //     <button id="" class="shopee-btn mt-3 d-none"
-                //             onclick="${gvc.event(() => {
-                //                 const dialog = new ShareDialog(gvc.glitter);
-                //                 dialog.dataLoading({
-                //                     visible: true
-                //                 })
-                //                 ApiShopee.syncProduct((res: any) => {
-                //                     dialog.dataLoading({
-                //                         visible: false
-                //                     })
-                //                     console.log("res -- ", res);
-                //                 })
+                // showShopeeBlock({
+                //   btnText: '匯入訂單',
+                //   subTitle: '如要同步蝦皮訂單，請先匯入定單。',
+                //   title: '匯入蝦皮訂單',
+                //   url: '',
+                //   click: (blockID) => {
+                //     drawDialog((startDate,endDate ,gvcDialog)=>{
+                //       const startTime = Math.floor(new Date(startDate).getTime() / 1000);
+                //       const endTime = Math.floor(new Date(endDate).getTime() / 1000);
                 //
+                //       ApiShopee.getOrderList(startTime, endTime, (response: any) => {
+                //         gvcDialog.closeDialog();
+                //         gvc.notifyDataChange(blockID);
+                //       });
                 //
-                //             })}">同步商品庫存
-                //     </button>
-                // `)
+                //       loading = true;
+                //     })
+                //   },
+                // }),
               ].join('');
             },
           };

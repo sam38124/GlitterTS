@@ -108,6 +108,26 @@ router.post('/syncStock', async (req: express.Request, resp: express.Response) =
         return response.fail(resp, err);
     }
 });
+router.post('/getOrderList', async (req: express.Request, resp: express.Response) => {
+  try {
+    if(await UtPermission.isManager(req)){
+      //把同步中的toggle開啟
+      Shopee.getItemProgress.push(req.get('g-app') as string)
+      const itemList = new Shopee(req.get('g-app') as string, req.body.token).getOrderList(req.body.start, req.body.end);
+
+      return response.succ(
+        resp,
+        {
+          result:true
+        }
+      )
+    }else{
+      throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+    }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
 
 ['post','get'].map((dd)=>{
     (router as any)[dd]('/stock-hook', async (req: express.Request, resp: express.Response) => {

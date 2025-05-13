@@ -28,14 +28,14 @@ export declare class Shopee {
         data?: undefined;
         error?: undefined;
     } | {
-        data: any;
-        message: string;
-        type?: undefined;
-        error?: undefined;
-    } | {
         type: string;
         data: any;
         message: string;
+        error?: undefined;
+    } | {
+        data: any;
+        message: string;
+        type?: undefined;
         error?: undefined;
     } | {
         type: string;
@@ -65,7 +65,7 @@ export declare class Shopee {
         content: string;
         specs: any[];
         language_data: {
-            "en-US": {
+            'en-US': {
                 content_array: any[];
                 title: string;
                 seo: {
@@ -76,11 +76,11 @@ export declare class Shopee {
                 };
                 content: string;
             };
-            "zh-TW": {
+            'zh-TW': {
                 title: any;
                 seo: any;
             };
-            "zh-CN": {
+            'zh-CN': {
                 content_array: any[];
                 title: string;
                 seo: {
@@ -115,6 +115,27 @@ export declare class Shopee {
     }): Promise<void>;
     asyncStockFromShopnex(): Promise<any>;
     fetchShopeeAccessToken(): Promise<any>;
+    getOrderList(start: string, end: string, index?: number): Promise<{
+        type: string;
+        message: any;
+        data?: undefined;
+        error?: undefined;
+    } | {
+        type: string;
+        data: any;
+        message: string;
+        error?: undefined;
+    } | {
+        data: any;
+        message: string;
+        type?: undefined;
+        error?: undefined;
+    } | {
+        type: string;
+        error: any;
+        message: any;
+        data?: undefined;
+    } | undefined>;
     getInitial(obj: any): {
         type: string;
         title: string;

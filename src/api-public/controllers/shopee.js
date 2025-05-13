@@ -82,11 +82,29 @@ router.get('/listenMessage', async (req, resp) => {
 });
 router.post('/syncStock', async (req, resp) => {
     try {
+        console.log("here 1 oK");
         const res = await new shopee_1.Shopee(req.get('g-app'), req.body.token).asyncStockFromShopnex();
         return response_1.default.succ(resp, {
             "result": "OK",
             "response": res
         });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/getOrderList', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            shopee_1.Shopee.getItemProgress.push(req.get('g-app'));
+            const itemList = new shopee_1.Shopee(req.get('g-app'), req.body.token).getOrderList(req.body.start, req.body.end);
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);

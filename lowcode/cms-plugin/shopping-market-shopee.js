@@ -31,7 +31,8 @@ export class MarketShopee {
                     bind: blockID,
                     view: () => __awaiter(this, void 0, void 0, function* () {
                         if (first) {
-                            loading = (yield ApiShopee.syncStatus()).response.result;
+                            let res = yield ApiShopee.syncStatus();
+                            loading = res.response.result;
                             first = false;
                         }
                         return [
@@ -68,7 +69,7 @@ export class MarketShopee {
                                 clearInterval(gvc.glitter.share.shopee_interval);
                             }
                             gvc.glitter.share.shopee_interval = setTimeout(() => {
-                                gvc.notifyDataChange(id);
+                                gvc.notifyDataChange(blockID);
                             }, 1000);
                         });
                     },
@@ -344,17 +345,17 @@ export class MarketShopee {
                             title: '匯入蝦皮商品',
                             url: '',
                             click: blockID => {
-                                drawDialog((startDate, endDate, gvc) => {
+                                drawDialog((startDate, endDate, gvcDialog) => {
                                     const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                                     const endTime = Math.floor(new Date(endDate).getTime() / 1000);
-                                    ApiShopee.getItemList(startTime, endTime, (response) => { });
-                                    gvc.closeDialog();
+                                    ApiShopee.getItemList(startTime, endTime, (response) => {
+                                        gvcDialog.closeDialog();
+                                        gvc.notifyDataChange(blockID);
+                                    });
                                     loading = true;
-                                    reload(blockID);
                                 });
                             },
                         }),
-                        BgWidget.mbContainer(18),
                     ].join('');
                 },
             };
