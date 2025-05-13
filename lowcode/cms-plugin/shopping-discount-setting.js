@@ -780,108 +780,109 @@ export class ShoppingDiscountSetting {
                                     .filter(Boolean)
                                     .map(str => html `<div>${str}</div>`)
                                     .join(BgWidget.horizontalLine())),
-                                BgWidget.mainCard(gvc.bindView(() => {
-                                    var _a;
-                                    const id = glitter.getUUID();
-                                    const originForType = String(voucherData.for);
-                                    voucherData.forKey = (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [];
-                                    let defKeys = {
-                                        collection: JSON.parse(JSON.stringify(voucherData.forKey)),
-                                        product: JSON.parse(JSON.stringify(voucherData.forKey)),
-                                        manager_tag: JSON.parse(JSON.stringify(voucherData.forKey)),
-                                    };
-                                    return {
-                                        bind: id,
-                                        dataList: [
-                                            { obj: voucherData, key: 'method' },
-                                            { obj: voucherData, key: 'reBackType' },
-                                        ],
-                                        view: () => {
-                                            return [
-                                                ...(() => {
-                                                    if (['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) {
-                                                        return [];
-                                                    }
-                                                    const valueInput = (obj) => {
-                                                        return BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            type: 'number',
-                                                            divStyle: 'width:150px;',
-                                                            title: '',
-                                                            default: voucherData.value,
-                                                            placeHolder: '',
-                                                            callback: text => {
-                                                                const texInt = parseInt(text, 10);
-                                                                if (voucherData.method === 'percent' && (texInt > 100 || texInt < 0)) {
-                                                                    dialog.infoMessage({ text: '數值需介於0~100' });
-                                                                    gvc.notifyDataChange(id);
-                                                                    gvc.notifyDataChange(pageVM.countingID);
-                                                                }
-                                                                else {
-                                                                    voucherData.value = text;
-                                                                }
-                                                            },
-                                                            startText: obj.startText,
-                                                            endText: obj.endText,
-                                                        });
-                                                    };
-                                                    return [
-                                                        html ` <div>
+                                ...(['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) ? [] : [
+                                    BgWidget.mainCard(gvc.bindView(() => {
+                                        var _a;
+                                        const id = glitter.getUUID();
+                                        const originForType = String(voucherData.for);
+                                        voucherData.forKey = (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [];
+                                        let defKeys = {
+                                            collection: JSON.parse(JSON.stringify(voucherData.forKey)),
+                                            product: JSON.parse(JSON.stringify(voucherData.forKey)),
+                                            manager_tag: JSON.parse(JSON.stringify(voucherData.forKey)),
+                                        };
+                                        return {
+                                            bind: id,
+                                            dataList: [
+                                                { obj: voucherData, key: 'method' },
+                                                { obj: voucherData, key: 'reBackType' },
+                                            ],
+                                            view: () => {
+                                                return [
+                                                    ...(() => {
+                                                        if (['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)) {
+                                                            return [];
+                                                        }
+                                                        const valueInput = (obj) => {
+                                                            return BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                type: 'number',
+                                                                divStyle: 'width:150px;',
+                                                                title: '',
+                                                                default: voucherData.value,
+                                                                placeHolder: '',
+                                                                callback: text => {
+                                                                    const texInt = parseInt(text, 10);
+                                                                    if (voucherData.method === 'percent' && (texInt > 100 || texInt < 0)) {
+                                                                        dialog.infoMessage({ text: '數值需介於0~100' });
+                                                                        gvc.notifyDataChange(id);
+                                                                        gvc.notifyDataChange(pageVM.countingID);
+                                                                    }
+                                                                    else {
+                                                                        voucherData.value = text;
+                                                                    }
+                                                                },
+                                                                startText: obj.startText,
+                                                                endText: obj.endText,
+                                                            });
+                                                        };
+                                                        return [
+                                                            html ` <div>
                                     <div class="tx_700">折扣金額</div>
                                     ${BgWidget.mbContainer(18)}
                                     ${BgWidget.multiCheckboxContainer(gvc, [
-                                                            {
-                                                                key: 'fixed',
-                                                                name: '固定金額',
-                                                                innerHtml: valueInput({ startText: '$' }),
-                                                            },
-                                                            {
-                                                                key: 'percent',
-                                                                name: '百分比',
-                                                                innerHtml: valueInput({ endText: '%' }),
-                                                            },
-                                                        ], [voucherData.method], text => {
-                                                            voucherData.value = '0';
-                                                            voucherData.method = text[0];
-                                                            gvc.notifyDataChange(pageVM.conditionID);
-                                                        }, { single: true })}
+                                                                {
+                                                                    key: 'fixed',
+                                                                    name: '固定金額',
+                                                                    innerHtml: valueInput({ startText: '$' }),
+                                                                },
+                                                                {
+                                                                    key: 'percent',
+                                                                    name: '百分比',
+                                                                    innerHtml: valueInput({ endText: '%' }),
+                                                                },
+                                                            ], [voucherData.method], text => {
+                                                                voucherData.value = '0';
+                                                                voucherData.method = text[0];
+                                                                gvc.notifyDataChange(pageVM.conditionID);
+                                                            }, { single: true })}
                                   </div>`,
-                                                    ];
-                                                })(),
-                                                ...(() => {
-                                                    var _a;
-                                                    if (voucherData.trigger === 'distribution') {
-                                                        return [];
-                                                    }
-                                                    return [
-                                                        html `
+                                                        ];
+                                                    })(),
+                                                    ...(() => {
+                                                        var _a;
+                                                        if (voucherData.trigger === 'distribution') {
+                                                            return [];
+                                                        }
+                                                        return [
+                                                            html `
                                     <div class="tx_700">套用至</div>
                                     ${BgWidget.mbContainer(18)}
                                     ${EditorElem.radio({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            def: (_a = voucherData.for) !== null && _a !== void 0 ? _a : 'all',
-                                                            array: ShoppingDiscountSetting.productForList,
-                                                            callback: text => {
-                                                                voucherData.forKey = defKeys[text];
-                                                                voucherData.for = text;
-                                                                gvc.notifyDataChange(id);
-                                                            },
-                                                            oneLine: true,
-                                                        })}
+                                                                gvc: gvc,
+                                                                title: '',
+                                                                def: (_a = voucherData.for) !== null && _a !== void 0 ? _a : 'all',
+                                                                array: ShoppingDiscountSetting.productForList,
+                                                                callback: text => {
+                                                                    voucherData.forKey = defKeys[text];
+                                                                    voucherData.for = text;
+                                                                    gvc.notifyDataChange(id);
+                                                                },
+                                                                oneLine: true,
+                                                            })}
                                     ${BgWidget.mbContainer(8)}
                                     ${(() => {
-                                                            switch (voucherData.for) {
-                                                                case 'manager_tag':
-                                                                    return gvc.bindView(() => {
-                                                                        const subVM = {
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            dataList: originForType === 'manager_tag' ? [...defKeys.manager_tag] : [],
-                                                                        };
-                                                                        return {
-                                                                            bind: subVM.id,
-                                                                            view: () => {
-                                                                                return html `
+                                                                switch (voucherData.for) {
+                                                                    case 'manager_tag':
+                                                                        return gvc.bindView(() => {
+                                                                            const subVM = {
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                dataList: originForType === 'manager_tag' ? [...defKeys.manager_tag] : [],
+                                                                            };
+                                                                            return {
+                                                                                bind: subVM.id,
+                                                                                view: () => {
+                                                                                    return html `
                                                   <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                     <div
                                                       class="d-flex align-items-center gray-bottom-line-18"
@@ -891,47 +892,47 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">標籤列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton('選擇標籤', gvc.event(() => {
-                                                                                    BgProduct.useProductTags({
-                                                                                        gvc,
-                                                                                        config_key: 'product_manager_tags',
-                                                                                        def: originForType === 'manager_tag' && voucherData.forKey
-                                                                                            ? voucherData.forKey.map(item => `${item}`)
-                                                                                            : [],
-                                                                                        callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                                            voucherData.forKey = value;
-                                                                                            defKeys.manager_tag = value;
-                                                                                            subVM.dataList = value;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }),
-                                                                                    });
-                                                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                                        BgProduct.useProductTags({
+                                                                                            gvc,
+                                                                                            config_key: 'product_manager_tags',
+                                                                                            def: originForType === 'manager_tag' && voucherData.forKey
+                                                                                                ? voucherData.forKey.map(item => `${item}`)
+                                                                                                : [],
+                                                                                            callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                voucherData.forKey = value;
+                                                                                                defKeys.manager_tag = value;
+                                                                                                subVM.dataList = value;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }),
+                                                                                        });
+                                                                                    }), { textStyle: 'font-weight: 400;' })}
                                                     </div>
                                                     ${obj.gvc.map(subVM.dataList.map((opt, index) => {
-                                                                                    return html ` <div
+                                                                                        return html ` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}. #${opt}</span>
                                                         </div>`;
-                                                                                }))}
+                                                                                    }))}
                                                   </div>
                                                 `;
-                                                                            },
-                                                                        };
-                                                                    });
-                                                                case 'collection':
-                                                                    return gvc.bindView(() => {
-                                                                        const subVM = {
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            loading: true,
-                                                                            dataList: [],
-                                                                        };
-                                                                        return {
-                                                                            bind: subVM.id,
-                                                                            view: () => {
-                                                                                if (subVM.loading) {
-                                                                                    return BgWidget.spinner();
-                                                                                }
-                                                                                return html `
+                                                                                },
+                                                                            };
+                                                                        });
+                                                                    case 'collection':
+                                                                        return gvc.bindView(() => {
+                                                                            const subVM = {
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                loading: true,
+                                                                                dataList: [],
+                                                                            };
+                                                                            return {
+                                                                                bind: subVM.id,
+                                                                                view: () => {
+                                                                                    if (subVM.loading) {
+                                                                                        return BgWidget.spinner();
+                                                                                    }
+                                                                                    return html `
                                                   <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                     <div
                                                       class="d-flex align-items-center gray-bottom-line-18"
@@ -941,69 +942,69 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">分類列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton('選擇分類', gvc.event(() => {
-                                                                                    var _a;
-                                                                                    BgProduct.collectionsDialog({
-                                                                                        gvc: gvc,
-                                                                                        default: (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [],
-                                                                                        callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                                            voucherData.forKey = value;
-                                                                                            defKeys.collection = value;
-                                                                                            subVM.dataList = yield BgProduct.getCollectiosOpts(value);
-                                                                                            subVM.loading = true;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }),
-                                                                                    });
-                                                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                                        var _a;
+                                                                                        BgProduct.collectionsDialog({
+                                                                                            gvc: gvc,
+                                                                                            default: (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [],
+                                                                                            callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                voucherData.forKey = value;
+                                                                                                defKeys.collection = value;
+                                                                                                subVM.dataList = yield BgProduct.getCollectiosOpts(value);
+                                                                                                subVM.loading = true;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }),
+                                                                                        });
+                                                                                    }), { textStyle: 'font-weight: 400;' })}
                                                     </div>
                                                     ${obj.gvc.map(subVM.dataList.map((opt, index) => {
-                                                                                    return html ` <div
+                                                                                        return html ` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}. ${opt.value}</span>
                                                           ${opt.note
-                                                                                        ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> `
-                                                                                        : ''}
+                                                                                            ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> `
+                                                                                            : ''}
                                                         </div>`;
-                                                                                }))}
+                                                                                    }))}
                                                   </div>
                                                 `;
-                                                                            },
-                                                                            onCreate: () => {
-                                                                                if (subVM.loading) {
-                                                                                    if (voucherData.forKey.length === 0) {
-                                                                                        setTimeout(() => {
-                                                                                            subVM.dataList = [];
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }, 200);
+                                                                                },
+                                                                                onCreate: () => {
+                                                                                    if (subVM.loading) {
+                                                                                        if (voucherData.forKey.length === 0) {
+                                                                                            setTimeout(() => {
+                                                                                                subVM.dataList = [];
+                                                                                                subVM.loading = false;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }, 200);
+                                                                                        }
+                                                                                        else {
+                                                                                            new Promise(resolve => {
+                                                                                                resolve(BgProduct.getCollectiosOpts(voucherData.forKey));
+                                                                                            }).then(data => {
+                                                                                                subVM.dataList = data;
+                                                                                                subVM.loading = false;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            });
+                                                                                        }
                                                                                     }
-                                                                                    else {
-                                                                                        new Promise(resolve => {
-                                                                                            resolve(BgProduct.getCollectiosOpts(voucherData.forKey));
-                                                                                        }).then(data => {
-                                                                                            subVM.dataList = data;
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        });
+                                                                                },
+                                                                            };
+                                                                        });
+                                                                    case 'product':
+                                                                        return gvc.bindView(() => {
+                                                                            const subVM = {
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                loading: true,
+                                                                                dataList: [],
+                                                                            };
+                                                                            return {
+                                                                                bind: subVM.id,
+                                                                                view: () => {
+                                                                                    if (subVM.loading) {
+                                                                                        return BgWidget.spinner();
                                                                                     }
-                                                                                }
-                                                                            },
-                                                                        };
-                                                                    });
-                                                                case 'product':
-                                                                    return gvc.bindView(() => {
-                                                                        const subVM = {
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            loading: true,
-                                                                            dataList: [],
-                                                                        };
-                                                                        return {
-                                                                            bind: subVM.id,
-                                                                            view: () => {
-                                                                                if (subVM.loading) {
-                                                                                    return BgWidget.spinner();
-                                                                                }
-                                                                                return html `
+                                                                                    return html `
                                                   <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                     <div
                                                       class="d-flex align-items-center gray-bottom-line-18"
@@ -1013,77 +1014,78 @@ export class ShoppingDiscountSetting {
                                                         <div class="tx_normal">商品列表</div>
                                                       </div>
                                                       ${BgWidget.grayButton('選擇商品', gvc.event(() => {
-                                                                                    var _a;
-                                                                                    BgProduct.productsDialog({
-                                                                                        gvc: gvc,
-                                                                                        default: (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [],
-                                                                                        callback: (value) => __awaiter(this, void 0, void 0, function* () {
-                                                                                            voucherData.forKey = value;
-                                                                                            defKeys.product = value;
-                                                                                            subVM.dataList = yield BgProduct.getProductOpts(voucherData.forKey);
-                                                                                            subVM.loading = true;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }),
-                                                                                    });
-                                                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                                        var _a;
+                                                                                        BgProduct.productsDialog({
+                                                                                            gvc: gvc,
+                                                                                            default: (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [],
+                                                                                            callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                voucherData.forKey = value;
+                                                                                                defKeys.product = value;
+                                                                                                subVM.dataList = yield BgProduct.getProductOpts(voucherData.forKey);
+                                                                                                subVM.loading = true;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }),
+                                                                                        });
+                                                                                    }), { textStyle: 'font-weight: 400;' })}
                                                     </div>
                                                     ${subVM.dataList
-                                                                                    .map((opt, index) => {
-                                                                                    return html ` <div
+                                                                                        .map((opt, index) => {
+                                                                                        return html ` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label gap-3"
                                                         >
                                                           <span class="tx_normal">${index + 1}.</span>
                                                           ${BgWidget.validImageBox({
-                                                                                        gvc: gvc,
-                                                                                        image: opt.image,
-                                                                                        width: 40,
-                                                                                    })}
+                                                                                            gvc: gvc,
+                                                                                            image: opt.image,
+                                                                                            width: 40,
+                                                                                        })}
                                                           <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
                                                             ${opt.value}
                                                           </div>
                                                           ${opt.note
-                                                                                        ? html ` <div class="tx_gray_12">${opt.note}</div> `
-                                                                                        : ''}
+                                                                                            ? html ` <div class="tx_gray_12">${opt.note}</div> `
+                                                                                            : ''}
                                                         </div>`;
-                                                                                })
-                                                                                    .join(``)}
+                                                                                    })
+                                                                                        .join(``)}
                                                   </div>
                                                 `;
-                                                                            },
-                                                                            onCreate: () => {
-                                                                                if (subVM.loading) {
-                                                                                    if (voucherData.forKey.length === 0) {
-                                                                                        setTimeout(() => {
-                                                                                            subVM.dataList = [];
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }, 200);
+                                                                                },
+                                                                                onCreate: () => {
+                                                                                    if (subVM.loading) {
+                                                                                        if (voucherData.forKey.length === 0) {
+                                                                                            setTimeout(() => {
+                                                                                                subVM.dataList = [];
+                                                                                                subVM.loading = false;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }, 200);
+                                                                                        }
+                                                                                        else {
+                                                                                            new Promise(resolve => {
+                                                                                                resolve(BgProduct.getProductOpts(voucherData.forKey));
+                                                                                            }).then(data => {
+                                                                                                subVM.dataList = data;
+                                                                                                subVM.loading = false;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            });
+                                                                                        }
                                                                                     }
-                                                                                    else {
-                                                                                        new Promise(resolve => {
-                                                                                            resolve(BgProduct.getProductOpts(voucherData.forKey));
-                                                                                        }).then(data => {
-                                                                                            subVM.dataList = data;
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        });
-                                                                                    }
-                                                                                }
-                                                                            },
-                                                                        };
-                                                                    });
-                                                                case 'all':
-                                                                default:
-                                                                    return '';
-                                                            }
-                                                        })()}
+                                                                                },
+                                                                            };
+                                                                        });
+                                                                    case 'all':
+                                                                    default:
+                                                                        return '';
+                                                                }
+                                                            })()}
                                   `,
-                                                    ];
-                                                })(),
-                                            ].join(BgWidget.horizontalLine());
-                                        },
-                                    };
-                                })),
+                                                        ];
+                                                    })(),
+                                                ].join(BgWidget.horizontalLine());
+                                            },
+                                        };
+                                    }))
+                                ],
                                 ['giveaway', 'add_on_items'].includes(voucherData.reBackType)
                                     ? BgWidget.mainCard(rebackProduct())
                                     : '',

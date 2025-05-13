@@ -23,11 +23,14 @@ export class ThirdPartyLine {
                     id: '',
                     secret: '',
                     message_token: '',
+                    support_scope: []
                 },
             };
             ApiUser.getPublicConfig(key, 'manager').then((dd) => {
+                var _a;
                 vm.loading = false;
                 dd.response.value && (vm.data = dd.response.value);
+                vm.data.support_scope = (_a = vm.data.support_scope) !== null && _a !== void 0 ? _a : [];
                 gvc.notifyDataChange(id);
             });
             return {
@@ -78,6 +81,37 @@ export class ThirdPartyLine {
                                         callback: (text) => {
                                             vm.data.message_token = text;
                                         },
+                                    }),
+                                    BgWidget.inlineCheckBox({
+                                        title: 'LINE登入請求額外資料',
+                                        gvc: gvc,
+                                        def: vm.data.support_scope,
+                                        array: [
+                                            {
+                                                value: 'phone',
+                                                title: '電話',
+                                            },
+                                            {
+                                                title: '地址',
+                                                value: 'address',
+                                            },
+                                            {
+                                                title: '真實姓名',
+                                                value: 'real_name',
+                                            },
+                                            {
+                                                title: '性別',
+                                                value: 'gender',
+                                            },
+                                            {
+                                                title: '生日',
+                                                value: 'birthdate',
+                                            },
+                                        ],
+                                        callback: (array) => {
+                                            vm.data.support_scope = array;
+                                        },
+                                        type: 'multiple',
                                     }),
                                     html `<div
                                                         onclick="${gvc.event(() => {

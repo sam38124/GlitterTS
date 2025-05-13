@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 import { LanguageLocation } from '../Language.js';
+import express from 'express';
 export declare class Template {
     token?: IToken;
     createPage(config: {
@@ -52,7 +53,7 @@ export declare class Template {
         data: any;
         tag: string;
     }): Promise<boolean>;
-    static getRealPage(query_page: string, appName: string): Promise<string>;
+    static getRealPage(query_page: string, appName: string, req: express.Request): Promise<string>;
     getPage(config: {
         appName?: string;
         tag?: string;
@@ -65,6 +66,7 @@ export declare class Template {
         preload?: boolean;
         id?: string;
         language?: LanguageLocation;
+        req: express.Request;
     }): Promise<any>;
     constructor(token?: IToken);
 }

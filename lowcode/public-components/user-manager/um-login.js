@@ -53,12 +53,12 @@ export class UMLogin {
                 <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
                 <div class="w-100 d-flex flex-column gap-3">
                   <div>
-                    <label class="${gClass('label')}">${Language.text('email')}</label>
+                    <label class="${gClass('label')}">${Language.text('email_phone')}</label>
                     <input
                       class="bgw-input"
                       type="text"
                       id="vm-email"
-                      placeholder="${Language.text('email_placeholder')}"
+                      placeholder="${Language.text('email_phone_placeholder')}"
                     />
                   </div>
                   <div
@@ -619,6 +619,7 @@ export class UMLogin {
         return [
             (() => {
                 function callLogin() {
+                    var _a;
                     if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                         gvc.glitter.runJsInterFace('line_login', {
                             id: widget.share.line.id,
@@ -632,7 +633,12 @@ export class UMLogin {
                     }
                     else {
                         const redirect_url = location.origin + location.pathname;
-                        gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=profile%20openid%20email&nonce=09876xyz`;
+                        widget.share.line.support_scope = (_a = widget.share.line.support_scope) !== null && _a !== void 0 ? _a : [];
+                        gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=${[
+                            'profile',
+                            'openid',
+                            'email'
+                        ].concat(widget.share.line.support_scope).join('%20')}&nonce=09876xyz`;
                     }
                 }
                 return {
@@ -961,10 +967,6 @@ export class UMLogin {
             const email = this.checkValue('vm-email');
             if (!email) {
                 widget.event('error', { title: Language.text('email_placeholder') });
-                return;
-            }
-            if (!CheckInput.isEmail(email)) {
-                widget.event('error', { title: Language.text('enter_valid_email') });
                 return;
             }
             vm.resetEmail = email;

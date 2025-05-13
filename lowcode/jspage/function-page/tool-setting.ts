@@ -190,6 +190,7 @@ export class ToolSetting {
           //主元件
           const refer_widget = await (async () => {
             if (['標頭元件', '頁腳元件', '商品卡片', '廣告輪播'].includes(dd.tag)) {
+
               return (
                 await ApiPageConfig.getPage({
                   appName: widget.config[0].data.refer_app,
@@ -261,7 +262,13 @@ export class ToolSetting {
                       <div
                         style="align-self: stretch; color: #393939; font-size: 15px;  font-weight: 400; word-wrap: break-word"
                       >
-                        ${refer_widget.template_config.name}
+                        ${(()=>{
+                          if((dd.tag==='標頭元件') && gvc.glitter.share.is_blog_editor()){
+                            return gvc.glitter.share.editorViewModel.selectItem.label;
+                          }else{
+                            return  refer_widget.template_config.name;
+                          }
+                        })()}
                       </div>
                     </div>
 
@@ -371,3 +378,4 @@ export class ToolSetting {
     ].join('');
   }
 }
+(window as any).glitter.setModule(import.meta.url,ToolSetting)

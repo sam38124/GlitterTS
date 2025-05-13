@@ -2,12 +2,15 @@ import db from "../modules/database.js";
 import {ConfigSetting, saasConfig} from "../config.js";
 import {App} from "./app.js";
 import {Template} from "./template.js";
+import express from 'express';
 
 export class Seo {
-    public static async getPageInfo(appName: string, query_page: string,language:any):Promise<any> {
-        let page = await Template.getRealPage(query_page, appName);
+    public static async getPageInfo(appName: string, query_page: string,language:any,req:express.Request):Promise<any> {
+        let page = await Template.getRealPage(query_page, appName,req);
         if(page==='official-router'){
             appName='cms_system'
+        }else if(page==='page-show-router'){
+          appName='cms_system'
         }
         const page_db=(()=>{
             switch (language){
@@ -33,7 +36,7 @@ export class Seo {
                                     and \`${saasConfig.SAAS_NAME}\`.${page_db}.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
         `, []))[0]
         if(!page_data && (language!='zh-TW')){
-            return await Seo.getPageInfo(appName,query_page,'zh-TW')
+            return await Seo.getPageInfo(appName,query_page,'zh-TW',req)
         }else{
             return page_data
         }
@@ -71,7 +74,7 @@ export class Seo {
                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)} limit 0,1
             `, []))[0]['tag']
         }
-        let data = await Seo.getPageInfo(appName, redirect,'zh-TW');
+        let data = await Seo.getPageInfo(appName, redirect,'zh-TW',req);
 
         let query_stack=[]
         if (req.query.type) {

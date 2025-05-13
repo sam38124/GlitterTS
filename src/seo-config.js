@@ -342,7 +342,7 @@ class SeoConfig {
         })
             .join('');
     }
-    static async seoDetail(in_app, req, resp) {
+    static async seoDetail(in_app, req, resp, initial = false) {
         var _a, _b, _c, _d, _e, _f;
         const og_url = req.headers['x-original-url'];
         try {
@@ -421,13 +421,17 @@ class SeoConfig {
                 req_type: 'file',
                 req: req,
             });
-            console.log(`app_info==>`, {
-                page: req.query.page,
-                appName: appName
-            });
-            let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language);
+            if (req.query.refer_page || ['pages/', 'hidden/', 'shop/'].find(dd => {
+                var _a;
+                return `${(_a = req.query.page) !== null && _a !== void 0 ? _a : ''}`.startsWith(dd);
+            })) {
+                req.query.page_refer = req.query.page;
+                console.log(`req.query.page_refer`, req.query.page_refer);
+            }
+            let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language, req);
+            console.log(`initial-data:`, data);
             let home_page_data = await (async () => {
-                return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
+                return await seo_js_1.Seo.getPageInfo(appName, 'index', language, req);
             })();
             if (`${req.query.page}`.startsWith('products/') && !data) {
                 data = home_page_data;
@@ -484,7 +488,7 @@ class SeoConfig {
                 }
                 const preload = req.query.isIframe === 'true'
                     ? {}
-                    : await app_js_1.App.preloadPageData(appName, req.query.page, language);
+                    : await app_js_1.App.preloadPageData(appName, req.query.page, language, req);
                 data.page_config = (_c = data.page_config) !== null && _c !== void 0 ? _c : {};
                 data.page_config.seo = (_d = data.page_config.seo) !== null && _d !== void 0 ? _d : {};
                 const seo_detail = await getSeoDetail(appName, req);
@@ -508,11 +512,8 @@ class SeoConfig {
                 let distribution_code = '';
                 req.query.page = req.query.page || 'index';
                 if (req.query.page.split('/')[0] === 'order_detail' && req.query.EndCheckout === '1') {
-                    distribution_code = `
-                                    localStorage.setItem('distributionCode','');
-                                `;
+                    distribution_code = `localStorage.setItem('distributionCode','');`;
                 }
-                console.log(`req.query.page`, req.query.page);
                 if (req.query.page.split('/')[0] === 'distribution' &&
                     req.query.page.split('/')[1]) {
                     distribution_code = await SeoConfig.distributionSEO({

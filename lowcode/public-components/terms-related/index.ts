@@ -34,6 +34,7 @@ export class TermsRelated {
             }) &&
             `${glitter.getUrlParameter('page')}`.split('/')[1]
           ) {
+
             return await new Promise((resolve, reject) => {
               glitter.getModule(new URL('./public-components/blogs/blogs-01.js', gvc.glitter.root_path).href, res => {
                 resolve(res.getMain(obj.gvc));

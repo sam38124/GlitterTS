@@ -12,6 +12,7 @@ const html = String.raw;
 export class Sy02 {
     static main(gvc, widget, subData) {
         return HeadInitial.initial({
+            widget: widget,
             browser: () => {
                 var _a, _b, _c, _d, _e;
                 let changePage = (index, type, subData) => { };

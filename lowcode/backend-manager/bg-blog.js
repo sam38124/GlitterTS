@@ -1132,6 +1132,11 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         }, 400);
         function checkSwitchToUiEditor() {
             function next() {
+                Object.keys(window.glitterInitialHelper.share).map((dd) => {
+                    if (dd.startsWith('getPageData-')) {
+                        window.glitterInitialHelper.share[dd] = undefined;
+                    }
+                });
                 localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                 window.parent.glitter.setUrlParameter('page-id', vm.data.id);
                 window.parent.glitter.setUrlParameter('language', language);

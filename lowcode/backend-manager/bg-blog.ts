@@ -1266,6 +1266,11 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
 
     function checkSwitchToUiEditor() {
       function next() {
+        Object.keys((window as any).glitterInitialHelper.share).map((dd)=>{
+          if(dd.startsWith('getPageData-')){
+            (window as any).glitterInitialHelper.share[dd]=undefined
+          }
+        })
         localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
         (window.parent as any).glitter.setUrlParameter('page-id', vm.data.id);
         (window.parent as any).glitter.setUrlParameter('language', language);

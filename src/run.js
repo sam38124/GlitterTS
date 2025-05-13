@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isDanielEnv = void 0;
+exports.isDanielEnv = isDanielEnv;
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const index_1 = require("./index");
@@ -29,7 +29,6 @@ if (fs_1.default.existsSync(path_1.default.resolve(zackPath))) {
 function isDanielEnv() {
     return fs_1.default.existsSync(path_1.default.resolve(danielPath));
 }
-exports.isDanielEnv = isDanielEnv;
 (0, index_1.initial)(4000).then(async () => {
 });
 //# sourceMappingURL=run.js.map

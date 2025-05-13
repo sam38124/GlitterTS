@@ -63,12 +63,12 @@ export class UMLogin {
                 <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
                 <div class="w-100 d-flex flex-column gap-3">
                   <div>
-                    <label class="${gClass('label')}">${Language.text('email')}</label>
+                    <label class="${gClass('label')}">${Language.text('email_phone')}</label>
                     <input
                       class="bgw-input"
                       type="text"
                       id="vm-email"
-                      placeholder="${Language.text('email_placeholder')}"
+                      placeholder="${Language.text('email_phone_placeholder')}"
                     />
                   </div>
                   <div
@@ -660,9 +660,16 @@ export class UMLogin {
             );
           } else {
             const redirect_url = location.origin + location.pathname;
+            widget.share.line.support_scope=widget.share.line.support_scope??[]
             gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(
               redirect_url
-            )}&state=line_login&scope=profile%20openid%20email&nonce=09876xyz`;
+            )}&state=line_login&scope=${
+              [
+                'profile',
+                'openid',
+                'email'
+              ].concat(widget.share.line.support_scope).join('%20')
+            }&nonce=09876xyz`;
           }
         }
 
@@ -1017,10 +1024,7 @@ export class UMLogin {
         widget.event('error', { title: Language.text('email_placeholder') });
         return;
       }
-      if (!CheckInput.isEmail(email)) {
-        widget.event('error', { title: Language.text('enter_valid_email') });
-        return;
-      }
+
 
       vm.resetEmail = email;
     }
@@ -1043,16 +1047,17 @@ export class UMLogin {
 
   static sendVerifyEmailCode(widget: any, id: string) {
     const email = this.checkValue(id);
-
+    //
     if (!email) {
       widget.event('error', { title: Language.text('email_placeholder') });
       return;
     }
+    //
     if (!CheckInput.isEmail(email)) {
       widget.event('error', { title: Language.text('enter_valid_email') });
       return;
     }
-
+    //
     ApiUser.emailVerify(email).then(r => {
       if (r.result && r.response.result) {
         widget.event('success', { title: Language.text('verification_code_sent') });

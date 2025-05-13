@@ -6,6 +6,8 @@ import process from 'process';
 import { UtDatabase } from '../api-public/utils/ut-database.js';
 import { LanguageLocation } from '../Language.js';
 import { ServerCache } from '../modules/server-cache.js';
+import express from 'express';
+import { User } from '../api-public/services/user.js';
 
 export class Template {
   public token?: IToken;
@@ -26,11 +28,11 @@ export class Template {
       const data = (
         await db.execute(
           `
-              select \`${saasConfig.SAAS_NAME}\`.page_config.page_config,
-                     \`${saasConfig.SAAS_NAME}\`.page_config.config
-              from \`${saasConfig.SAAS_NAME}\`.page_config
-              where tag = ${db.escape(config.copy)}
-                and appName = ${db.escape(config.copyApp || config.appName)}
+            select \`${saasConfig.SAAS_NAME}\`.page_config.page_config,
+                   \`${saasConfig.SAAS_NAME}\`.page_config.config
+            from \`${saasConfig.SAAS_NAME}\`.page_config
+            where tag = ${db.escape(config.copy)}
+              and appName = ${db.escape(config.copyApp || config.appName)}
           `,
           []
         )
@@ -102,9 +104,9 @@ export class Template {
         return sql;
       })();
       let sql = `
-          select count(1)
-          from \`${saasConfig.SAAS_NAME}\`.${page_db}
-          where 1 = 1 ${where_}
+        select count(1)
+        from \`${saasConfig.SAAS_NAME}\`.${page_db}
+        where 1 = 1 ${where_}
       `;
       const count = await db.query(sql, []);
       if (count[0]['count(1)'] === 0) {
@@ -133,9 +135,9 @@ export class Template {
       config.favorite && (params['favorite'] = config.favorite);
       config.updated_time = new Date();
       let sql = `
-          UPDATE \`${saasConfig.SAAS_NAME}\`.${page_db}
-          SET ?
-          WHERE 1 = 1
+        UPDATE \`${saasConfig.SAAS_NAME}\`.${page_db}
+        SET ?
+        WHERE 1 = 1
       `;
       if (config.id) {
         sql += ` and \`id\` = ${config.id} `;
@@ -155,15 +157,15 @@ export class Template {
       for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
         let sql = config.id
           ? `
-                    delete
-                    from \`${saasConfig.SAAS_NAME}\`.${b}
-                    WHERE appName = ${db.escape(config.appName)}
-                      and id = ${db.escape(config.id)}`
+            delete
+            from \`${saasConfig.SAAS_NAME}\`.${b}
+            WHERE appName = ${db.escape(config.appName)}
+              and id = ${db.escape(config.id)}`
           : `
-                    delete
-                    from \`${saasConfig.SAAS_NAME}\`.${b}
-                    WHERE appName = ${db.escape(config.appName)}
-                      and tag = ${db.escape(config.tag)}`;
+            delete
+            from \`${saasConfig.SAAS_NAME}\`.${b}
+            WHERE appName = ${db.escape(config.appName)}
+              and tag = ${db.escape(config.tag)}`;
         await db.execute(sql, []);
       }
       return true;
@@ -222,7 +224,7 @@ export class Template {
     }
   }
 
-  public static async getRealPage(query_page: string, appName: string): Promise<string> {
+  public static async getRealPage(query_page: string, appName: string,req:express.Request): Promise<string> {
     query_page = query_page || 'index';
     let page = query_page;
     if (query_page.includes('#')) {
@@ -280,11 +282,11 @@ export class Template {
         for (const dd of copyPageData) {
           await db.execute(
             `
-                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
-                                                                     \`name\`,
-                                                                     \`config\`, \`page_config\`, page_type)
-                values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
-                        ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
+              insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
+                                                                   \`name\`,
+                                                                   \`config\`, \`page_config\`, page_type)
+              values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
+                      ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
             `,
             [dd.userID, appName, 'index-app', dd.group || '未分類', 'APP首頁樣式']
           );
@@ -298,11 +300,10 @@ export class Template {
     ) {
       return 'official-router';
     }
-    //當判斷是Blog時
+    //當判斷是相關一頁式頁面
     if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {
-      return 'official-router';
+      return `page-show-router`;
     }
-
     //當判斷是分銷連結時
     if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
       try {
@@ -318,7 +319,7 @@ export class Template {
         if (page.redirect.startsWith('/products')) {
           return 'official-router';
         } else {
-          return await Template.getRealPage((page.redirect as string).substring(1), appName as string);
+          return await Template.getRealPage((page.redirect as string).substring(1), appName as string,req);
         }
       } catch (error) {
         console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
@@ -364,16 +365,22 @@ export class Template {
     preload?: boolean;
     id?: string;
     language?: LanguageLocation;
+    req: express.Request;
   }): Promise<any> {
+
     if (config.tag) {
-      config.tag = await Template.getRealPage(config.tag, config.appName!);
+      config.tag = await Template.getRealPage(config.tag, config.appName!,config.req);
       if (config.tag === 'official-router') {
         config.appName = 'cms_system';
       } else if (config.tag === 'all-product') {
         config.tag = 'official-router';
         config.appName = 'cms_system';
+      } else if (config.tag === 'page-show-router') {
+        config.appName = 'cms_system';
       }
     }
+
+
     try {
       const page_db = (() => {
         switch (config.language) {
@@ -436,12 +443,38 @@ export class Template {
         }
       }
       const page_data = await db.query(sql, []);
-      if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
-        config.language = 'zh-TW';
-        return await this.getPage(config);
-      } else {
-        return page_data;
+
+      const response_=await new Promise<any>(async (resolve, reject) => {
+        if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
+          config.language = 'zh-TW';
+          resolve(await this.getPage(config))
+        } else {
+          resolve( page_data);
+        }
+      })
+
+      //如果是子分銷連結替換掉header
+      if(config.req.query.page_refer){
+        for (const b of response_){
+          if(b.tag==='c_header'){
+           const c_config=(await new User(b.appName).getConfigV2({
+             key:'c_header_'+config.req.query.page_refer,
+             user_id:'manager'
+           }));
+           if(c_config && c_config[0]){
+             console.log(`c_config[0]==>`,c_config[0])
+             b.config=c_config
+           }
+          }
+        }
       }
+
+      // if(config.req.cookies['_sublink'] && config.tag==='c_header'){
+      //   console.log(`config.req.cookies['_sublink']`, config.req.cookies['_sublink']);
+      // }
+      // console.log(`response_`, response_);
+      return response_
+
     } catch (e: any) {
       throw exception.BadRequestError('Forbidden', 'No permission.' + e, null);
     }

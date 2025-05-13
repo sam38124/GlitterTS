@@ -11,6 +11,7 @@ import { config } from "../config.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { ApiUser } from '../glitter-base/route/user.js';
 export class ApiPageConfig {
     constructor() {
     }
@@ -114,6 +115,7 @@ export class ApiPageConfig {
                     (request.page_type) && (query.push(`page_type=${request.page_type}`));
                     (request.me) && (query.push(`me=${request.me}`));
                     (request.favorite) && (query.push(`favorite=${request.favorite}`));
+                    window.page_refer && query.push(`page_refer=${window.page_refer}`);
                     return query.join('&');
                 })(),
             "type": "GET",
@@ -163,16 +165,33 @@ export class ApiPageConfig {
         });
     }
     static setPage(data) {
-        return BaseApi.create({
-            "url": config.url + `/api/v1/template`,
-            "type": "PUT",
-            "timeout": 0,
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": config.token
-            },
-            data: JSON.stringify(data)
-        });
+        if (data.tag === 'c_header' && ['pages/', 'hidden/', 'shop/'].find((dd) => {
+            return window.parent.glitter.getUrlParameter('page').startsWith(dd);
+        })) {
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                data.config[0].is_customer_header = true;
+                yield ApiUser.setPublicConfig({
+                    key: 'c_header_' + window.parent.glitter.getUrlParameter('page'),
+                    value: data.config,
+                    user_id: 'manager',
+                });
+                resolve({
+                    result: true
+                });
+            }));
+        }
+        else {
+            return BaseApi.create({
+                "url": config.url + `/api/v1/template`,
+                "type": "PUT",
+                "timeout": 0,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": config.token
+                },
+                data: JSON.stringify(data)
+            });
+        }
     }
     static addPage(data) {
         return BaseApi.create({

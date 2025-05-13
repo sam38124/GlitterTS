@@ -23,11 +23,13 @@ export class MenusSetting {
       index: number;
       dataList: any;
       query?: string;
+      tab:'menu'|'footer'
     } = {
       type: 'list',
       index: 0,
       dataList: undefined,
       query: '',
+      tab:'menu'
     };
     const filterID = gvc.glitter.getUUID();
     let vmi: any = undefined;
@@ -48,6 +50,7 @@ export class MenusSetting {
       function refresh() {
         gvc.notifyDataChange(id);
       }
+
       return {
         bind: id,
         dataList: [{ obj: vm, key: 'type' }],
@@ -67,14 +70,28 @@ export class MenusSetting {
                     )
                   : ''}
               </div>
+              ${BgWidget.tab(
+                [
+                  { title: '主選單', key: 'menu' },
+                  { title: '頁腳', key: 'footer' }
+                ],
+                gvc,
+                vm.tab,
+                (text) => {
+                  vm.tab=text as any
+                  gvc.notifyDataChange(id);
+                },
+                `margin-bottom:0px !important;`
+              )}
               ${BgWidget.container(
                 BgWidget.mainCard(
                   BgWidget.tableV3({
                     gvc: gvc,
                     getData: vmi => {
                       vm.dataList = [
-                        { tag: 'menu-setting', title: '主選單' },
-                        { tag: 'footer-setting', title: '頁腳' },
+                        { tag: vm.tab==='menu' ? 'menu-setting':'footer-setting', title: `
+                       <div> ${vm.tab==='menu' ? `頁首選單`:`頁腳選單`} <span style="font-size:12px;color:#36B;">系統預設</span></div>
+                        ` }
                       ];
                       vmi.pageSize = 1;
                       vmi.originalData = vm.dataList;
@@ -117,8 +134,8 @@ export class MenusSetting {
           }
         },
         divCreate: {
-          class: `mx-auto `,
-          style: `max-width:100%;width:960px;`,
+          class: `w-100 `,
+          style: `max-width:100%;`,
         },
       };
     });
@@ -236,7 +253,7 @@ export class MenusSetting {
         bind: vm.id,
         view: () => {
           const link = vm.link[vm.language];
-          return html`<div class="title-container" style="width: 856px; max-width: 100%;">
+          return html`<div class="title-container" style="width: 100%; max-width: 100%;">
               ${BgWidget.goBack(
                 cf.gvc.event(() => {
                   cf.goBack();
@@ -254,7 +271,7 @@ export class MenusSetting {
             </div>
             ${BgWidget.container(
               html`<div
-                style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
+                style="max-width:100%;width: 100%; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
               >
                 <div style="width: 100%;  position: relative">
                   <div

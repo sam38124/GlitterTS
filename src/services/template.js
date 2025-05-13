@@ -9,16 +9,17 @@ const config_1 = require("../config");
 const exception_1 = __importDefault(require("../modules/exception"));
 const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../api-public/utils/ut-database.js");
+const user_js_1 = require("../api-public/services/user.js");
 class Template {
     async createPage(config) {
         var _a, _b, _c;
         if (config.copy) {
             const data = (await database_1.default.execute(`
-              select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
-                     \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config
-              from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-              where tag = ${database_1.default.escape(config.copy)}
-                and appName = ${database_1.default.escape(config.copyApp || config.appName)}
+            select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
+                   \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config
+            from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+            where tag = ${database_1.default.escape(config.copy)}
+              and appName = ${database_1.default.escape(config.copyApp || config.appName)}
           `, []))[0];
             config.page_config = data['page_config'];
             config.config = data['config'];
@@ -70,9 +71,9 @@ class Template {
                 return sql;
             })();
             let sql = `
-          select count(1)
-          from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
-          where 1 = 1 ${where_}
+        select count(1)
+        from \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+        where 1 = 1 ${where_}
       `;
             const count = await database_1.default.query(sql, []);
             if (count[0]['count(1)'] === 0) {
@@ -97,9 +98,9 @@ class Template {
             config.favorite && (params['favorite'] = config.favorite);
             config.updated_time = new Date();
             let sql = `
-          UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
-          SET ?
-          WHERE 1 = 1
+        UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.${page_db}
+        SET ?
+        WHERE 1 = 1
       `;
             if (config.id) {
                 sql += ` and \`id\` = ${config.id} `;
@@ -120,15 +121,15 @@ class Template {
             for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
                 let sql = config.id
                     ? `
-                    delete
-                    from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-                    WHERE appName = ${database_1.default.escape(config.appName)}
-                      and id = ${database_1.default.escape(config.id)}`
+            delete
+            from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+            WHERE appName = ${database_1.default.escape(config.appName)}
+              and id = ${database_1.default.escape(config.id)}`
                     : `
-                    delete
-                    from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-                    WHERE appName = ${database_1.default.escape(config.appName)}
-                      and tag = ${database_1.default.escape(config.tag)}`;
+            delete
+            from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+            WHERE appName = ${database_1.default.escape(config.appName)}
+              and tag = ${database_1.default.escape(config.tag)}`;
                 await database_1.default.execute(sql, []);
             }
             return true;
@@ -180,7 +181,7 @@ class Template {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
         }
     }
-    static async getRealPage(query_page, appName) {
+    static async getRealPage(query_page, appName, req) {
         query_page = query_page || 'index';
         let page = query_page;
         if (query_page.includes('#')) {
@@ -227,11 +228,11 @@ class Template {
              and tag = 'index'`, []);
                 for (const dd of copyPageData) {
                     await database_1.default.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
-                                                                     \`name\`,
-                                                                     \`config\`, \`page_config\`, page_type)
-                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
-                        ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
+              insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`,
+                                                                   \`name\`,
+                                                                   \`config\`, \`page_config\`, page_type)
+              values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
+                      ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
             `, [dd.userID, appName, 'index-app', dd.group || '未分類', 'APP首頁樣式']);
                 }
             }
@@ -241,7 +242,7 @@ class Template {
             return 'official-router';
         }
         if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {
-            return 'official-router';
+            return `page-show-router`;
         }
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
             try {
@@ -252,7 +253,7 @@ class Template {
                     return 'official-router';
                 }
                 else {
-                    return await Template.getRealPage(page.redirect.substring(1), appName);
+                    return await Template.getRealPage(page.redirect.substring(1), appName, req);
                 }
             }
             catch (error) {
@@ -284,12 +285,15 @@ class Template {
     }
     async getPage(config) {
         if (config.tag) {
-            config.tag = await Template.getRealPage(config.tag, config.appName);
+            config.tag = await Template.getRealPage(config.tag, config.appName, config.req);
             if (config.tag === 'official-router') {
                 config.appName = 'cms_system';
             }
             else if (config.tag === 'all-product') {
                 config.tag = 'official-router';
+                config.appName = 'cms_system';
+            }
+            else if (config.tag === 'page-show-router') {
                 config.appName = 'cms_system';
             }
         }
@@ -347,13 +351,30 @@ class Template {
                 }
             }
             const page_data = await database_1.default.query(sql, []);
-            if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
-                config.language = 'zh-TW';
-                return await this.getPage(config);
+            const response_ = await new Promise(async (resolve, reject) => {
+                if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
+                    config.language = 'zh-TW';
+                    resolve(await this.getPage(config));
+                }
+                else {
+                    resolve(page_data);
+                }
+            });
+            if (config.req.query.page_refer) {
+                for (const b of response_) {
+                    if (b.tag === 'c_header') {
+                        const c_config = (await new user_js_1.User(b.appName).getConfigV2({
+                            key: 'c_header_' + config.req.query.page_refer,
+                            user_id: 'manager'
+                        }));
+                        if (c_config && c_config[0]) {
+                            console.log(`c_config[0]==>`, c_config[0]);
+                            b.config = c_config;
+                        }
+                    }
+                }
             }
-            else {
-                return page_data;
-            }
+            return response_;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);

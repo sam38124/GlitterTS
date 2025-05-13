@@ -107,7 +107,7 @@ export class UserList {
           },
           {
             key: '電子信箱',
-            value: `<span class="fs-7">${dd.userData.email}</span>`,
+            value: `<span class="fs-7">${dd.userData.email || ''}</span>`,
           },
           {
             key: '訂單',

@@ -17,6 +17,7 @@ import path from 'path';
 import { AppInitial } from './app-initial.js';
 import { User } from '../api-public/services/user.js';
 import { LanguageLocation } from '../Language.js';
+import express from 'express';
 
 export class App {
   public token?: IToken;
@@ -597,9 +598,9 @@ export class App {
     }
   }
 
-  public static async preloadPageData(appName: string, refer_page: string, language: LanguageLocation) {
+  public static async preloadPageData(appName: string, refer_page: string, language: LanguageLocation,req:express.Request) {
     const start = new Date().getTime();
-    const page = await Template.getRealPage(refer_page, appName);
+    const page = await Template.getRealPage(refer_page, appName,req);
     console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
     const app = new App();
     const preloadData: {
@@ -618,6 +619,7 @@ export class App {
         appName: appName,
         tag: page,
         language: language,
+        req:req
       })
     )[0];
     const event_list = fs.readFileSync(path.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
@@ -654,6 +656,7 @@ export class App {
                   appName: dd.data.refer_app || appName,
                   tag: dd.data.tag,
                   language: language,
+                  req:req
                 })
               )[0];
               if (pageData && pageData.config) {

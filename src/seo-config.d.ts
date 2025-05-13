@@ -34,7 +34,7 @@ export declare class SeoConfig {
     static fbCode(FBCode: any): string;
     static gTag(g_tag: any[]): string;
     static gA4(ga4: any[]): string;
-    static seoDetail(in_app: string, req: express.Request, resp: express.Response): Promise<{
+    static seoDetail(in_app: string, req: express.Request, resp: express.Response, initial?: boolean): Promise<{
         head: string;
         body: string;
         redirect?: undefined;

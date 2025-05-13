@@ -387,6 +387,7 @@ class CheckoutEvent {
                                 }
                                 return 0;
                             })();
+                            console.log(`shipmentValue=>`, shipmentValue);
                             item.shipment_obj = {
                                 type: variant.shipment_type,
                                 value: shipmentValue,

@@ -9,6 +9,7 @@ import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { RenderValue } from '../../glitterBundle/html-component/render-value.js';
 import { ApplicationConfig } from '../../application-config.js';
 import { ApiPageConfig } from '../../api/pageConfig.js';
+import { GlobalEditor } from '../../editor-components/global-editor.js';
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
   return {
@@ -340,6 +341,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
               resolve(clas);
             });
           });
+          const GlobalEditor: any = await new Promise((resolve, reject) => {
+            gvc.glitter.getModule(new URL('./editor-components/global-editor.js', gvc.glitter.root_path).href, clas => {
+              resolve(clas);
+            });
+          });
+
           const BgWidget: any = await new Promise((resolve, reject) => {
             gvc.glitter.getModule(new URL('../../backend-manager/bg-widget.js', import.meta.url).href, clas => {
               resolve(clas);
@@ -1341,7 +1348,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                         </div>`,
                                                                 ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`,
                                                               ].join(`<div style="height:18px;"></div>`);
-                                                              if (app_editor) {
+                                                              if (app_editor || glitter.share.editorViewModel.selectItem.is_customer_header) {
                                                                 global_setting_view = ``;
                                                               }
                                                               if (vm.page === 'editor') {
@@ -1352,28 +1359,31 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                     getItemsVisibility(dd)
                                                                   );
                                                                 });
-                                                                return [
-                                                                  type === 'def' ? `` : global_setting_view,
-                                                                  (() => {
-                                                                    if (array_items.length === 0) {
-                                                                      return `<div class="mb-n3" style="text-align: center; padding: 12px; font-size: 18px; font-weight: 700;">尚未設定自定義項目</div>`;
-                                                                    } else {
-                                                                      return FormWidget.editorView({
-                                                                        gvc: gvc,
-                                                                        array: array_items,
-                                                                        refresh: () => {
-                                                                          refresh(widget, type);
-                                                                        },
-                                                                        formData: refer_form,
-                                                                        widget: pageData.config,
-                                                                      });
-                                                                    }
-                                                                  })(),
-                                                                  html` <div
+                                                               return  [
+                                                                 type === 'def' ? `` : global_setting_view,
+                                                                 (() => {
+                                                                   if (array_items.length === 0) {
+                                                                     return `<div class="mb-n3" style="text-align: center; padding: 12px; font-size: 18px; font-weight: 700;">尚未設定自定義項目</div>`;
+                                                                   } else {
+                                                                     return [
+                                                                       FormWidget.editorView({
+                                                                         gvc: gvc,
+                                                                         array: array_items,
+                                                                         refresh: () => {
+                                                                           refresh(widget, type);
+                                                                         },
+                                                                         formData: refer_form,
+                                                                         widget: pageData.config,
+                                                                       })
+                                                                       ,
+                                                                     ].join('');
+                                                                   }
+                                                                 })(),
+                                                                 html` <div
                                                                     class="p-3 mt-3 d-flex align-items-center guide-user-editor-7 ${setting_option.length >
-                                                                    0
-                                                                      ? ``
-                                                                      : `d-none`}"
+                                                                 0
+                                                                   ? ``
+                                                                   : `d-none`}"
                                                                     style="font-size: 16px;
 cursor: pointer;
 border-top: 1px solid #DDD;
@@ -1381,14 +1391,14 @@ font-style: normal;
 gap:10px;
 font-weight: 700;"
                                                                     onclick="${gvc.event(() => {
-                                                                      vm.page = 'setting';
-                                                                      gvc.notifyDataChange(id);
-                                                                    })}"
+                                                                   vm.page = 'setting';
+                                                                   gvc.notifyDataChange(id);
+                                                                 })}"
                                                                   >
                                                                     樣式設定
                                                                     <i class="fa-solid fa-angle-right"></i>
                                                                   </div>`,
-                                                                ].join('');
+                                                               ].join('')
                                                               } else if (vm.page === 'setting') {
                                                                 return (
                                                                   global_setting_view +
@@ -1652,6 +1662,7 @@ font-weight: 700;"
                                                 },
                                                 custom_edit: true,
                                                 toggle_visible: bool => {
+                                                  
                                                   // if (bool) {
                                                   //     $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
                                                   // } else {
@@ -1738,7 +1749,7 @@ font-weight: 700;"
                                         gvc.glitter.getUrlParameter('device') !== 'mobile' &&
                                         pageData.template_config.tag.includes('APP-Footer')
                                       ) {
-                                      } else {
+                                      } else{
                                         appendHtml(
                                           pageData,
                                           dd,
