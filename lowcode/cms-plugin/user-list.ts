@@ -2122,18 +2122,23 @@ export class UserList {
                                     ...customerForm.list,
                                   ];
 
+                                  const requireKeys = ['name', 'email', 'phone', 'birth'];
+
                                   function loopForm(dataArray: any[], refer_obj: any): string {
                                     return dataArray
                                       .map(item => {
                                         const { title, key, page } = item;
                                         const value = refer_obj[key] || '';
                                         const isReadonly = vmi.mode !== 'edit';
+                                        const addRequiredStar = requireKeys.includes(key)
+                                          ? BgWidget.requiredStar()
+                                          : '';
 
                                         switch (page) {
                                           case 'input':
                                             return html`
                                               <div>
-                                                <div class="tx_normal">${title}</div>
+                                                <div class="tx_normal">${title} ${addRequiredStar}</div>
                                                 <div>
                                                   ${BgWidget.editeInput({
                                                     gvc,
@@ -2149,7 +2154,7 @@ export class UserList {
                                           case 'multiple_line_text':
                                             return html`
                                               <div>
-                                                <div class="tx_normal">${title}</div>
+                                                <div class="tx_normal">${title} ${addRequiredStar}</div>
                                                 ${BgWidget.textArea({
                                                   gvc,
                                                   title: '',

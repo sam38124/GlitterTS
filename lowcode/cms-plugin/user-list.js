@@ -1844,17 +1844,21 @@ export class UserList {
                                                         ...(Array.isArray(defaultForm) ? defaultForm : []),
                                                         ...customerForm.list,
                                                     ];
+                                                    const requireKeys = ['name', 'email', 'phone', 'birth'];
                                                     function loopForm(dataArray, refer_obj) {
                                                         return dataArray
                                                             .map(item => {
                                                             const { title, key, page } = item;
                                                             const value = refer_obj[key] || '';
                                                             const isReadonly = vmi.mode !== 'edit';
+                                                            const addRequiredStar = requireKeys.includes(key)
+                                                                ? BgWidget.requiredStar()
+                                                                : '';
                                                             switch (page) {
                                                                 case 'input':
                                                                     return html `
                                               <div>
-                                                <div class="tx_normal">${title}</div>
+                                                <div class="tx_normal">${title} ${addRequiredStar}</div>
                                                 <div>
                                                   ${BgWidget.editeInput({
                                                                         gvc,
@@ -1870,7 +1874,7 @@ export class UserList {
                                                                 case 'multiple_line_text':
                                                                     return html `
                                               <div>
-                                                <div class="tx_normal">${title}</div>
+                                                <div class="tx_normal">${title} ${addRequiredStar}</div>
                                                 ${BgWidget.textArea({
                                                                         gvc,
                                                                         title: '',
