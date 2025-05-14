@@ -17,7 +17,7 @@ export class UMOrderList {
             view: true,
         };
         let changePage = (index, type, subData) => { };
-        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
             changePage = cl.changePage;
         });
         return gvc.bindView({
@@ -29,39 +29,48 @@ export class UMOrderList {
                 else {
                     const isWebsite = document.body.clientWidth > 768;
                     return html `
-                        <div class="row mx-auto">
-                            <div class="col-12">
-                                <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
-
-                                    <div  class="d-none d-lg-flex" style="background: #FF9705;background: #FF9705;width:4px;height: 20px;" onclick="${gvc.event(() => {
-                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+            <div class="row mx-auto">
+              <div class="col-12">
+                <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
+                  <div
+                    class="d-none d-lg-flex"
+                    style="background: #FF9705;background: #FF9705;width:4px;height: 20px;"
+                    onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
                             cl.changePage('account_userinfo', 'home', {});
                         });
-                    })}"></div>
-                                    <div class="d-flex d-lg-none align-items-center justify-content-center" style="width:20px;height: 20px;" onclick="${gvc.event(() => {
-                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                    })}"
+                  ></div>
+                  <div
+                    class="d-flex d-lg-none align-items-center justify-content-center"
+                    style="width:20px;height: 20px;"
+                    onclick="${gvc.event(() => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
                             cl.changePage('account_userinfo', 'home', {});
                         });
-                    })}">
-                                        <i class="fa-solid fa-angle-left fs-4"></i>
-                                    </div>
-                                    <div class="um-info-title fw-bold " style="font-size: 24px;">${Language.text('order_history')}</div>
-                                </div>
-                            </div>
-                            <div class="col-12 " style="min-height: 500px;">
-                                <div class="mx-auto orderList">
-                                    ${(() => {
+                    })}"
+                  >
+                    <i class="fa-solid fa-angle-left fs-4"></i>
+                  </div>
+                  <div class="um-info-title fw-bold " style="font-size: 24px;">${Language.text('order_history')}</div>
+                </div>
+              </div>
+              <div class="col-12" style="min-height: 500px;">
+                <div class="mx-auto orderList">
+                  ${(() => {
                         if (vm.dataList.length === 0) {
-                            return html `<div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                                                <lottie-player
-                                                    style="max-width: 100%;width: 300px;"
-                                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                    speed="1"
-                                                    loop="true"
-                                                    background="transparent"
-                                                ></lottie-player>
-                                                <span class="mb-5 fs-5">${Language.text('no_current_orders')}</span>
-                                            </div>`;
+                            return html `<div
+                        class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto"
+                      >
+                        <lottie-player
+                          style="max-width: 100%;width: 300px;"
+                          src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                          speed="1"
+                          loop="true"
+                          background="transparent"
+                        ></lottie-player>
+                        <span class="mb-5 fs-5">${Language.text('no_current_orders')}</span>
+                      </div>`;
                         }
                         const header = [
                             {
@@ -112,44 +121,44 @@ export class UMOrderList {
                                     }
                                 })(),
                                 html `<div
-                                                    class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
-                                                    onclick="${gvc.event(() => {
+                          class="option px-4 d-flex justify-content-center um-nav-btn um-nav-btn-active"
+                          onclick="${gvc.event(() => {
                                     gvc.glitter.setUrlParameter('cart_token', item.cart_token);
                                     changePage('order_detail', 'page', {});
                                 })}"
-                                                >
-                                                    ${Language.text('view')}
-                                                </div>`,
+                        >
+                          ${Language.text('view')}
+                        </div>`,
                             ];
                         }
                         if (isWebsite) {
                             const flexList = [1, 1, 1, 1, 1];
                             return html `
-                                                <div class="w-100 d-sm-flex py-4 um-th-bar">
-                                                    ${header
+                        <div class="w-100 d-sm-flex py-4 um-th-bar">
+                          ${header
                                 .map((item, index) => {
                                 return html `<div class="um-th" style="flex: ${flexList[index]};">${item.title}</div>`;
                             })
                                 .join('')}
-                                                </div>
-                                                ${vm.dataList
-                                .map((item) => {
+                        </div>
+                        ${vm.dataList
+                                .map(item => {
                                 return html `<div class="w-100 d-sm-flex py-5 um-td-bar">
-                                                            ${formatText(item)
+                              ${formatText(item)
                                     .map((dd, index) => {
                                     return html `<div class="um-td" style="flex: ${flexList[index]}">${dd}</div>`;
                                 })
                                     .join('')}
-                                                        </div>`;
+                            </div>`;
                             })
                                 .join('')}
-                                            `;
+                      `;
                         }
                         return html `<div class="w-100 d-sm-none mb-3 s162413">
-                                            ${vm.dataList
-                            .map((item) => {
+                      ${vm.dataList
+                            .map(item => {
                             return html `<div class="um-mobile-area">
-                                                        ${formatText(item)
+                            ${formatText(item)
                                 .map((dd, index) => {
                                 if (header[index].title === '') {
                                     return dd;
@@ -157,15 +166,15 @@ export class UMOrderList {
                                 return html `<div class="um-mobile-text">${header[index].title}: ${dd}</div>`;
                             })
                                 .join('')}
-                                                    </div>`;
+                          </div>`;
                         })
                             .join('')}
-                                        </div> `;
+                    </div> `;
                     })()}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                </div>
+              </div>
+            </div>
+          `;
                 }
             },
             divCreate: {

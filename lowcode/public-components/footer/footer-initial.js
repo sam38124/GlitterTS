@@ -9,8 +9,17 @@ export class FooterInitial {
         }
         else {
             const res_ = (() => {
-                if ((window.glitter.getUrlParameter('page').startsWith('products/') || ['account_userinfo', 'account_edit', 'order_list', 'voucher-list', 'rebate',
-                    'wishlist'].includes(window.glitter.getUrlParameter('page'))) && document.body.clientWidth < 800) {
+                if ((window.glitter.getUrlParameter('page').startsWith('products/') ||
+                    [
+                        'account_userinfo',
+                        'recipient_info',
+                        'account_edit',
+                        'order_list',
+                        'voucher-list',
+                        'rebate',
+                        'wishlist',
+                    ].includes(window.glitter.getUrlParameter('page'))) &&
+                    document.body.clientWidth < 800) {
                     return true;
                 }
                 else

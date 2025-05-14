@@ -12,6 +12,10 @@ import { User } from '../api-public/services/user.js';
 export class Template {
   public token?: IToken;
 
+  constructor(token?: IToken) {
+    this.token = token;
+  }
+
   public async createPage(config: {
     appName: string;
     tag: string;
@@ -183,9 +187,7 @@ export class Template {
       const data = await new UtDatabase(saasConfig.SAAS_NAME as string, `page_config`).querySql(
         sql,
         query as any,
-        `
-            id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config
-            `
+        `id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config`
       );
       return data;
     } catch (e: any) {
@@ -224,7 +226,7 @@ export class Template {
     }
   }
 
-  public static async getRealPage(query_page: string, appName: string,req:express.Request): Promise<string> {
+  public static async getRealPage(query_page: string, appName: string, req: express.Request): Promise<string> {
     query_page = query_page || 'index';
     let page = query_page;
     if (query_page.includes('#')) {
@@ -295,7 +297,15 @@ export class Template {
     }
 
     if (
-      ['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
+      [
+        'account_userinfo',
+        'voucher-list',
+        'rebate',
+        'order_list',
+        'wishlist',
+        'recipient_info',
+        'account_edit',
+      ].includes(query_page) &&
       appName !== 'cms_system'
     ) {
       return 'official-router';
@@ -319,7 +329,7 @@ export class Template {
         if (page.redirect.startsWith('/products')) {
           return 'official-router';
         } else {
-          return await Template.getRealPage((page.redirect as string).substring(1), appName as string,req);
+          return await Template.getRealPage((page.redirect as string).substring(1), appName as string, req);
         }
       } catch (error) {
         console.error(`distribution 路徑錯誤 code: ${query_page.split('/')[1]}`);
@@ -367,9 +377,8 @@ export class Template {
     language?: LanguageLocation;
     req: express.Request;
   }): Promise<any> {
-
     if (config.tag) {
-      config.tag = await Template.getRealPage(config.tag, config.appName!,config.req);
+      config.tag = await Template.getRealPage(config.tag, config.appName!, config.req);
       if (config.tag === 'official-router') {
         config.appName = 'cms_system';
       } else if (config.tag === 'all-product') {
@@ -379,7 +388,6 @@ export class Template {
         config.appName = 'cms_system';
       }
     }
-
 
     try {
       const page_db = (() => {
@@ -426,11 +434,6 @@ export class Template {
                    }
                    if (config.me === 'true') {
                      query.push(`userID = ${this.token!.userID}`);
-                   } else {
-                     // let officialAccount=(process.env.OFFICIAL_ACCOUNT ?? '').split(',')
-                     // query.push(`userID in (${officialAccount.map((dd)=>{
-                     //     return `${db.escape(dd)}`
-                     // }).join(',')})`)
                    }
                    return query.join(' and ');
                  })()}`;
@@ -444,27 +447,27 @@ export class Template {
       }
       const page_data = await db.query(sql, []);
 
-      const response_=await new Promise<any>(async (resolve, reject) => {
+      const response_ = await new Promise<any>(async (resolve, reject) => {
         if (page_db !== 'page_config' && page_data.length === 0 && config.language != 'zh-TW') {
           config.language = 'zh-TW';
-          resolve(await this.getPage(config))
+          resolve(await this.getPage(config));
         } else {
-          resolve( page_data);
+          resolve(page_data);
         }
-      })
+      });
 
       //如果是子分銷連結替換掉header
-      if(config.req.query.page_refer){
-        for (const b of response_){
-          if(b.tag==='c_header'){
-           const c_config=(await new User(b.appName).getConfigV2({
-             key:'c_header_'+config.req.query.page_refer,
-             user_id:'manager'
-           }));
-           if(c_config && c_config[0]){
-             console.log(`c_config[0]==>`,c_config[0])
-             b.config=c_config
-           }
+      if (config.req.query.page_refer) {
+        for (const b of response_) {
+          if (b.tag === 'c_header') {
+            const c_config = await new User(b.appName).getConfigV2({
+              key: 'c_header_' + config.req.query.page_refer,
+              user_id: 'manager',
+            });
+            if (c_config && c_config[0]) {
+              console.log(`c_config[0]==>`, c_config[0]);
+              b.config = c_config;
+            }
           }
         }
       }
@@ -473,14 +476,9 @@ export class Template {
       //   console.log(`config.req.cookies['_sublink']`, config.req.cookies['_sublink']);
       // }
       // console.log(`response_`, response_);
-      return response_
-
+      return response_;
     } catch (e: any) {
       throw exception.BadRequestError('Forbidden', 'No permission.' + e, null);
     }
-  }
-
-  constructor(token?: IToken) {
-    this.token = token;
   }
 }

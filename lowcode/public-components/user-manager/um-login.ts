@@ -376,7 +376,7 @@ export class UMLogin {
 
   static addStyle(gvc: GVC, prefix: string) {
     const isPhone = document.body.clientWidth < 768;
-    gvc.addStyle(css`
+    gvc.addStyle(`
       .${prefix}-container {
         box-sizing: border-box;
         display: flex;
@@ -701,13 +701,13 @@ export class UMLogin {
                 }
               });
             } else {
-              ApiUser.getPublicConfig('login_line_setting', 'manager').then((dd) => {
+              ApiUser.getPublicConfig('login_line_setting', 'manager').then(dd => {
                 widget.share.line = dd.response.value || {};
                 if (gvc.glitter.getUrlParameter('line_liff') === 'true') {
                   callLogin();
                 }
-              })
-              }
+              });
+            }
           },
           call: () => {
             callLogin();

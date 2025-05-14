@@ -140,7 +140,6 @@ export class Language {
       { key: 'line_pay', tw: 'Line Pay', cn: 'Line Pay', en: `Line Pay` },
       { key: 'jkopay', tw: '街口支付', cn: '街口支付', en: `JKOPAY` },
       { key: 'paynow', tw: 'PayNow 立吉富', cn: 'PayNow 立吉富', en: `PayNow` },
-
       { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: `ATM Transfer` },
       { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: `Line Bank` },
       { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: `Cash on delivery` },
@@ -260,6 +259,7 @@ export class Language {
         cn: '付款及配送方式',
         en: 'Payment and shipping',
       },
+      { key: 'recipient_info', tw: '收件人資料', cn: '收件人资料', en: 'Recipient Information' },
       { key: 'payment_method', tw: '付款方式', cn: '付款方式', en: 'Payment method' },
       { key: 'shipping_method', tw: '配送方式', cn: '配送方式', en: 'Shipping method' },
       { key: 'shipping_address', tw: '配送地址', cn: '配送地址', en: 'Shipping address' },
@@ -267,7 +267,6 @@ export class Language {
       { key: 'name', tw: '姓名', cn: '姓名', en: 'Name' },
       { key: 'contact_number', tw: '聯絡電話', cn: '联系电话', en: 'Contact number' },
       { key: 'email', tw: '電子信箱', cn: '电子邮箱', en: 'Email' },
-      { key: 'recipient_info', tw: '收件人資料', cn: '收件人资料', en: 'Recipient information' },
       { key: 'invoice_recipient', tw: '發票開立對象', cn: '发票开立对象', en: 'Invoice recipient' },
       { key: 'invoice_method', tw: '開立方式', cn: '开立方式', en: 'Invoice method' },
       { key: 'invoice_number', tw: '發票號碼', cn: '發票號碼', en: 'Invoice number' },

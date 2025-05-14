@@ -1226,7 +1226,7 @@ export class CheckoutIndex {
                                                       style="${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? `background: gray !important;`
-                                                            : ``
+                                                            : ''
                                                         : `background: orangered !important;`}"
                                                       onclick="${gvc.event(() => {
                                                         var _a;
@@ -1334,12 +1334,13 @@ export class CheckoutIndex {
                                                         });
                                                     })}"
                                                     >
-                                                      <span class="${gClass('button-text')}"
-                                                            style="${isSelected
+                                                      <span
+                                                        class="${gClass('button-text')}"
+                                                        style="${isSelected
                                                         ? isSelected.id === pd.id
-                                                            ? ``
+                                                            ? ''
                                                             : `color: white;`
-                                                        : ``}"
+                                                        : ''}"
                                                         >${isSelected
                                                         ? isSelected.id === pd.id
                                                             ? Language.text('selected')
@@ -1944,7 +1945,6 @@ export class CheckoutIndex {
                                               >
                                               <input
                                                 class="${gClass('input')}"
-                                                type=""
                                                 placeholder="${Language.text('postal_code')}"
                                                 value="${vm.cartData.user_info.postal_code || ''}"
                                                 onchange="${gvc.event(e => {
@@ -2175,36 +2175,35 @@ export class CheckoutIndex {
                                       style="cursor: pointer; color: #3366bb;"
                                       onclick="${gvc.event(() => {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
+                                            const userData = res.response.userData;
+                                            const userInfo = vm.cartData.user_info;
                                             ['name', 'phone', 'email'].map(dd => {
-                                                vm.cartData.user_info[dd] =
-                                                    res.response.userData[dd] || vm.cartData.user_info[dd];
+                                                userInfo[dd] = userData[dd] || userInfo[dd];
                                             });
+                                            const { carrier_number, gui_number, company } = userData;
                                             [
                                                 {
                                                     key: 'carrier_num',
-                                                    refer: res.response.userData['carrier_number'],
+                                                    refer: carrier_number,
                                                 },
                                                 {
                                                     key: 'gui_number',
-                                                    refer: res.response.userData['gui_number'],
+                                                    refer: gui_number,
                                                 },
                                                 {
                                                     key: 'send_type',
-                                                    refer: res.response.userData['gui_number'] ||
-                                                        !res.response.userData['carrier_number']
-                                                        ? 'email'
-                                                        : 'carrier_num',
+                                                    refer: gui_number || !carrier_number ? 'email' : 'carrier_num',
                                                 },
                                                 {
                                                     key: 'invoice_type',
-                                                    refer: res.response.userData['gui_number'] ? 'company' : 'me',
+                                                    refer: gui_number ? 'company' : 'me',
                                                 },
                                                 {
                                                     key: 'company',
-                                                    refer: res.response.userData['company'],
+                                                    refer: company,
                                                 },
                                             ].map(dd => {
-                                                vm.cartData.user_info[dd.key] = dd.refer || vm.cartData.user_info[dd.key];
+                                                userInfo[dd.key] = dd.refer || userInfo[dd.key];
                                             });
                                             this.storeLocalData(vm.cartData);
                                             gvc.notifyDataChange('invoice_place');

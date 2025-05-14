@@ -63,7 +63,10 @@ export class TermsRelated {
                         'shipment_list_archive',
                         'reconciliation_area',
                         'app-design',
-                        'auto_fcm_push', 'auto_fcm_advertise', 'auto_fcm_history', 'pos_setting'
+                        'auto_fcm_push',
+                        'auto_fcm_advertise',
+                        'auto_fcm_history',
+                        'pos_setting',
                     ].includes(glitter.getUrlParameter('page'))) {
                         return yield new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, res => {
@@ -85,7 +88,15 @@ export class TermsRelated {
                             });
                         });
                     }
-                    else if (['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(page)) {
+                    else if ([
+                        'account_userinfo',
+                        'voucher-list',
+                        'rebate',
+                        'order_list',
+                        'wishlist',
+                        'recipient_info',
+                        'account_edit',
+                    ].includes(page)) {
                         return yield new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/account-info.js', gvc.glitter.root_path).href, res => {
                                 document.querySelector(`.${id}`).outerHTML = res.main(gvc);

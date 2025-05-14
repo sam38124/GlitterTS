@@ -11,6 +11,9 @@ const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../api-public/utils/ut-database.js");
 const user_js_1 = require("../api-public/services/user.js");
 class Template {
+    constructor(token) {
+        this.token = token;
+    }
     async createPage(config) {
         var _a, _b, _c;
         if (config.copy) {
@@ -121,6 +124,7 @@ class Template {
             for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
                 let sql = config.id
                     ? `
+<<<<<<< HEAD
             delete
             from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
             WHERE appName = ${database_1.default.escape(config.appName)}
@@ -130,6 +134,17 @@ class Template {
             from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
             WHERE appName = ${database_1.default.escape(config.appName)}
               and tag = ${database_1.default.escape(config.tag)}`;
+=======
+              delete
+              from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+              WHERE appName = ${database_1.default.escape(config.appName)}
+                and id = ${database_1.default.escape(config.id)}`
+                    : `
+              delete
+              from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
+              WHERE appName = ${database_1.default.escape(config.appName)}
+                and tag = ${database_1.default.escape(config.tag)}`;
+>>>>>>> 996de538 (feat: add receive info & ui)
                 await database_1.default.execute(sql, []);
             }
             return true;
@@ -145,9 +160,7 @@ class Template {
             query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
             query.template_from === 'me' && sql.push(`template_type in (3,2)`);
             query.template_from === 'all' && sql.push(`template_type = 2`);
-            const data = await new ut_database_js_1.UtDatabase(config_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `
-            id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config
-            `);
+            const data = await new ut_database_js_1.UtDatabase(config_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config`);
             return data;
         }
         catch (e) {
@@ -237,7 +250,15 @@ class Template {
                 }
             }
         }
-        if (['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
+        if ([
+            'account_userinfo',
+            'voucher-list',
+            'rebate',
+            'order_list',
+            'wishlist',
+            'recipient_info',
+            'account_edit',
+        ].includes(query_page) &&
             appName !== 'cms_system') {
             return 'official-router';
         }
@@ -338,8 +359,6 @@ class Template {
                 if (config.me === 'true') {
                     query.push(`userID = ${this.token.userID}`);
                 }
-                else {
-                }
                 return query.join(' and ');
             })()}`;
             if (config.type) {
@@ -379,9 +398,6 @@ class Template {
         catch (e) {
             throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);
         }
-    }
-    constructor(token) {
-        this.token = token;
     }
 }
 exports.Template = Template;

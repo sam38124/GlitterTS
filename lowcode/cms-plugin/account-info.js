@@ -30,40 +30,40 @@ export class AccountInfo {
                             gvc.glitter.share.rebateConfig = yield UmClass.getRebateInfo();
                         }
                         return html ` <div
-              class="breadcrumb mb-0 d-flex align-items-center pt-4 pb-5 d-none d-lg-flex"
-              style="cursor:pointer; gap:10px;"
-            >
-              <li
-                class="breadcrumb-item "
-                style="margin-top: 0px;color:#292218;"
-                onclick="${gvc.event(() => {
+                class="breadcrumb mb-0 d-flex align-items-center pt-4 pb-5 d-none d-lg-flex"
+                style="cursor:pointer; gap:10px;"
+              >
+                <li
+                  class="breadcrumb-item "
+                  style="margin-top: 0px;color:#292218;"
+                  onclick="${gvc.event(() => {
                             gvc.glitter.href = '/index';
                         })}"
+                >
+                  ${Language.text('home_page')}
+                </li>
+                <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
+                <li class="breadcrumb-item " style="margin-top: 0px;color:#292218;">
+                  ${Language.text('account_user_info')}
+                </li>
+              </div>
+              <div
+                class="d-flex flex-column-reverse flex-lg-row "
+                style="gap:${document.body.clientWidth > 800 ? 76 : 18}px;"
               >
-                ${Language.text('home_page')}
-              </li>
-              <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
-              <li class="breadcrumb-item " style="margin-top: 0px;color:#292218;">
-                ${Language.text('account_user_info')}
-              </li>
-            </div>
-            <div
-              class="d-flex flex-column-reverse flex-lg-row "
-              style="gap:${document.body.clientWidth > 800 ? 76 : 18}px;"
-            >
-              ${(() => {
-                            if (['account_edit', 'account_edit', 'order_list', 'voucher-list', 'rebate', 'wishlist'].includes(gvc.glitter.getUrlParameter('page')) &&
+                ${(() => {
+                            if (['account_edit', 'recipient_info', 'order_list', 'voucher-list', 'rebate', 'wishlist'].includes(gvc.glitter.getUrlParameter('page')) &&
                                 document.body.clientWidth < 800) {
                                 return ``;
                             }
                             else {
                                 return html ` <div
-                    class="d-flex flex-column  align-items-start ${document.body.clientWidth > 800
+                      class="d-flex flex-column  align-items-start ${document.body.clientWidth > 800
                                     ? ``
                                     : `border rounded-3 w-100 py-2 px-3`}"
-                    style="min-width:190px;width:190px;gap:4px;"
-                  >
-                    ${[
+                      style="min-width:190px;width:190px;gap:4px;"
+                    >
+                      ${[
                                     {
                                         title: Language.text('account_user_info'),
                                         event: gvc.event(() => {
@@ -74,6 +74,12 @@ export class AccountInfo {
                                         title: Language.text('member_info'),
                                         event: gvc.event(() => {
                                             gvc.glitter.href = '/account_edit';
+                                        }),
+                                    },
+                                    {
+                                        title: Language.text('recipient_info'),
+                                        event: gvc.event(() => {
+                                            gvc.glitter.href = '/recipient_info';
                                         }),
                                     },
                                     {
@@ -121,33 +127,33 @@ export class AccountInfo {
                                                     return [
                                                         html ` <div class="tx_normal fw-normal mb-1">${Language.text('password')}</div>`,
                                                         html `<input
-                                  class="bgw-input"
-                                  type="password"
-                                  placeholder="${Language.text('please_enter_password')}"
-                                  oninput="${gvc.event(e => {
+                                    class="bgw-input"
+                                    type="password"
+                                    placeholder="${Language.text('please_enter_password')}"
+                                    oninput="${gvc.event(e => {
                                                             update_vm.pwd = e.value;
                                                         })}"
-                                  value="${update_vm.pwd}"
-                                />`,
+                                    value="${update_vm.pwd}"
+                                  />`,
                                                         html ` <div class="tx_normal fw-normal mt-2 mb-1">
-                                  ${Language.text('confirm_password')}
-                                </div>`,
+                                    ${Language.text('confirm_password')}
+                                  </div>`,
                                                         html `<input
-                                  class="bgw-input mb-2"
-                                  type="password"
-                                  placeholder="${Language.text('please_enter_password_again')}"
-                                  oninput="${gvc.event(e => {
+                                    class="bgw-input mb-2"
+                                    type="password"
+                                    placeholder="${Language.text('please_enter_password_again')}"
+                                    oninput="${gvc.event(e => {
                                                             repeat_pwd = e.value;
                                                         })}"
-                                  value="${repeat_pwd}"
-                                />`,
+                                    value="${repeat_pwd}"
+                                  />`,
                                                         gvc.bindView(() => {
                                                             const id = gvc.glitter.getUUID();
                                                             return {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return html `${Language.text('reset_password_verification_code')}
-                                      ${UmClass.style_components.blueNote(get_verify_timer
+                                        ${UmClass.style_components.blueNote(get_verify_timer
                                                                         ? `${Language.text('verification_code_sent_to')}『${userData.userData.email}』`
                                                                         : Language.text('get_verification_code'), gvc.event(() => {
                                                                         if (!get_verify_timer) {
@@ -176,20 +182,22 @@ export class AccountInfo {
                                                             };
                                                         }),
                                                         html `<input
-                                  class="bgw-input mt-2 mb-4"
-                                  type="text"
-                                  placeholder="${Language.text('please_enter_verification_code')}"
-                                  oninput="${gvc.event((e, event) => {
+                                    class="bgw-input mt-2 mb-4"
+                                    type="text"
+                                    placeholder="${Language.text('please_enter_verification_code')}"
+                                    oninput="${gvc.event((e, event) => {
                                                             update_vm.verify_code = e.value;
                                                         })}"
-                                  value="${update_vm.verify_code}"
-                                />`,
-                                                        html ` <div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
-                                  <div
-                                    class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
-                                    style="cursor:pointer;"
-                                    type="button"
-                                    onclick="${gvc.event(() => {
+                                    value="${update_vm.verify_code}"
+                                  />`,
+                                                        html ` <div
+                                    class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3"
+                                  >
+                                    <div
+                                      class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
+                                      style="cursor:pointer;"
+                                      type="button"
+                                      onclick="${gvc.event(() => {
                                                             if (update_vm.pwd.length < 8) {
                                                                 dialog.errorMessage({ text: Language.text('password_min_length') });
                                                                 return;
@@ -228,10 +236,10 @@ export class AccountInfo {
                                                                 }
                                                             });
                                                         })}"
-                                  >
-                                    <span class="tx_700_white">${Language.text('confirm_reset')}</span>
-                                  </div>
-                                </div>`,
+                                    >
+                                      <span class="tx_700_white">${Language.text('confirm_reset')}</span>
+                                    </div>
+                                  </div>`,
                                                     ].join('');
                                                 },
                                             });
@@ -268,19 +276,19 @@ export class AccountInfo {
                                     },
                                 ]
                                     .map(dd => {
-                                    return `<div class="d-flex align-items-center w-100" style="
-cursor:pointer;
-height: 30px;
-font-size: 16px;
-font-style: normal;
-font-weight: 400;
-color:${g_css.title};" onclick="${dd.event}">${dd.title}</div>`;
+                                    return html `<div
+                            class="d-flex align-items-center w-100"
+                            style="cursor:pointer; height: 30px; font-size: 16px; font-style: normal; font-weight: 400; color:${g_css.title};"
+                            onclick="${dd.event}"
+                          >
+                            ${dd.title}
+                          </div>`;
                                 })
                                     .join(`${document.body.clientWidth > 800 ? `` : `<div class="w-100 border-top my-1"></div>`}`)}
-                  </div>`;
+                    </div>`;
                             }
                         })()}
-              ${gvc.bindView(() => {
+                ${gvc.bindView(() => {
                             return {
                                 bind: gvc.glitter.getUUID(),
                                 view: () => {
@@ -293,6 +301,11 @@ color:${g_css.title};" onclick="${dd.event}">${dd.title}</div>`;
                                                 break;
                                             case 'account_userinfo':
                                                 gvc.glitter.getModule(gvc.glitter.root_path + `public-components/user-manager/um-info.js`, res => {
+                                                    resolve(res.main(gvc, {}, {}));
+                                                });
+                                                break;
+                                            case 'recipient_info':
+                                                gvc.glitter.getModule(gvc.glitter.root_path + `public-components/user-manager/um-receive.js`, res => {
                                                     resolve(res.main(gvc, {}, {}));
                                                 });
                                                 break;
@@ -324,8 +337,7 @@ color:${g_css.title};" onclick="${dd.event}">${dd.title}</div>`;
                                 },
                             };
                         })}
-             
-            </div>`;
+              </div>`;
                     }),
                     divCreate: {
                         class: `mx-auto px-3 px-lg-0 pb-5`,
@@ -333,7 +345,7 @@ color:${g_css.title};" onclick="${dd.event}">${dd.title}</div>`;
                     },
                 };
             }),
-            ` <div style="height:${glitter.share.bottom_inset || 0}px;"></div>`
+            ` <div style="height:${glitter.share.bottom_inset || 0}px;"></div>`,
         ];
     }
 }
