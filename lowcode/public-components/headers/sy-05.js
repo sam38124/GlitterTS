@@ -27,7 +27,7 @@ export class Sy05 {
                 <div class="d-flex align-items-center justify-content-center h-100 w-100 gap-2">
                   <!--手機版選單-->
                   <div
-                    class="d-flex align-items-center justify-content-center"
+                    class="d-flex d-lg-none align-items-center justify-content-center"
                     style="width:40px !important;height:40px !important;"
                     onclick="${gvc.event(() => {
                     gvc.glitter.setDrawer(gvc.bindView(() => {
@@ -78,7 +78,7 @@ export class Sy05 {
                                     const vm = {
                                         data: [],
                                     };
-                                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then((res) => {
+                                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then((res) => {
                                         vm.data = res.response.value[Language.getLanguage()];
                                         gvc.notifyDataChange(id);
                                     });
@@ -198,7 +198,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                     const vm = {
                         data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then((res) => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then((res) => {
                         vm.data = res.response.value[Language.getLanguage()];
                         gvc.notifyDataChange(id);
                     });

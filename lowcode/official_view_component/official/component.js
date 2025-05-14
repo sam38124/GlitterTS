@@ -971,6 +971,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     subData.editor_updated_callback &&
                                                                                                                         subData.editor_updated_callback(oWidget);
                                                                                                                 }
+                                                                                                                glitter.share.refer_form = refer_form;
+                                                                                                                glitter.share.refresh_global = (() => {
+                                                                                                                    refresh(widget, type);
+                                                                                                                });
                                                                                                                 function getItemsVisibility(dd) {
                                                                                                                     const descriptor = Object.getOwnPropertyDescriptor(refer_form, dd.key);
                                                                                                                     const custom = !oWidget[`${type}_editable`] ||

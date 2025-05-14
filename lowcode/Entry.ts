@@ -131,24 +131,6 @@ export class Entry {
       if (glitter.getUrlParameter('page') !== 'backend_manager') {
         Entry.checkRedirectPage(glitter);
       }
-
-      //紀錄初始載入頁面，後續會帶入query當中用與替換Header避免跳頁
-      if(['pages/','hidden/','shop/'].find((dd)=>{
-        return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd))
-      })){
-        const og_path=glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
-        (window as any).page_refer=og_path;
-
-        setInterval(()=>{
-          if(glitter.getUrlParameter('page')==='index'){
-            glitter.href='/'+og_path
-          }else if(glitter.getUrlParameter('page')!==og_path){
-            glitter.setUrlParameter('page_refer',og_path)
-          }else{
-            glitter.setUrlParameter('page_refer',undefined)
-          }
-        },100)
-      }
       glitter.share.logID = glitter.getUUID();
       glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
@@ -168,7 +150,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_21.4.4';
+      glitter.share.editerVersion = 'V_21.5.3';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {
@@ -614,6 +596,23 @@ export class Entry {
 
   // 跳轉至一般頁面
   public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
+    //紀錄初始載入頁面，後續會帶入query當中用與替換Header避免跳頁
+    if(['hidden/','shop/'].find((dd)=>{
+      return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd))
+    })){
+      const og_path=glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
+      (window as any).page_refer=og_path;
+      (glitter.share).is_shop=true
+      // setInterval(()=>{
+      //   if(glitter.getUrlParameter('page')==='index'){
+      //     glitter.href='/'+og_path
+      //   }else if(glitter.getUrlParameter('page')!==og_path){
+      //     glitter.setUrlParameter('page_refer',og_path)
+      //   }else{
+      //     glitter.setUrlParameter('page_refer',undefined)
+      //   }
+      // },100)
+    }
     ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
       try {
         if (!r.result) {

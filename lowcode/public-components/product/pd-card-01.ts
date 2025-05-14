@@ -172,7 +172,16 @@ export class ProductCard01 {
     return html` <div
       class="card mb-7 card-border"
       onclick="${gvc.event(() => {
-        PdClass.changePage(prod, gvc);
+        if(PdClass.isShoppingPage()){
+          PdClass.addCartAction({
+            gvc: gvc,
+            titleFontColor: titleFontColor,
+            prod: prod,
+            vm: vm,
+          })
+        }else{
+          PdClass.changePage(prod, gvc)
+        }
       })}"
     >
       <div

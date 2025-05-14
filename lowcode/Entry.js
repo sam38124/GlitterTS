@@ -127,23 +127,6 @@ export class Entry {
             if (glitter.getUrlParameter('page') !== 'backend_manager') {
                 Entry.checkRedirectPage(glitter);
             }
-            if (['pages/', 'hidden/', 'shop/'].find((dd) => {
-                return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd));
-            })) {
-                const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
-                window.page_refer = og_path;
-                setInterval(() => {
-                    if (glitter.getUrlParameter('page') === 'index') {
-                        glitter.href = '/' + og_path;
-                    }
-                    else if (glitter.getUrlParameter('page') !== og_path) {
-                        glitter.setUrlParameter('page_refer', og_path);
-                    }
-                    else {
-                        glitter.setUrlParameter('page_refer', undefined);
-                    }
-                }, 100);
-            }
             glitter.share.logID = glitter.getUUID();
             glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
@@ -163,7 +146,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_21.4.4';
+            glitter.share.editerVersion = 'V_21.5.3';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {
@@ -564,6 +547,13 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
+        if (['hidden/', 'shop/'].find((dd) => {
+            return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd));
+        })) {
+            const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
+            window.page_refer = og_path;
+            (glitter.share).is_shop = true;
+        }
         ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!r.result) {

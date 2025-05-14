@@ -142,7 +142,19 @@ export class ProductCard02 {
         return html `<div
       class="card mb-7 card-border"
       style="cursor: pointer"
-      onclick="${gvc.event(() => PdClass.changePage(prod, gvc))}"
+      onclick="${gvc.event(() => {
+            if (PdClass.isShoppingPage()) {
+                PdClass.addCartAction({
+                    gvc: gvc,
+                    titleFontColor: titleFontColor,
+                    prod: prod,
+                    vm: vm,
+                });
+            }
+            else {
+                PdClass.changePage(prod, gvc);
+            }
+        })}"
     >
       <div
         class="card-img-top parent card-image position-relative"

@@ -8,6 +8,7 @@ import { LanguageView } from '../public/language-view.js';
 import { HeaderClass } from './header-class.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
+import { PdClass } from '../product/pd-class.js';
 const html = String.raw;
 export class Sy04 {
     static main(gvc, widget, subData) {
@@ -105,7 +106,7 @@ export class Sy04 {
                                     const vm = {
                                         data: [],
                                     };
-                                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                                         vm.data = res.response.value[Language.getLanguage()];
                                         gvc.notifyDataChange(id);
                                     });
@@ -251,7 +252,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                     const vm = {
                         data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                         vm.data = res.response.value[Language.getLanguage()];
                         gvc.notifyDataChange(id);
                     });
@@ -347,6 +348,9 @@ padding-bottom: 2px;
                             bind: vm.id,
                             view: () => {
                                 var _a, _b;
+                                if (PdClass.isShoppingPage()) {
+                                    return ``;
+                                }
                                 if (!vm.toggle) {
                                     return html `<i
                                           class="fa-regular fa-magnifying-glass"

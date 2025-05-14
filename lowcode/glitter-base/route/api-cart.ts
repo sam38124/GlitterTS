@@ -1,4 +1,5 @@
 import {ApiTrack} from "./api-track.js";
+import { PdClass } from '../../public-components/product/pd-class.js';
 
 type Product = {
     id: number;

@@ -237,6 +237,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             content.config = content.language_data[glitter.getUrlParameter('language')].config;
                                         }
                                         ;
+                                        const header = (yield ApiUser.getPublicConfig('c_header_' + window.parent.glitter.getUrlParameter('page'), 'manager')).response.value;
                                         if (!content.config.find((dd) => {
                                             return dd.data.tag === 'c_header';
                                         })) {
@@ -271,7 +272,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     "type": "component",
                                                     "class": "",
                                                     "index": 0,
-                                                    "label": "標頭",
+                                                    "label": "標頭1234",
                                                     "style": "",
                                                     "global": [],
                                                     "mobile": { "data": {}, "refer": "custom" },
@@ -295,8 +296,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 }
                                             ].concat(content.config);
                                         }
-                                        glitter.share.header_refer = 'custom';
+                                        if (header && header.length) {
+                                            glitter.share.header_refer = 'custom';
+                                        }
+                                        else {
+                                            glitter.share.header_refer = 'def';
+                                        }
                                         d2.response.result[0].config = content.config;
+                                        const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
+                                        window.page_refer = og_path;
                                         resolve(d2.response.result[0]);
                                     }));
                                 }
