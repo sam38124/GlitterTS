@@ -559,7 +559,7 @@ export class POSSetting {
                                                 },
                                                 footer_html: (fGVC) => {
                                                     return [
-                                                        BgWidget.save(fGVC.event(() => gvc.closeDialog()), '確認'),
+                                                        BgWidget.save(fGVC.event(() => fGVC.closeDialog()), '確認'),
                                                     ].join();
                                                 },
                                             });
