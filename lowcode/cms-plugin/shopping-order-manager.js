@@ -367,6 +367,8 @@ export class ShoppingOrderManager {
                                     dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
                                     const isWatchUser = watchUsers.includes(dd.orderData.email);
                                     const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
+                                    const userName = dd.orderData.customer_info ? dd.orderData.customer_info.name || '未填寫' : '匿名';
+                                    const receiveName = dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名';
                                     if (query.isShipment) {
                                         return [
                                             {
@@ -382,7 +384,11 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                                                value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                                            },
+                                            {
+                                                key: '收件人',
+                                                value: receiveName,
                                             },
                                             {
                                                 key: '出貨狀態',
@@ -412,7 +418,11 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                                                value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                                            },
+                                            {
+                                                key: '收件人',
+                                                value: receiveName,
                                             },
                                             {
                                                 key: '訂單金額',
@@ -2655,12 +2665,14 @@ export class ShoppingOrderManager {
                                     >
                                       ${[
                                                 (() => {
-                                                    var _a;
+                                                    var _a, _b, _c;
                                                     const name = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name;
                                                     if (name) {
                                                         return html `<span style="font-weight: 500; color: #4D86DB;">${name}</span>`;
                                                     }
-                                                    return html `<span style="font-weight: normal; color: #393939;">訪客</span>`;
+                                                    return html `<span style="font-weight: normal; color: #393939;"
+                                            >${((_c = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.customer_info) === null || _c === void 0 ? void 0 : _c.name) || '訪客'}</span
+                                          >`;
                                                 })(),
                                                 (() => {
                                                     if (userData.status === 0) {

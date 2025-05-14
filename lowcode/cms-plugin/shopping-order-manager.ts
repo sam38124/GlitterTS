@@ -440,6 +440,11 @@ export class ShoppingOrderManager {
                     const isWatchUser = watchUsers.includes(dd.orderData.email);
                     const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
 
+                    // 顧客資料 | 訂購人資料
+                    const userName = dd.orderData.customer_info ? dd.orderData.customer_info.name || '未填寫' : '匿名';
+                    // 收件人資料
+                    const receiveName = dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名';
+
                     if (query.isShipment) {
                       return [
                         {
@@ -455,7 +460,11 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                          value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                        },
+                        {
+                          key: '收件人',
+                          value: receiveName,
                         },
                         {
                           key: '出貨狀態',
@@ -484,7 +493,11 @@ export class ShoppingOrderManager {
                         },
                         {
                           key: '訂購人',
-                          value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                          value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                        },
+                        {
+                          key: '收件人',
+                          value: receiveName,
                         },
                         {
                           key: '訂單金額',
@@ -2930,7 +2943,9 @@ export class ShoppingOrderManager {
                                           if (name) {
                                             return html`<span style="font-weight: 500; color: #4D86DB;">${name}</span>`;
                                           }
-                                          return html`<span style="font-weight: normal; color: #393939;">訪客</span>`;
+                                          return html`<span style="font-weight: normal; color: #393939;"
+                                            >${orderData.orderData?.customer_info?.name || '訪客'}</span
+                                          >`;
                                         })(),
                                         (() => {
                                           if (userData.status === 0) {
