@@ -196,8 +196,14 @@ export class UMRebate {
 
                           return `${Language.text('order')}「${orderLink}」${moneyText} ${vm.rebateConfig.title}`;
                         })(),
-                        item.money.toLocaleString(),
-                        item.money > 0 ? item.remain.toLocaleString() : '-',
+                        html`<span class="fw-bold ${item.money > 0 ? 'text-success' : 'text-danger'}"
+                          >${item.money.toLocaleString()}</span
+                        >`,
+                        item.money > 0
+                          ? html`<span class="fw-bold ${item.remain > 0 ? 'text-success' : ''}"
+                              >${item.remain.toLocaleString()}</span
+                            >`
+                          : '-',
                       ];
                     }
 
