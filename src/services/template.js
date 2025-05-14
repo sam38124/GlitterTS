@@ -124,7 +124,6 @@ class Template {
             for (const b of ['page_config', 'page_config_rcn', 'page_config_en']) {
                 let sql = config.id
                     ? `
-<<<<<<< HEAD
             delete
             from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
             WHERE appName = ${database_1.default.escape(config.appName)}
@@ -134,17 +133,6 @@ class Template {
             from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
             WHERE appName = ${database_1.default.escape(config.appName)}
               and tag = ${database_1.default.escape(config.tag)}`;
-=======
-              delete
-              from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-              WHERE appName = ${database_1.default.escape(config.appName)}
-                and id = ${database_1.default.escape(config.id)}`
-                    : `
-              delete
-              from \`${config_1.saasConfig.SAAS_NAME}\`.${b}
-              WHERE appName = ${database_1.default.escape(config.appName)}
-                and tag = ${database_1.default.escape(config.tag)}`;
->>>>>>> 996de538 (feat: add receive info & ui)
                 await database_1.default.execute(sql, []);
             }
             return true;
@@ -382,10 +370,10 @@ class Template {
             if (config.req.query.page_refer) {
                 for (const b of response_) {
                     if (b.tag === 'c_header') {
-                        const c_config = (await new user_js_1.User(b.appName).getConfigV2({
+                        const c_config = await new user_js_1.User(b.appName).getConfigV2({
                             key: 'c_header_' + config.req.query.page_refer,
-                            user_id: 'manager'
-                        }));
+                            user_id: 'manager',
+                        });
                         if (c_config && c_config[0]) {
                             console.log(`c_config[0]==>`, c_config[0]);
                             b.config = c_config;

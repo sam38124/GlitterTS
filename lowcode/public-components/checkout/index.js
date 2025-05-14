@@ -29,6 +29,7 @@ import { ApiLiveInteraction } from '../../glitter-base/route/live-purchase-inter
 import { ApplicationConfig } from '../../application-config.js';
 import { CartModule } from '../modules/cart-module.js';
 import { ProductModule } from '../modules/product-module.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
@@ -271,7 +272,7 @@ export class CheckoutIndex {
                 gvc.addMtScript([
                     {
                         src: `${gvc.glitter.root_path}/jslib/lottie-player.js`,
-                    }
+                    },
                 ], () => { }, () => { });
                 vm.cartData = FakeOrder.data;
                 ApiWallet.getRebateConfig({ type: 'me' }).then((res) => __awaiter(this, void 0, void 0, function* () {
@@ -2177,36 +2178,85 @@ export class CheckoutIndex {
                                         ApiUser.getUserData(GlobalUser.token, 'me').then(res => {
                                             const userData = res.response.userData;
                                             const userInfo = vm.cartData.user_info;
-                                            ['name', 'phone', 'email'].map(dd => {
-                                                userInfo[dd] = userData[dd] || userInfo[dd];
-                                            });
-                                            const { carrier_number, gui_number, company } = userData;
-                                            [
-                                                {
-                                                    key: 'carrier_num',
-                                                    refer: carrier_number,
-                                                },
-                                                {
-                                                    key: 'gui_number',
-                                                    refer: gui_number,
-                                                },
-                                                {
-                                                    key: 'send_type',
-                                                    refer: gui_number || !carrier_number ? 'email' : 'carrier_num',
-                                                },
-                                                {
-                                                    key: 'invoice_type',
-                                                    refer: gui_number ? 'company' : 'me',
-                                                },
-                                                {
-                                                    key: 'company',
-                                                    refer: company,
-                                                },
-                                            ].map(dd => {
-                                                userInfo[dd.key] = dd.refer || userInfo[dd.key];
-                                            });
-                                            this.storeLocalData(vm.cartData);
-                                            gvc.notifyDataChange('invoice_place');
+                                            function setUserInfo(data) {
+                                                ['name', 'phone', 'email'].map(dd => {
+                                                    userInfo[dd] = data[dd] || userInfo[dd];
+                                                });
+                                                const { carrier_number, gui_number, company } = data;
+                                                [
+                                                    {
+                                                        key: 'carrier_num',
+                                                        refer: carrier_number,
+                                                    },
+                                                    {
+                                                        key: 'gui_number',
+                                                        refer: gui_number,
+                                                    },
+                                                    {
+                                                        key: 'send_type',
+                                                        refer: gui_number || !carrier_number ? 'email' : 'carrier_num',
+                                                    },
+                                                    {
+                                                        key: 'invoice_type',
+                                                        refer: gui_number ? 'company' : 'me',
+                                                    },
+                                                    {
+                                                        key: 'company',
+                                                        refer: company,
+                                                    },
+                                                ].map(dd => {
+                                                    userInfo[dd.key] = dd.refer || userInfo[dd.key];
+                                                });
+                                                CheckoutIndex.storeLocalData(vm.cartData);
+                                                gvc.notifyDataChange('invoice_place');
+                                            }
+                                            if (Array.isArray(userData.receive_list)) {
+                                                BgWidget.settingDialog({
+                                                    gvc,
+                                                    title: '快速帶入',
+                                                    innerHTML: (iGVC) => {
+                                                        const isPhone = document.body.clientWidth < 800;
+                                                        const listHTML = userData.receive_list
+                                                            .map((data, index) => {
+                                                            return html `<div
+                                                      class="d-flex justify-content-between align-items-center p-1 w-100 gap-2"
+                                                    >
+                                                      <div class="d-flex flex-column">
+                                                        <h5>收件人 ${index + 1}</h5>
+                                                        ${['name', 'email', 'phone']
+                                                                .filter(key => data[key])
+                                                                .map(key => {
+                                                                return html `<span style="line-break: anywhere;"
+                                                              >${data[key]}</span
+                                                            >`;
+                                                            })
+                                                                .join('')}
+                                                      </div>
+                                                      <button
+                                                        class="${gClass('button-bgr')}"
+                                                        style="width: ${isPhone ? 80 : 130}px;"
+                                                        onclick="${gvc.event(() => {
+                                                                iGVC.closeDialog();
+                                                                setUserInfo(data);
+                                                            })}"
+                                                      >
+                                                        <span class="${gClass('button-text')}" style="font-size: 13px;">
+                                                          ${Language.text('select')}</span
+                                                        >
+                                                      </button>
+                                                    </div>`;
+                                                        })
+                                                            .join(BgWidget.horizontalLine());
+                                                        return html `<div class="px-2 py-3">${listHTML}</div>`;
+                                                    },
+                                                    footer_html: () => {
+                                                        return '';
+                                                    },
+                                                });
+                                            }
+                                            else {
+                                                setUserInfo(userInfo);
+                                            }
                                         });
                                     })}"
                                     >
@@ -2607,7 +2657,7 @@ export class CheckoutIndex {
                                                         dd.form_config.title_style = {
                                                             list: [
                                                                 {
-                                                                    class: ['company', 'gui_number', 'carrier_num'].includes(dd.key)
+                                                                    class: ['company', 'gui_number', 'carrier_num', 'love_code'].includes(dd.key)
                                                                         ? gClass('label') + ' mt-2'
                                                                         : gClass('label') + ' mb-2',
                                                                     style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',

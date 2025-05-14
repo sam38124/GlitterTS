@@ -140,6 +140,7 @@ export class Language {
             { key: 'can_buy', tw: '可售數量', cn: '可售数量', en: `Available quantity` },
             { key: 'login_in_to_checkout', tw: '登入後結帳', cn: '登入后结帐', en: `Log in and checkout` },
             { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
+            { key: 'select', tw: '選取', cn: '选择', en: 'Select' },
             {
                 key: 'disable_ship',
                 tw: '無配送方式',

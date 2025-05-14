@@ -43,10 +43,10 @@ export class UMReceive {
             <div class="w-100 align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
               <div
                 class="d-none d-lg-flex"
-                style="background: #FF9705;background: #FF9705;width:4px;height: 20px;"
+                style="background: #FF9705;width:4px;height: 20px;"
                 onclick="${gvc.event(() => {
                     gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
-                        cl.changePage('recipient_info', 'home', {});
+                        cl.changePage('account_userinfo', 'home', {});
                     });
                 })}"
               ></div>
@@ -55,7 +55,7 @@ export class UMReceive {
                 style="width:20px;height: 20px;"
                 onclick="${gvc.event(() => {
                     gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
-                        cl.changePage('recipient_info', 'home', {});
+                        cl.changePage('account_userinfo', 'home', {});
                     });
                 })}"
               >
@@ -67,7 +67,7 @@ export class UMReceive {
               ${vm.dataList
                     .map((data, index) => {
                     const cloneForm = JSON.parse(JSON.stringify(vm.funnyForm));
-                    return html `<div class="px-2 py-4 mb-3">
+                    return html `<div class="px-0 py-2 px-md-2 py-md-4 mb-3">
                     <h5>收件人 ${index + 1}</h5>
                     ${FormWidget.editorView({
                         gvc: gvc,
@@ -536,7 +536,7 @@ export class UMReceive {
                 dd.form_config.title_style = {
                     list: [
                         {
-                            class: ['company', 'gui_number', 'carrier_num'].includes(dd.key)
+                            class: ['company', 'gui_number', 'carrier_num', 'love_code'].includes(dd.key)
                                 ? gClass('label') + ' mt-2'
                                 : gClass('label') + ' mb-2',
                             style: 'return `color:${glitter.share.globalValue[`theme_color.0.title`]} !important;font-size:16px !important;`',

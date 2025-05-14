@@ -160,7 +160,7 @@ export class UMLogin {
                           type="${item.form_config.type}"
                           id="reg-${item.key}"
                           ${item.form_config.type === 'date'
-                                ? ``
+                                ? ''
                                 : ` placeholder="${placeholder}"
                                                 data-placeholder="${placeholder}"`}
                           onchange="${gvc.event(e => {
@@ -320,8 +320,8 @@ export class UMLogin {
           </section>`;
                 }
                 catch (e) {
-                    console.log(`error==>`, e);
-                    return ``;
+                    console.error(`error==>`, e);
+                    return '';
                 }
             },
             divCreate: {},
@@ -537,7 +537,7 @@ export class UMLogin {
                 return '';
             }
             if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Android && item.type === 'apple') {
-                return ``;
+                return '';
             }
             const event = loginEvents.find(data => data.key === item.type);
             if (!event) {
@@ -634,11 +634,9 @@ export class UMLogin {
                     else {
                         const redirect_url = location.origin + location.pathname;
                         widget.share.line.support_scope = (_a = widget.share.line.support_scope) !== null && _a !== void 0 ? _a : [];
-                        gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=${[
-                            'profile',
-                            'openid',
-                            'email'
-                        ].concat(widget.share.line.support_scope).join('%20')}&nonce=09876xyz`;
+                        gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=${['profile', 'openid', 'email']
+                            .concat(widget.share.line.support_scope)
+                            .join('%20')}&nonce=09876xyz`;
                     }
                 }
                 return {
@@ -774,8 +772,7 @@ export class UMLogin {
                     });
                 },
                 call: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        console.log('call fb', widget.share.fb);
+                    return new Promise(() => __awaiter(this, void 0, void 0, function* () {
                         if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
                             gvc.glitter.runJsInterFace('facebook_login', {
                                 app_id: widget.share.fb.id,
