@@ -1006,7 +1006,7 @@ export class StockHistory {
                           </div>
                           ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
                           <div class="col-12 col-md-6">
-                            <div class="tx_normal">${typeData.name}日期</div>
+                            <div class="tx_normal">${typeData.name}日期 ${BgWidget.requiredStar()}</div>
                             ${BgWidget.mbContainer(8)}
                             ${BgWidget.editeInput({
                                     gvc: gvc,
@@ -1034,7 +1034,7 @@ export class StockHistory {
                             ].join(BgWidget.mbContainer(18))),
                             BgWidget.mainCard([
                                 html `
-                          <div class="tx_700">${typeData.name}商品</div>
+                          <div class="tx_700">${typeData.name}商品 ${BgWidget.requiredStar()}</div>
                           ${BgWidget.mbContainer(18)}
                           ${gvc.bindView({
                                     bind: dvm.tableId,
@@ -1772,7 +1772,7 @@ export class StockHistory {
                     html `
             <div class="row">
               <div class="col-12 col-md-6">
-                <div class="tx_normal">供應商</div>
+                <div class="tx_normal">供應商 ${BgWidget.requiredStar()}</div>
                 ${BgWidget.mbContainer(8)}
                 ${gvc.bindView((() => {
                         const id = glitter.getUUID();
@@ -1863,7 +1863,7 @@ export class StockHistory {
                     })())}
               </div>
               <div class="col-12 col-md-6">
-                <div class="tx_normal">庫存點</div>
+                <div class="tx_normal">庫存點 ${BgWidget.requiredStar()}</div>
                 ${BgWidget.mbContainer(8)}
                 ${gvc.bindView((() => {
                         const id = glitter.getUUID();
@@ -1960,7 +1960,7 @@ export class StockHistory {
                     html `
             <div class="row">
               <div class="col-12 col-md-6">
-                <div class="tx_normal">調出庫存點</div>
+                <div class="tx_normal">調出庫存點 ${BgWidget.requiredStar()}</div>
                 ${BgWidget.mbContainer(8)}
                 ${gvc.bindView((() => {
                         const id = glitter.getUUID();
@@ -2017,7 +2017,7 @@ export class StockHistory {
                     })())}
               </div>
               <div class="col-12 col-md-6">
-                <div class="tx_normal">調入庫存點</div>
+                <div class="tx_normal">調入庫存點 ${BgWidget.requiredStar()}</div>
                 ${BgWidget.mbContainer(8)}
                 ${gvc.bindView((() => {
                         const id = glitter.getUUID();
@@ -2081,7 +2081,7 @@ export class StockHistory {
                     html `
             <div class="row">
               <div class="col-12 col-md-6">
-                <div class="tx_normal">盤點庫存點</div>
+                <div class="tx_normal">盤點庫存點 ${BgWidget.requiredStar()}</div>
                 ${BgWidget.mbContainer(8)}
                 ${gvc.bindView((() => {
                         const id = glitter.getUUID();

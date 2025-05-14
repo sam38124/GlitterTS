@@ -211,7 +211,8 @@ export class ShoppingSettingBasic {
                 BgWidget.mainCard(html `
             <div class="d-flex flex-column guide5-4">
               <div style="font-weight: 700;">
-                ${cat_title}名稱 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                ${cat_title}名稱 ${BgWidget.requiredStar()}
+                ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
               </div>
               ${BgWidget.editeInput({
                     gvc: gvc,
@@ -864,7 +865,6 @@ export class ShoppingSettingBasic {
                                     data: language_data.preview_image,
                                     event: {
                                         delete: (index) => {
-                                            console.log('language_data -- ', language_data);
                                             postMD.variants.forEach((variant) => {
                                                 var _a, _b;
                                                 if (variant.preview_image === language_data.preview_image[index]) {
@@ -875,7 +875,6 @@ export class ShoppingSettingBasic {
                                                         (_b = language_data.preview_image[0]) !== null && _b !== void 0 ? _b : BgWidget.noImageURL;
                                                 }
                                             });
-                                            console.log('language_data -- ', postMD.variants);
                                             ShoppingSettingBasic.updateVariants(gvc, postMD, shipment_config, variantsViewID, obj);
                                         },
                                     },
@@ -1317,7 +1316,7 @@ export class ShoppingSettingBasic {
                         map_.push(BgWidget.mainCard(html `
                     <div class="d-flex flex-column" style="gap:18px;">
                       <div class="d-flex flex-column guide5-7" style="gap:18px;">
-                        <div style="font-weight: 700;">商品材積</div>
+                        <div style="font-weight: 700;"></div>
                         <div class="row">
                           ${[
                             {
@@ -2896,8 +2895,8 @@ export class ShoppingSettingBasic {
                         搜尋引擎列表 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
                       </div>
                       ${[
-                                    html ` <div class="tx_normal fw-normal mb-2">${cat_title}網址</div>`,
-                                    html ` <div
+                                    html `<div class="tx_normal fw-normal mb-2">${cat_title}網址 ${BgWidget.requiredStar()}</div> `,
+                                    html `<div
                           style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
                                         ? 'gap: 18px; '

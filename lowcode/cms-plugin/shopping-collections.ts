@@ -752,7 +752,7 @@ export class ShoppingCollections {
                   // 左容器
                   html: [
                     BgWidget.mainCard(
-                      html` <div class="tx_700" style="margin-bottom: 18px">分類標籤</div>
+                      html` <div class="tx_700" style="margin-bottom: 18px">分類標籤 ${BgWidget.requiredStar()}</div>
                         ${EditorElem.editeInput({
                           gvc: gvc,
                           title: '',
@@ -764,7 +764,7 @@ export class ShoppingCollections {
                         })}`
                     ),
                     BgWidget.mainCard(
-                      html` <div class="d-flex flex-column" style="margin-bottom: 18px;gap:5px;">
+                      html` <div class="d-flex flex-column" style="margin-bottom: 12px; gap:5px;">
                           <div class="tx_700">前台分類顯示名稱 ${BgWidget.languageInsignia(select_lan)}</div>
                           ${BgWidget.grayNote(`未設定則參照分類標籤顯示`)}
                         </div>
@@ -790,7 +790,7 @@ export class ShoppingCollections {
                           return BgWidget.mainCard(
                             [
                               html` <div class="tx_normal fw-normal mb-2">
-                                連結網址 ${BgWidget.languageInsignia(select_lan)}
+                                連結網址 ${BgWidget.requiredStar()} ${BgWidget.languageInsignia(select_lan)}
                               </div>`,
                               gvc.bindView({
                                 bind: domainID,
@@ -1138,7 +1138,7 @@ export class ShoppingCollections {
                 ${BgWidget.save(
                   gvc.event(() => {
                     if (CheckInput.isEmpty(vm.data.title)) {
-                      dialog.infoMessage({ text: '請填寫「標題」' });
+                      dialog.infoMessage({ text: '請填寫「分類標籤」' });
                       return;
                     }
 

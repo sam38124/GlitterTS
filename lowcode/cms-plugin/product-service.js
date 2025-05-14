@@ -8,7 +8,7 @@ export class ProductService {
             if (postMD.product_category !== 'kitchen') {
                 const salePrice = postMD['variants'][0]['sale_price'];
                 if (salePrice === '' || salePrice === undefined || salePrice === null) {
-                    dialog.infoMessage({ text: '尚未填寫售價' });
+                    dialog.infoMessage({ text: '尚未輸入售價' });
                     return false;
                 }
             }
@@ -31,7 +31,7 @@ export class ProductService {
                         variant['v_length'] == undefined ||
                         Number(variant['v_length']) == 0) {
                         dialog.infoMessage({
-                            text: `規格 ${variant.spec.join(',')} 材積資訊未填`,
+                            text: `規格${variant.spec.length > 0 ? `「${variant.spec.join(',')}」` : ''}材積資訊未填`,
                         });
                         return false;
                     }
@@ -39,7 +39,7 @@ export class ProductService {
                 if (postMD.product_category !== 'weighing' && variant['shipment_type'] == 'weight') {
                     if (variant['weight'] == undefined || Number(variant['weight']) == 0) {
                         dialog.infoMessage({
-                            text: `${variant.spec.length > 1 ? variant.spec.join(',') : ''}重量未填`,
+                            text: `${variant.spec.length > 1 ? `「${variant.spec.join(',')}」` : ''}重量未填`,
                         });
                         return false;
                     }
@@ -58,7 +58,7 @@ export class ProductService {
                 {
                     check: (data) => !data.seo.domain,
                     errorMessage: '未設定商品連結',
-                }
+                },
             ];
             for (const languageCode of supportedLanguages) {
                 const currentLanguageData = languageData[languageCode];

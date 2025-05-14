@@ -1417,6 +1417,12 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         }
         return vmt.dataList.map((item) => this.printOption(gvc, vmt, { key: item, value: `#${item}` })).join('');
     }
+    static requiredStar() {
+        return html `<i
+      class="fa-solid fa-star-of-life"
+      style="font-size: 8px; color: #da1313; vertical-align: text-top; line-height: 16px;"
+    ></i>`;
+    }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
       <iframe
