@@ -22,7 +22,7 @@ const dialog=new ShareDialog(gvc.glitter)
     <div class="guide6-3 mt-0"
          style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;margin-top: 24px;"
     >
-        <div class=""
+        <div 
              style="color: #393939; font-size: 16px;  font-weight: 700; word-wrap: break-word;"
         >商店基本資訊
         </div>
@@ -48,7 +48,7 @@ const dialog=new ShareDialog(gvc.glitter)
                             },
                         }),
 //                         `<div class="d-flex flex-column">
-// <div class="tx_normal fw-normal mb-2" style="">POS使用類型</div>
+// <div class="tx_normal fw-normal mb-2" >POS使用類型</div>
 // ${BgWidget.select({
 //                             gvc: gvc,
 //                             default: appData.pos_type,

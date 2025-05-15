@@ -35,7 +35,7 @@ class Add_item_dia {
                     ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                     </div>
                 </div>
-                <div class="d-flex " style="">
+                <div class="d-flex " >
                     <div>
                         ${`<div class="add_item_search_bar w-100">
 <i class="fa-regular fa-magnifying-glass"></i>
@@ -335,7 +335,7 @@ class Add_item_dia {
                                                                             ${obg[dd].title}
                                                                         </div>`;
                                                                 } else {
-                                                                    return html``;
+                                                                    return '';
                                                                 }
                                                             }))
                                                         } else {
@@ -633,7 +633,7 @@ class Add_item_dia {
                                                                             ${obg[dd].title}
                                                                         </div>`;
                                                                 } else {
-                                                                    return html``;
+                                                                    return '';
                                                                 }
                                                             }))
                                                         } else {

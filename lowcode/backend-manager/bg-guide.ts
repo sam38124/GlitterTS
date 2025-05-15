@@ -1372,7 +1372,7 @@ export class BgGuide {
                         }
                         target.scrollIntoView();
                         let content = html`
-                            <div class=""
+                            <div 
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 在<span style="font-weight: 700;">佈景主題庫</span>儲存並管理多個設計主題，可根據需求靈活切換應用，展現多樣視覺效果，增強品牌吸引力
                             </div>
@@ -1403,7 +1403,7 @@ export class BgGuide {
                             gvc.notifyDataChange(viewID);
                         });
                         let content = html`
-                            <div class=""
+                            <div 
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 滑鼠移入喜歡的主題後點擊<span style="font-weight: 700;">新增</span>
                             </div>
@@ -1442,7 +1442,7 @@ export class BgGuide {
                         }
                         target.scrollIntoView();
                         let content = html`
-                            <div class=""
+                            <div 
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 您可以對剛新增的主題進行操作，如自定義樣式、切換、複製及下載等等
                             </div>
@@ -1467,7 +1467,7 @@ export class BgGuide {
                         target.parentElement.scrollIntoView();
 
                         let content = html`
-                            <div class=""
+                            <div 
                                  style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 使用<span style="font-weight: 700;">切換</span>功能，您可以將官網快速切換為主題庫中的其他主題，輕鬆又快速變換官網風格。
                             </div>
@@ -2027,7 +2027,7 @@ export class BgGuide {
                             height: 209,
                             title: '運費計算',
                             content: html`
-                                <div class="" style="white-space: normal">
+                                <div  style="white-space: normal">
                                     點擊<span style="font-weight: 700;">依材積計算</span>，作為此商品的運費計算方式
                                 </div>`,
                             next: true,
@@ -2282,7 +2282,7 @@ export class BgGuide {
                             gvc.notifyDataChange('logisticsInit');
                         });
                         let content = html`
-                            <div class="d-flex align-items-center" style="">
+                            <div class="d-flex align-items-center" >
                                 點擊
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
                                      style="margin:0 6px;" fill="none">
@@ -3087,12 +3087,12 @@ export class BgGuide {
                         BG.classList.add('leave-guide-BG');
                         return html`
                             <div
-                                    class=""
+                                    
                                     style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left +
                                     window.scrollX +
                                     'px'};gap:20px;padding-top: 22px;"
                             >
-                                <div class="" style="position: absolute;top: 0;left: 20px;">
+                                <div  style="position: absolute;top: 0;left: 20px;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
                                          fill="none">
                                         <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20"/>
@@ -3193,7 +3193,7 @@ export class BgGuide {
                                 </div>
                                 <div class=" d-flex flex-column align-items-center justify-content-center"
                                      style="width: 100%;padding:24px;gap:24px;">
-                                    <div class="g-container position-relative " style="">
+                                    <div class="g-container position-relative " >
                                         <div class="g-progress"></div>
                                         <div class="g-circle"></div>
                                         <div
@@ -3295,7 +3295,7 @@ export class BgGuide {
                                                                                 style="gap:2px;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;color:#393939"
                                                                         >
                                                                             ${data.title}
-                                                                            <div class=""
+                                                                            <div 
                                                                                  style="font-size: 14px;font-style: normal;font-weight: 400;line-height: normal;color:#8D8D8D">
                                                                                 ${data.des}
                                                                             </div>
@@ -3400,12 +3400,12 @@ export class BgGuide {
                         BG.classList.add('leave-guide-BG');
                         return html`
                             <div
-                                    class=""
+                                    
                                     style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left +
                                     window.scrollX +
                                     'px'};gap:20px;padding-top: 22px;"
                             >
-                                <div class="" style="position: absolute;top: 0;left: 20px;">
+                                <div  style="position: absolute;top: 0;left: 20px;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
                                          fill="none">
                                         <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20"/>
@@ -3775,7 +3775,7 @@ export class BgGuide {
 
                         const target = document.querySelector('.guide-user-editor-1');
                         const context = html`
-                            <div class="d-flex flex-column" style="">
+                            <div class="d-flex flex-column" >
                                 <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                     滑鼠移至各元件可以進行<span style="font-weight: 700;">「刪除」「隱藏」</span>及<span
                                         style="font-weight: 700;">「更改順序」</span>三個動作。
@@ -3914,7 +3914,7 @@ export class BgGuide {
                         const target = document!.querySelector(`.${className}:not(.d-none)`);
                         if (target) {
                             const context = html`
-                                <div class="d-flex flex-column" style="">
+                                <div class="d-flex flex-column" >
                                     <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                         每個元件下方都會有<span>「設定」</span>，點擊進入後即可調整該元件更詳細的設計
                                     </div>
@@ -4148,7 +4148,7 @@ export class BgGuide {
                             //                         content: "可針對此元件設置獨特顏色，實現獨一無二的設計效果"
                             //                     }].map((data)=>{
                             //                         return html`
-                            //                             <div style="">
+                            //                             <div >
                             //                                 <span style="font-weight: 700">${data.title}</span>${data.content}
                             //                             </div>
                             //                         `
@@ -4210,7 +4210,7 @@ export class BgGuide {
                         const target = document!.querySelector(`.${className}`);
                         if (target) {
                             const context = html`
-                                <div class="d-flex flex-column" style="">
+                                <div class="d-flex flex-column" >
                                     <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                         每個元件可以分為三種顯示樣式
                                         <div class="d-flex flex-column"
@@ -4325,7 +4325,7 @@ export class BgGuide {
 
                             })
                             const context = html`
-                                <div class="d-flex flex-column" style="">
+                                <div class="d-flex flex-column" >
                                     <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                         點擊
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -4492,7 +4492,7 @@ export class BgGuide {
                                 }
                             `)
                             const context = html`
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                <div  style="white-space: normal;word-break: break-all;">於<span
                                         style="font-weight: 700;">「全站樣式」</span>${icon}
                                     頁面，您可以統一管理全站的樣式設置，一旦您進行了修改，所有套用這些樣式的元件都會自動更新，確保官網設計的一致性。
                                 </div>
@@ -4725,7 +4725,7 @@ export class BgGuide {
                                 }
                             `)
                             const context = html`
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                <div  style="white-space: normal;word-break: break-all;">於<span
                                         style="font-weight: 700;">「設計元件」</span>${icon}
                                     頁面，您可以替全站的<span style="font-weight: 700;">「標頭」</span>
                                     <span style="font-weight: 700;">「商品卡片」</span>及<span style="font-weight: 700;">「頁腳」</span>設置預設樣式，一旦您修改了預設樣式，所有網頁都會自動更新，確保一致性。
@@ -4942,7 +4942,7 @@ export class BgGuide {
                                 }
                             `)
                             const context = html`
-                                <div class="" style="white-space: normal;word-break: break-all;">於<span
+                                <div  style="white-space: normal;word-break: break-all;">於<span
                                         style="font-weight: 700;">「設計元件」</span>${icon}
                                     頁面，您可以替全站的<span style="font-weight: 700;">「標頭」</span>
                                     <span style="font-weight: 700;">「商品卡片」</span>及<span style="font-weight: 700;">「頁腳」</span>設置預設樣式，一旦您修改了預設樣式，所有網頁都會自動更新，確保一致性。
@@ -5007,7 +5007,7 @@ export class BgGuide {
             document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``;
         }
 
-        return html``;
+        return '';
     }
 
     public drawGuide() {
@@ -5021,6 +5021,6 @@ export class BgGuide {
                 clearInterval(timer);
             }
         }, 500);
-        return html``;
+        return '';
     }
 }

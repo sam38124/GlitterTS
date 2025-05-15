@@ -68,7 +68,7 @@ export class ToolSetting {
                                   gvc.glitter.closeDrawer();
                                 })}"
                             >
-                                <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
+                                <i class="fa-sharp fa-regular fa-circle-xmark" ></i>
                             </div>
                         </div>`;
                 } else {
@@ -303,7 +303,7 @@ export class ToolSetting {
                         }
                         if(vm){
                           vm.edit_view =
-                            html`` +
+                            '' +
                             htmlGenerate.editor(gvc, {
                               return_: false,
                               refreshAll: () => {},

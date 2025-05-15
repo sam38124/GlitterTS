@@ -301,7 +301,7 @@ export class PosSummary {
                         <div style="white-space: nowrap;">備註</div>
                         <input
                           class="form-control flex-fill ms-2"
-                          style=""
+                          
                           placeholder="請輸入備註"
                           onchange="${gvc.event((e, event) => {
                             dd.note = e.value;
@@ -447,7 +447,7 @@ export class PosSummary {
                         <div style="white-space: nowrap;">備註</div>
                         <input
                           class="form-control flex-fill ms-2"
-                          style=""
+                          
                           placeholder="請輸入備註"
                           value="${dd.note || ''}"
                           readonly

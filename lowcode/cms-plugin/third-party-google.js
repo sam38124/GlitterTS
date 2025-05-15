@@ -104,7 +104,7 @@ export class ThirdPartyGoggle {
                                     });
                                 })}"
                         >
-                          <div class="" style=""><i class="fa-regular fa-trash-can" aria-hidden="true"></i></div>
+                          <div  ><i class="fa-regular fa-trash-can" aria-hidden="true"></i></div>
                         </div>
                       </div>`;
                             })

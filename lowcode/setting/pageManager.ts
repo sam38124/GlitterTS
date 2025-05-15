@@ -26,12 +26,12 @@ ${EditorElem.h3("<span style='font-size:20px;color:orangered;'>基本設定</spa
 <option value="true" ${(viewModel.homePage === viewModel.data.tag) ? `selected` : ``}>是</option>
 </select>
 </div>`,
-                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+                `<div class="w-100 d-flex align-items-center justify-content-center" >
 <h3 style="font-size: 16px;width: 100px;" class="m-0">容器樣式:</h3>
 ${
                     glitter.htmlGenerate.styleEditor(viewModel.data.page_config).editor(gvc, () => {
                     }, "設定樣式", {class: 'mt-0'})}</div>`,
-                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+                `<div class="w-100 d-flex align-items-center justify-content-center" >
 <h3 style="font-size: 16px;width: 100px;" class="m-0">頁面連結:</h3>
 ${glitter.htmlGenerate.editeInput({
                     gvc: gvc,
@@ -42,7 +42,7 @@ ${glitter.htmlGenerate.editeInput({
                         viewModel.data.tag = text
                     }
                 })}</div>`,
-                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+                `<div class="w-100 d-flex align-items-center justify-content-center" >
 <h3 style="font-size: 16px;width: 100px;" class="m-0">頁面名稱:</h3>
 ${glitter.htmlGenerate.editeInput({
                     gvc: gvc,
@@ -53,7 +53,7 @@ ${glitter.htmlGenerate.editeInput({
                         viewModel.data.name = text
                     }
                 })}</div>`,
-                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+                `<div class="w-100 d-flex align-items-center justify-content-center" >
 <h3 style="font-size: 16px;width: 100px;" class="m-0 ">頁面分類:</h3>
 ${EditorElem.searchInput({
                     title: "",
@@ -76,7 +76,7 @@ ${EditorElem.searchInput({
                 })}</div>`,`
                ${(()=>{
                    var deleteText=''
-                   return `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+                   return `<div class="w-100 d-flex align-items-center justify-content-center" >
 <h3 style="font-size: 16px;width: 100px;white-space: nowrap;" class="m-0 me-2 mb-2">刪除頁面:</h3>
 ${glitter.htmlGenerate.editeInput({
                        gvc: gvc,
@@ -256,7 +256,7 @@ function uploadImage(obj: {
                     obj.callback(e.value)
                     obj.gvc.notifyDataChange(id)
                 })}">
-                                <div class="" style="width: 1px;height: 25px;background-"></div>
+                                <div  style="width: 1px;height: 25px;background-"></div>
                                 <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                     glitter.ut.chooseMediaCallback({
                         single: true,

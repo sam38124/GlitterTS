@@ -310,7 +310,7 @@ export class ReconciliationArea {
                     };
                   })
                 ),
-                html` <div class="row p-0  mx-n2" style="">
+                html` <div class="row p-0  mx-n2" >
                   ${[
                     {
                       title: '應收總金額',
@@ -642,15 +642,15 @@ export class ReconciliationArea {
                                       return `<div class="mt-n2">
 ${[
   ` <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >沖帳訂單</div>
+                                    <div  >沖帳訂單</div>
                                     <div class=" fw-500 fs-6">${vm.dataList[index].cart_token}</div>
                                   </div>`,
   ` <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >沖帳人員</div>
+                                    <div  >沖帳人員</div>
                                     <div class=" fw-500 fs-6">${auth.config.name}</div>
                                   </div>`,
-  ` <div class="col-12 d-flex flex-column" style="">
-                                    <div class="" >沖帳日期</div>
+  ` <div class="col-12 d-flex flex-column" >
+                                    <div  >沖帳日期</div>
                                     ${BgWidget.editeInput({
                                       gvc: gvc,
                                       title: '',
@@ -662,8 +662,8 @@ ${[
                                       },
                                     })}
                                   </div>`,
-  ` <div class="col-12 d-flex flex-column" style="">
-                                    <div class=" " style="">沖帳金額</div>
+  ` <div class="col-12 d-flex flex-column" >
+                                    <div class=" " >沖帳金額</div>
                                     ${BgWidget.editeInput({
                                       gvc: gvc,
                                       title: '',
@@ -680,7 +680,7 @@ ${[
     return {
       bind: l_i,
       view: () => {
-        return ` <div class="mb-2" style="">沖帳原因</div>
+        return ` <div class="mb-2" >沖帳原因</div>
                                     ${BgWidget.select({
                                       gvc,
                                       callback: (value: any) => {
@@ -717,7 +717,7 @@ ${[
 ${
   ['支付金額異常', '手續費差異', '匯率計算差異', '系統錯誤', '訂單退款'].includes(put_recon.offset_reason!!)
     ? ``
-    : `<div class="">${BgWidget.editeInput({
+    : `<div >${BgWidget.editeInput({
         gvc: gvc,
         title: '',
         default: put_recon.offset_reason ?? '',
@@ -736,7 +736,7 @@ ${
     };
   }),
   ` <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >沖帳備註</div>
+                                    <div  >沖帳備註</div>
                                   ${BgWidget.textArea({
                                     gvc,
                                     title: '',
@@ -821,18 +821,18 @@ ${
                                     return html` <div class="mt-n2">
                                       ${[
                                         `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >對帳訂單</div>
+                                    <div  >對帳訂單</div>
                                     <div class=" fw-500 fs-6">${vm.dataList[index].cart_token}</div>
                                   </div>`,
                                         html`
                                           <div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
                                             ${[
                                               `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">入帳日期</div>
+                                                <div >入帳日期</div>
                                                 <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(dd.reconciliation_date), 'yyyy-MM-dd hh:mm')}</div>
                                               </div>`,
                                               `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">入帳金額</div>
+                                                <div >入帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(dd.total_received, 10).toLocaleString()}</div>
                                               </div>`,
                                             ].join(`<div class="my-2 border-top w-100"></div>`)}
@@ -845,23 +845,23 @@ ${
                                               return `<div class="rounded-3 w-100 border p-2 " style="background: whitesmoke;">
 ${[
   `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳日期</div>
+                                                <div >沖帳日期</div>
                                                 <div class=" fw-500 fs-6">${gvc.glitter.ut.dateFormat(new Date(dd.offset_date), 'yyyy-MM-dd hh:mm')}</div>
                                               </div>`,
   `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳人員</div>
+                                                <div >沖帳人員</div>
                                                 <div class=" fw-500 fs-6">${(dd.user && dd.user.name) || '未知'}</div>
                                               </div>`,
   `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳金額</div>
+                                                <div >沖帳金額</div>
                                                 <div class=" fw-500 fs-6">$ ${parseInt(dd.offset_amount, 10).toLocaleString()}</div>
                                               </div>`,
   `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳原因</div>
+                                                <div >沖帳原因</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_reason}</div>
                                               </div>`,
   `<div class="col-12 d-flex flex-column" style="gap:5px;">
-                                                <div class="">沖帳備註</div>
+                                                <div >沖帳備註</div>
                                                 <div class=" fw-500 fs-6">${dd.offset_note || '未填寫'}</div>
                                               </div>`,
 ].join(`<div class="my-2 border-top w-100"></div>`)}
@@ -909,15 +909,15 @@ ${[
                                     return `<div class="mt-n2">
 ${[
   ` <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >對帳訂單</div>
+                                    <div  >對帳訂單</div>
                                     <div class=" fw-500 fs-6">${vm.dataList[index].cart_token}</div>
                                   </div>`,
   ` <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="" >對帳人員</div>
+                                    <div  >對帳人員</div>
                                     <div class=" fw-500 fs-6">${auth.config.name}</div>
                                   </div>`,
-  ` <div class="col-12 d-flex flex-column" style="">
-                                    <div class="" >入帳日期</div>
+  ` <div class="col-12 d-flex flex-column" >
+                                    <div  >入帳日期</div>
                                     ${BgWidget.editeInput({
                                       gvc: gvc,
                                       title: '',
@@ -929,8 +929,8 @@ ${[
                                       },
                                     })}
                                   </div>`,
-  ` <div class="col-12 d-flex flex-column" style="">
-                                    <div class=" " style="">實收金額</div>
+  ` <div class="col-12 d-flex flex-column" >
+                                    <div class=" " >實收金額</div>
                                     <div class="text-black fw-500 fs-6 ">
                                       ${BgWidget.grayNote('請確實填寫入帳金額，點擊下一步將無法修改金額')}
                                     </div>

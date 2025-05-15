@@ -61,7 +61,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     </div>
                     <div class="m-0 m-sm-2 d-flex align-items-center justify-content-center" style="${document.body.clientWidth > 768 ? `height:calc(100vh - 70px);` : `height:calc(100vh - 55px);`}">
                         <iframe
-                            class=""
+                            
                             src="${(() => {
                 const url = new URL(`${glitter.root_path}${gBundle.page}${location.search}`);
                 url.searchParams.set('appName', gBundle.appName);

@@ -365,7 +365,7 @@ export class GlobalWidget {
                                     return ``;
                                 }
                                 return `<div class="d-flex align-items-center  shadow border-bottom mt-n2"
-                                                     style="">
+                                                     >
                                                     ${(() => {
                                     const list = [
                                         {
@@ -410,7 +410,7 @@ export class GlobalWidget {
                                 if (obj.hide_selector) {
                                     return ``;
                                 }
-                                return html ` <div class=" mx-n2" style="">
+                                return html ` <div class=" mx-n2" >
                     ${[
                                     ...(() => {
                                         if (obj.hide_ai) {

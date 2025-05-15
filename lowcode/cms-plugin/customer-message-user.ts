@@ -657,7 +657,7 @@ export class CustomerMessageUser {
                                                                         ${(() => {
                                                                             return imageArray.map((url: string, index: number) => {
                                                                                 return html`
-                                                                                    <div class=""
+                                                                                    <div 
                                                                                          style="position: relative;flex-shrink: 0;width: 25%;aspect-ratio: 1 / 1;background:50%/cover  url('${url}')">
                                                                                         <i class="fa-sharp fa-regular fa-circle-xmark bg-white"
                                                                                            style="position: absolute;right: -6px;top: -6px;cursor:pointer;font-size: 20px"
@@ -753,7 +753,7 @@ export class CustomerMessageUser {
 
                                                         <div
                                                             class="position-relative w-100 me-2 ms-1 d-flex flex-column"
-                                                            style="">
+                                                            >
                                                             ${gvc.bindView(() => {
                                                                 return {
                                                                     bind: textAreaId,
@@ -1230,7 +1230,7 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
                                                                             ${(() => {
                                                                        return imageArray.map((url: string, index: number) => {
                                                                            return html`
-                                                                                        <div class=""
+                                                                                        <div 
                                                                                              style="position: relative;flex-shrink: 0;width: 25%;aspect-ratio: 1 / 1;background:50%/cover  url('${url}')">
                                                                                             <i class="fa-sharp fa-regular fa-circle-xmark bg-white"
                                                                                                style="position: absolute;right: -6px;top: -6px;cursor:pointer;font-size: 20px"
@@ -1326,7 +1326,7 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
 
                                                             <div
                                                                 class="position-relative w-100 me-2 ms-1 d-flex flex-column"
-                                                                style="">
+                                                                >
                                                                 ${gvc.bindView(() => {
                                                            return {
                                                                bind: textAreaId,
@@ -1516,7 +1516,7 @@ ${gvc.glitter.share.top_inset ? `padding-top:${gvc.glitter.share.top_inset }px !
                                             returnHtml.push(html`
                                                 <div class=" fw-bold"
                                                      style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
-                                                    <div class="" style="color: black;">即時解答</div>
+                                                    <div  style="color: black;">即時解答</div>
                                                 </div>`);
                                         }
                                         robot.map((dd: any) => {

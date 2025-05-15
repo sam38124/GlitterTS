@@ -209,7 +209,7 @@ export class AiMessage {
                                             </div>` +
                                         html `
                                             <div class="d-flex align-items-center  shadow border-bottom border-top"
-                                                 style="">
+                                                 >
                                                 ${(() => {
                                             const list = AiMessage.ai_support;
                                             return list
@@ -833,7 +833,7 @@ export class AiMessage {
                                         returnHtml.push(html `
                                                 <div class=" fw-bold"
                                                      style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
-                                                    <div class="" style="color: black;">即時解答</div>
+                                                    <div  style="color: black;">即時解答</div>
                                                 </div>`);
                                     }
                                     robot.map((dd) => {

@@ -12,7 +12,7 @@ export class DomainSetting{
                     <span class="fs-lg fw-bold " style="color:black;">網域設定</span>
 
                 </div>
-                <div class="d-flex " style="">
+                <div class="d-flex " >
                     <div>
                         ${gvc.bindView(() => {
             return {
@@ -40,7 +40,7 @@ export class DomainSetting{
 
                     return html`
                                         <div class="d-flex">
-                                            <div style="" class="border-end w-100">
+                                            <div  class="border-end w-100">
                                                 ${gvc.bindView(() => {
                         return {
                             bind: contentVM.leftID,

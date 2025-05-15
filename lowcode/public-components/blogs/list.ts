@@ -241,7 +241,7 @@ export class BlogList {
           });
           const map_v: string[] = [
             html` <div class="col-12 px-0">
-              <div class="d-flex align-items-center flex-column justify-content-center py-4 pt-lg-5 px-2" style="">
+              <div class="d-flex align-items-center flex-column justify-content-center py-4 pt-lg-5 px-2" >
                 <h1
                   class="m-0 w-100 text-center"
                   style="color:${theme_color.title};font-size:${document.body.clientWidth > 800

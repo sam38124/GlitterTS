@@ -920,7 +920,7 @@ export class PermissionSetting {
             </div>
           `;
                 });
-                return html ` <div class="row" style="">${checkboxHTML}</div> `;
+                return html ` <div class="row" >${checkboxHTML}</div> `;
             },
         });
     }

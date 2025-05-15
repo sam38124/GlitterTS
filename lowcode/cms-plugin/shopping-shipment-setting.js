@@ -527,7 +527,7 @@ export class ShoppingShipmentSetting {
                                                             let returnHTML = ``;
                                                             shipmentArray.volume.map((data) => {
                                                                 returnHTML += html `
-                                                                                                    <div class="">
+                                                                                                    <div >
                                                                                                         <span style="font-size: 24px;">${data.key}</span>
                                                                                                         立方公分(含)以上,運費
                                                                                                         <span style="font-size: 24px;">${data.value}</span>
@@ -550,7 +550,7 @@ export class ShoppingShipmentSetting {
                                                             let returnHTML = ``;
                                                             shipmentArray.weight.map((data) => {
                                                                 returnHTML += html `
-                                                                                                    <div class="">
+                                                                                                    <div >
                                                                                                         <span style="font-size: 24px;">${data.key}</span>
                                                                                                         公斤(含)以上,運費
                                                                                                         <span style="font-size: 24px;">${data.value}</span>

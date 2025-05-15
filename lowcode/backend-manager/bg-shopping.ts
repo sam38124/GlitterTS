@@ -114,9 +114,9 @@ export class BgShopping {
                                 case 1:
                                   return `<div class="badge fs-7" style="background:#0000000f;color:black;">已付款</div>`;
                                 case -1:
-                                  return `<div class="badge bg-danger fs-7" style="">付款失敗</div>`;
+                                  return `<div class="badge bg-danger fs-7" >付款失敗</div>`;
                                 case -2:
-                                  return `<div class="badge bg-danger fs-7" style="">已退款</div>`;
+                                  return `<div class="badge bg-danger fs-7" >已退款</div>`;
                               }
                             })(),
                           },
@@ -1078,7 +1078,7 @@ export class BgShopping {
         </button>
       </div>
       <div class="d-flex" style="gap:10px;">
-        <div class="" style="width:700px;">
+        <div  style="width:700px;">
           ${[
             BgWidget.card(`
                             <h3 class="fs-7 mb-2">折扣券名稱</h3>
@@ -2710,7 +2710,7 @@ ${EditorElem.editeInput({
                                                           <span>運費權重</span>
                                                           <div class="alert-info alert mt-2 mb-0">
                                                             <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
-                                                            <span style=""
+                                                            <span 
                                                               >試算 : ( ${shipmentSetting.weight} *
                                                               ${dd.shipment_weight} ) + ${shipmentSetting.basic_fee} =
                                                               ${shipmentSetting.weight * dd.shipment_weight +
@@ -2936,7 +2936,7 @@ ${EditorElem.editeInput({
                                   >
                                     <div
                                       class="editor_item d-flex   pe-2 my-0 hi me-n1 "
-                                      style=""
+                                      
                                       onclick="${gvc.event(() => {
                                         dd.toogle = !dd.toogle;
                                         gvc.recreateView();
@@ -2961,7 +2961,7 @@ ${EditorElem.editeInput({
                                   >
                                     <div
                                       class="editor_item d-flex   pe-2 my-0 hi  "
-                                      style=""
+                                      
                                       onclick="${gvc.event(() => {
                                         if (
                                           postMD.collection.find(dd => {

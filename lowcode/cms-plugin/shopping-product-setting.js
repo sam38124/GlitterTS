@@ -645,7 +645,7 @@ export class ShoppingProductSetting {
                                 const language_data = postMD.language_data[ShoppingProductSetting.select_language];
                                 imageLibrary.selectImageFromArray(language_data.preview_image, {
                                     gvc: gvc,
-                                    title: html ` <div class="d-flex flex-column" style="">圖片庫</div>`,
+                                    title: html ` <div class="d-flex flex-column" >圖片庫</div>`,
                                     getSelect: imageUrl => {
                                         variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
                                         gvc.notifyDataChange(id);

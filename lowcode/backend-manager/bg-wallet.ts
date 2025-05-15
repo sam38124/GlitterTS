@@ -64,7 +64,7 @@ export class BgWallet {
                                                 note: '',
                                             };
                                             return `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                <div class="">
+                                <div >
                                            ${gvc.bindView(() => {
                                                const id = gvc.glitter.getUUID();
                                                return {
@@ -493,7 +493,7 @@ export class BgWallet {
                                     vm.data = vm.dataList[index];
                                     gvc.glitter.innerDialog((gvc2) => {
                                         return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                            <div class="">
+                                            <div >
                                                 ${gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
                                                     return {
@@ -795,7 +795,7 @@ export class BgWallet {
                                                 note: '',
                                             };
                                             return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                                <div class="">
+                                                <div >
                                                     ${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {

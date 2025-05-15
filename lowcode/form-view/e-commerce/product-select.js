@@ -124,7 +124,7 @@ export class ProductSelect {
                                 return [];
                             }
                         }))();
-                        resolve(html ` <div class="d-flex flex-column py-2" style="">
+                        resolve(html ` <div class="d-flex flex-column py-2" >
                 <div class="mx-n3  border-top" ></div>
                 <div
                   class="d-flex align-items-center  pb-2"

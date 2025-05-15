@@ -58,7 +58,7 @@ export class AddComponent {
                     }
                     return html`
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style=""> 新增區塊</h5>
+                            <h5 class="offcanvas-title" > 新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
                                     class="fs-5 text-black"
@@ -67,7 +67,7 @@ export class AddComponent {
                                         AddComponent.toggle(false);
                                     })}"
                             >
-                                <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
+                                <i class="fa-sharp fa-regular fa-circle-xmark" ></i>
                             </div>
                         </div>
                         <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
@@ -525,12 +525,12 @@ background-clip: text;
                                             })}"
                                     >
                                         <i class="fa-regular fa-paste fs-6 d-flex align-items-center justify-content-center"
-                                           style=""></i>
+                                           ></i>
                                     </div>
 
                                 </div>
                                 <div class="p-2 border-bottom  f-flex ${['plus', 'basic', 'ai'].includes(vm.template_from) ? `d-none` : ``}"
-                                     style="">
+                                     >
                                     <div class="input-group mb-2">
                                         <input
                                                 class="form-control input-sm"
@@ -6017,11 +6017,11 @@ ${[
         //         <div class="modal-content bg-white rounded-3 p-3  "
         //              style="max-width:90%;width:400px;;">
         //             <div class="  "
-        //                  style="">
+        //                  >
         //                 <div class="ps-1 pe-1  "
-        //                      style="">
+        //                      >
         //                     <div class="mb-3  "
-        //                          style="">
+        //                          >
         //                         <label class="form-label mb-3  "
         //                                style="color: black;"
         //                                for="username">${title}
@@ -6073,7 +6073,7 @@ ${[
         //                      style="justify-content: end;"
         //                 >
         //                     <button class="btn btn-outline-dark me-2  "
-        //                             style=""
+        //                             
         //                             type="button"
         //                             onclick="${gvc.event(() => {
         //                                 gvc.closeDialog()
@@ -6081,7 +6081,7 @@ ${[
         //                         取消
         //                     </button>
         //                     <button class="btn btn-primary-c  "
-        //                             style=""
+        //                             
         //                             type="button"
         //                             onclick="${gvc.event(() => {
         //                                 AddComponent.checkLoop(gvc, tdata).then(async (res) => {

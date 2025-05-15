@@ -1613,7 +1613,7 @@ ${devEditorView()}
                                 },
                             };
                         }),
-                    ].join(`<div style=""></div>`);
+                    ].join(`<div ></div>`);
                 }),
             };
         },

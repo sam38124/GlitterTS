@@ -72,7 +72,7 @@ init((gvc, glitter, gBundle) => {
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
                         </div>
-                        <div class="d-flex " style="">
+                        <div class="d-flex " >
                             <div>
                                 ${gvc.bindView(() => {
                                     return {
@@ -151,7 +151,7 @@ init((gvc, glitter, gBundle) => {
                                                                                                                  </div>
                                                                                                              </div>
                                                                                                              <div class="d-flex "
-                                                                                                                  style="">
+                                                                                                                  >
                                                                                                                  <div>
                                                                                                                      ${gvc.bindView(() => {
                                                                                                                          return {
@@ -818,7 +818,7 @@ class Render{
                                     <l1 class="btn-group "
                                         style="margin-top:1px;margin-bottom:1px;">
                                         <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
-                                             style=""
+                                             
                                              onclick="${option.selectEvent || gvc.event(() => {
                                 viewModel.selectContainer = original
                                 viewModel.selectItem = dd
@@ -834,7 +834,7 @@ class Render{
                                             ${dd.label}
                                             <div class="flex-fill"></div>
                                             ${(dd.type === 'container') ? ` <l1 class="btn-group me-0 subBt"
-                                                                                style=""
+                                                                                
                                                                                 onclick="${gvc.event((e, event) => {
                                 dd.data.setting = dd.data.setting ?? []
                                 viewModel.selectContainer = dd.data.setting

@@ -124,7 +124,7 @@ import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
                                                             title: '步驟四：部署網域',
                                                             content: `
 DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍加等待後再重新嘗試。
-<button type="button" class="btn btn-primary-c  w-100 mt-2" style=""
+<button type="button" class="btn btn-primary-c  w-100 mt-2" 
 onclick="${gvc.event(() => {
                                                                 const dialog = new ShareDialog(glitter);
                                                                 dialog.dataLoading({ text: '', visible: true });
@@ -221,7 +221,7 @@ onclick="${gvc.event(() => {
                                                                             <button
                                                                                 type="button"
                                                                                 class="btn btn-primary-c  w-100 mt-2"
-                                                                                style=""
+                                                                                
                                                                                 onclick="${gvc.event(() => {
                                                                                     const dialog = new ShareDialog(glitter);
                                                                                     dialog.dataLoading({
@@ -415,7 +415,7 @@ function questionText(title: string, data: { title: string; content: string }[])
                         index === 0 ? '' : 'collapsed'
                     }" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" >
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>

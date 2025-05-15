@@ -28,7 +28,7 @@ export class BgSeo {
                 </button>
             </div>
             <div class="d-flex" style="gap:10px;">
-                <div style="width:300px;" class="">
+                <div style="width:300px;" >
                     ${BgWidget.card(
                         gvc.bindView(() => {
                             return {

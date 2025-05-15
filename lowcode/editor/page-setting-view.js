@@ -42,7 +42,7 @@ export class PageSettingView {
                 view: () => {
                     return [
                         html ` <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style="">頁面設定</h5>
+                            <h5 class="offcanvas-title" >頁面設定</h5>
                             <div class="flex-fill"></div>
                             <div
                                 class="fs-5 text-black"
@@ -649,7 +649,7 @@ export class PageSettingView {
             }
         };
         const html = String.raw;
-        return html ` <div class="position-relative" style="">
+        return html ` <div class="position-relative" >
             <div class="position-relative bgf6 d-flex align-items-center justify-content-between m-n2 p-2 border-bottom shadow">
                 <span class="fs-6 fw-bold " style="color:black;">基本設定</span>
                 <button
@@ -662,7 +662,7 @@ export class PageSettingView {
                     儲存
                 </button>
             </div>
-            <div class="pt-3 justify-content-start px-2 " style="">
+            <div class="pt-3 justify-content-start px-2 " >
                 ${[
             (() => {
                 var _a, _b, _c;
@@ -816,7 +816,7 @@ export class PageSettingView {
                         return {
                             bind: id,
                             view: () => {
-                                return html `<lottie-player autoplay loop mode="normal" src="${new URL('../lottie/error.json', import.meta.url)}" style="width: 200px;" class="">
+                                return html `<lottie-player autoplay loop mode="normal" src="${new URL('../lottie/error.json', import.meta.url)}" style="width: 200px;" >
                                                         </lottie-player>
                                                         <div class="alert alert-danger w-100" style="word-break: break-all;white-space: normal;">
                                                             <strong>請注意</strong>，頁面刪除後即無法復原，請警慎進行操作。
@@ -947,7 +947,7 @@ export class PageSettingView {
                         bind: menuID,
                         view: () => {
                             return html `
-                                  <div class="">${EditorElem.h3('選擇頁面')}</div>
+                                  <div >${EditorElem.h3('選擇頁面')}</div>
                                   <div class="d-flex align-items-center">
                                       <div class="btn-group ms-0" style="max-width: 400px;min-width: 250px;">
                                           <button
@@ -1206,7 +1206,7 @@ function uploadImage(obj) {
                     obj.gvc.notifyDataChange(id);
                 })}"
                         />
-                        <div class="" style="width: 1px;height: 25px;background-"></div>
+                        <div  style="width: 1px;height: 25px;background-"></div>
                         <i
                             class="fa-regular fa-upload text-dark ms-2"
                             style="cursor: pointer;"

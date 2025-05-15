@@ -57,7 +57,7 @@ export class BgMobileGuide {
                                 ${(() => {
                 return this.stepInf.map((inf) => {
                     return html `
-                                        <div class="swiper-slide w-100" style="">
+                                        <div class="swiper-slide w-100" >
                                             <div class="w-100 d-flex align-items-center justify-content-center">
                                                 <img style="width:209px;height: 62px;" src="${inf.title}" alt="">
                                             </div>
@@ -73,7 +73,7 @@ export class BgMobileGuide {
             })()}
                             </div>
                             <!-- If we need pagination -->
-                            <div class="swiper-pagination" style=""></div>
+                            <div class="swiper-pagination" ></div>
                         </div>
                         <div class="d-flex w-100" style="padding: 0 30px;position: absolute;left:0;bottom: 30px;">
                             <div class="d-flex align-items-center justify-content-center w-100" style="padding: 10px 20px;;z-index: 2;border-radius: 6px;border: 1px solid #DDD;" onclick="${this.gvc.event(() => {
@@ -99,7 +99,7 @@ export class BgMobileGuide {
                 },
             },
         });
-        return html ``;
+        return '';
     }
     drawGuide() {
         if (document.body.clientWidth >= 922) {
@@ -115,7 +115,7 @@ export class BgMobileGuide {
                 clearInterval(timer);
             }
         }, 500);
-        return html ``;
+        return '';
     }
 }
 BgMobileGuide.disableFunction = () => {

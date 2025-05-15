@@ -79,7 +79,7 @@ let option=widget.data.attr.map((dd: any) => {
                                                 if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
                                                     return ``
                                                 }
-                                                return /*html*/ `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                                return /*html*/ `<option  value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
                                             }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>

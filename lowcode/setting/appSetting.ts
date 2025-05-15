@@ -377,7 +377,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
                             }),
                         ]
                             .map((dd) => {
-                                return `<div class="">${dd}</div>`;
+                                return `<div >${dd}</div>`;
                             })
                             .join(``)}
                         <div class="w-100 " style="height:1px;background:#e2e5f1;"></div>
@@ -385,7 +385,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
                              style="color:#151515;font-size:16px;gap:0px;">
                             上架設定
                         </div>
-                        <div class="">
+                        <div >
                             ${[
                                 EditorElem.editeInput({
                                     gvc: gvc,
@@ -433,7 +433,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
                                 }),
                             ]
                                 .map((dd) => {
-                                    return `<div class="">${dd}</div>`;
+                                    return `<div >${dd}</div>`;
                                 })
                                 .join(``)}
                         </div>
@@ -642,7 +642,7 @@ function uploadImage(obj: { title: string; gvc: any; def: string; callback: (dat
                     obj.callback(e.value);
                     obj.gvc.notifyDataChange(id);
                 })}">
-                                <div class="" style="width: 1px;height: 25px;background-"></div>
+                                <div  style="width: 1px;height: 25px;background-"></div>
                                 <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                                     glitter.ut.chooseMediaCallback({
                                         single: true,

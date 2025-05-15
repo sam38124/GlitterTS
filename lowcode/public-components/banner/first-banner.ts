@@ -93,7 +93,7 @@ export class FirstBanner {
                                                          style="background: none;
 overflow: hidden;;
 ">
-                                                        <img class="" src="${dd.img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}" style="width:520px;max-width:calc(100vw - 40px);max-height: 100vh;cursor: pointer;
+                                                        <img  src="${dd.img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}" style="width:520px;max-width:calc(100vw - 40px);max-height: 100vh;cursor: pointer;
 border-radius: 25px;
 " onclick="${gvc.event(() => {
                                             gvc.glitter.href=dd.link;

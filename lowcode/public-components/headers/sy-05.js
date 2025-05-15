@@ -192,7 +192,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                     : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="height: 100%;" /></div> `}
                   </div>
                   <!--選單列表顯示區塊-->
-                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
+                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
                     ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {

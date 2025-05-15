@@ -118,7 +118,7 @@ export class FileSystem {
                         bind: vm.id,
                         view: async () => {
                             return html`
-                                <div style="">
+                                <div >
                                     <div style="width: 100%;  position: relative">
                                         <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
                                             <div
@@ -165,7 +165,7 @@ export class FileSystem {
                                                         gvc.notifyDataChange(vm.id);
                                                     })}"
                                                 ></div>
-                                                <div class="" style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                <div  style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                                     選單名稱
                                                 </div>
                                                 <div class="flex-fill"></div>

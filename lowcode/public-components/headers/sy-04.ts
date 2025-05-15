@@ -249,7 +249,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                       `}
                 </div>
               </div>
-              <div class="">
+              <div >
                 <!--選單列表顯示區塊-->
                 <ul
                   class="navbar-nav position-absolute start-50 top-50 d-none d-lg-block"
@@ -347,7 +347,7 @@ padding-bottom: 2px;
                   })}
                   ${HeaderClass.hideShopperBtn()
                     ? ``
-                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="">
+                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" >
                                 ${gvc.bindView(() => {
                                   const vm = {
                                     id: gvc.glitter.getUUID(),

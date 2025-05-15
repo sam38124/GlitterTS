@@ -906,7 +906,7 @@ export class ProductText {
                                                 >
                                                     ${text}
                                                 </div>
-                                                <svg class="" width="72" height="32" viewBox="0 0 69 24" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                                <svg  width="72" height="32" viewBox="0 0 69 24" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                                     <path
                                                         fill-rule="evenodd"
                                                         clip-rule="evenodd"
@@ -1192,7 +1192,7 @@ export class ProductText {
                                                     }
                                                     return html`
                                                         <div
-                                                            class=""
+                                                            
                                                             style="width: 89px;height: 89px;border: 1px solid rgba(205, 205, 205, 0.87);background: #EAEAEA;"
                                                             onclick="${gvc.event(() => {
                                                                 vm.data.data.position = data;
@@ -1209,7 +1209,7 @@ export class ProductText {
                                         style="display: flex;padding: 14px 114px 13.713px 113px;justify-content: center;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
                                     >
                                         <div
-                                            class=""
+                                            
                                             style="padding: 11.67px;border-radius: 2px;border: 1px solid #DDD;background: #FFF;display: flex;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;"
                                         >
                                             <div
@@ -1243,8 +1243,8 @@ export class ProductText {
                                                 </div>
                                             </div>
                                             <div style="display: flex;flex-direction: column;gap: 5.835px;color:#393939;font-size: 9.725px;font-weight: 400;letter-spacing: 0.389px;">
-                                                <div style="">商品名稱</div>
-                                                <div style="">NT.$ 99</div>
+                                                <div >商品名稱</div>
+                                                <div >NT.$ 99</div>
                                             </div>
                                         </div>
                                     </div>

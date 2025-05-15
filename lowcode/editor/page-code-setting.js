@@ -288,7 +288,7 @@ export class PageCodeSetting {
                     return [
                         html `
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                <h5 class="offcanvas-title" style="">頁面代碼</h5>
+                                <h5 class="offcanvas-title" >頁面代碼</h5>
                                 <div class="flex-fill"></div>
                                 <div class="fs-5 text-black" style="cursor: pointer;" onclick="${gvc.event(() => {
                             PageCodeSetting.toggle(false, gvc);

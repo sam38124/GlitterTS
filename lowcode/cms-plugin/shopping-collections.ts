@@ -1016,7 +1016,7 @@ export class ShoppingCollections {
                             },
                           })}`,
                         ,
-                        html` <div class="tx_normal fw-normal" style="">SEO 描述</div>
+                        html` <div class="tx_normal fw-normal" >SEO 描述</div>
                           ${EditorElem.editeText({
                             gvc: gvc,
                             title: '',
@@ -1027,7 +1027,7 @@ export class ShoppingCollections {
                             },
                           })}`,
                         ,
-                        html` <div class="tx_normal fw-normal" style="">SEO 圖片</div>
+                        html` <div class="tx_normal fw-normal" >SEO 圖片</div>
                           ${EditorElem.uploadImageContainer({
                             gvc: gvc,
                             title: '',

@@ -236,7 +236,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                   </div>
                 </div>
                 <!--選單列表顯示區塊-->
-                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" style="">
+                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" >
                   ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {

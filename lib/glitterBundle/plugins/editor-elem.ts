@@ -21,7 +21,7 @@ export class EditorElem {
                         obj.callback(e.value);
                     })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                <i class="fa-regular fa-eye text-black ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                    glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', obj.def);
                })}"></i>
@@ -93,7 +93,7 @@ export class EditorElem {
 </div>`;
                     }
                     return obj.gvc.glitter.html`
-<div class="" style="gap:10px; ">
+<div  style="gap:10px; ">
 <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;">
 ${data
     .map((dd, index) => {
@@ -442,7 +442,7 @@ ${obj.initial ?? ''}
             return {
                 bind: id,
                 view: () => {
-                    return `<div style="" class="" id="${richID}">${obj.def}</div>`;
+                    return `<div   id="${richID}">${obj.def}</div>`;
                 },
                 divCreate: {
                     style: obj.style || `max-height:500px;overflow-y: auto;`,
@@ -518,7 +518,7 @@ ${obj.initial ?? ''}
         //     return {
         //         bind: id,
         //         view: () => {
-        //             return `<div style="" class="" id="${richID}">${obj.def}</div>`
+        //             return `<div   id="${richID}">${obj.def}</div>`
         //         },
         //         divCreate: {
         //             style: `max-height:500px;overflow-y: auto;`
@@ -674,7 +674,7 @@ ${obj.initial ?? ''}
                         obj.callback(e.value);
                     })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  ms-2 fs-5"
                     style="cursor: pointer;color:black;"
@@ -770,7 +770,7 @@ ${obj.initial ?? ''}
                                 <input class="flex-fill form-control " placeholder="請輸入圖片連結" value="${obj.def}" onchange="${obj.gvc.event((e: any) => {
             obj.callback(e.value);
         })}">
-                                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                                 <i class="fa-regular fa-upload text-white ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                                     glitter.ut.chooseMediaCallback({
                                         single: true,
@@ -834,7 +834,7 @@ ${obj.initial ?? ''}
                         obj.callback(e.value);
                     })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload text-white ms-2"
                     style="cursor: pointer;"
@@ -1230,7 +1230,7 @@ ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div
 
     public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string }) {
         const html = String.raw;
-        return `<button type="button" class="btn btn-primary-c  w-100" style="" onclick="${par.gvc.event(() => {
+        return `<button type="button" class="btn btn-primary-c  w-100"  onclick="${par.gvc.event(() => {
             par.gvc.glitter.innerDialog((gvc: GVC) => {
                 return html` <div
                     class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "

@@ -1553,7 +1553,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-            </div>`, vm.id, '#39afd1', html ``);
+            </div>`, vm.id, '#39afd1', '');
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {
@@ -1815,7 +1815,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-            </div>`, vm.id, '#ff6c02', html ``);
+            </div>`, vm.id, '#ff6c02', '');
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {
@@ -2086,7 +2086,7 @@ export class DataAnalyzeModule {
                             },
                         };
                     })}
-            </div>`, vm.id, '#ffbc00', html ``);
+            </div>`, vm.id, '#ffbc00', '');
                 },
                 onCreate: () => {
                     if (option.come_from !== 'all' && option.come_from !== 'website') {

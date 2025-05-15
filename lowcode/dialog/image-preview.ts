@@ -50,7 +50,7 @@ gvc.addStyle(`.btn-gray {
                             link.href = gBundle;
                             link.click();
                         })}">
-                            <span class="tx_700" style="">下載圖片</span>
+                            <span class="tx_700" >下載圖片</span>
                         </div>
                         ${grayButton(
                                 '關閉',
@@ -70,7 +70,7 @@ gvc.addStyle(`.btn-gray {
 function grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
     const html = String.raw
     return html`
-        <button class="btn btn-gray" style="" type="button" onclick="${event}">
+        <button class="btn btn-gray"  type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
             ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
         </button>`;

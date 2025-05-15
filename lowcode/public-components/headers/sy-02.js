@@ -240,7 +240,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                    `}
                         </div>
                         <!--選單列表顯示區塊-->
-                        <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
+                        <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
                             ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
@@ -342,7 +342,7 @@ padding-bottom: 2px;
                                 ${HeaderClass.hideShopperBtn()
                     ? ``
                     : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center "
-                                    style="">
+                                    >
                                     ${gvc.bindView(() => {
                         const vm = {
                             id: gvc.glitter.getUUID(),
@@ -452,7 +452,7 @@ padding-bottom: 2px;
                                 </li>
                                 <li
                                     class="nav-item d-flex align-items-center justify-content-center ms-3 "
-                                    style=""
+                                    
                                     onclick="${gvc.event(() => {
                     if (GlobalUser.token) {
                         changePage('account_userinfo', 'page', {});
@@ -466,7 +466,7 @@ padding-bottom: 2px;
                 })}"
                                 >
                                     <div
-                                        class=""
+                                        
                                         style="background: ${(_d = widget.formData.theme_color['solid-button-bg']) !== null && _d !== void 0 ? _d : '#000'};
 color: ${(_e = widget.formData.theme_color['solid-button-text']) !== null && _e !== void 0 ? _e : '#000'};  cursor: pointer;
 display: flex;

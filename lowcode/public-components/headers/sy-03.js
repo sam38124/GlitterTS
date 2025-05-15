@@ -229,7 +229,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                   </div>
                 </div>
                 <!--選單列表顯示區塊-->
-                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" style="">
+                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" >
                   ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {

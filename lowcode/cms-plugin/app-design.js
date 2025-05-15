@@ -23,7 +23,7 @@ export class AppDesign {
                   <div class="d-flex flex-column" style="gap:5px;">
                     ${[
                             `<div class="tx_normal fs-5 fw-500">2414-居家生活</div>`,
-                            `<div class="tx_normal fs-sm fw-500 text-body" style="">上次儲存時間: 03-21 14:27</div>`,
+                            `<div class="tx_normal fs-sm fw-500 text-body" >上次儲存時間: 03-21 14:27</div>`,
                             ``,
                         ].join('')}
                   </div>
@@ -51,7 +51,7 @@ export class AppDesign {
           <div class="d-flex flex-column" style="gap:5px;">
             ${[
                 `<div class="tx_normal fs-6 fw-bold">佈景主題庫</div>`,
-                `<div class="tx_normal fs-sm fw-500 text-body" style="">從佈景主題庫中，更換佈景主題樣式。</div>`,
+                `<div class="tx_normal fs-sm fw-500 text-body" >從佈景主題庫中，更換佈景主題樣式。</div>`,
                 ``,
             ].join('')}
           </div>
@@ -60,7 +60,7 @@ export class AppDesign {
           <div class="d-flex flex-column" style="gap:5px;">
             ${[
                 `<div class="tx_normal fs-6 fw-bold">熱門免費佈景主題</div>`,
-                `<div class="tx_normal fs-sm fw-500 text-body" style="">佈景主題涵蓋核心功能，無需編寫程式碼即可讓您輕鬆自訂。</div>`,
+                `<div class="tx_normal fs-sm fw-500 text-body" >佈景主題涵蓋核心功能，無需編寫程式碼即可讓您輕鬆自訂。</div>`,
                 `<div class="w-100 border-top my-2"></div>`,
                 gvc.bindView(() => {
                     return {

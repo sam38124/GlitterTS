@@ -352,7 +352,7 @@ export class MemberTypeList {
                                         : ` <div class="c_39_checkbox"></div>`}
                                       <div class="tx_normal fw-normal">${dd.title}</div>
                                     </div>`,
-                                    html` <div class="d-flex position-relative mt-2" style="">
+                                    html` <div class="d-flex position-relative mt-2" >
                                       <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                       <div
                                         class="flex-fill w-100 mt-n2 d-flex align-items-center"
@@ -409,7 +409,7 @@ export class MemberTypeList {
                                       : ` <div class="c_39_checkbox"></div>`}
                                     <div class="tx_normal fw-normal">${dd.title}</div>
                                   </div>`,
-                                  html` <div class="d-flex position-relative mt-2" style="">
+                                  html` <div class="d-flex position-relative mt-2" >
                                     <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                     <div
                                       class="flex-fill w-100 mt-n2 d-flex align-items-center"
@@ -468,7 +468,7 @@ export class MemberTypeList {
                                       : ` <div class="c_39_checkbox"></div>`}
                                     <div class="tx_normal fw-normal">${dd.title}</div>
                                   </div>`,
-                                  html` <div class="d-flex position-relative mt-2" style="">
+                                  html` <div class="d-flex position-relative mt-2" >
                                     <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                     <div
                                       class="flex-fill w-100  d-flex align-items-center"
@@ -584,7 +584,7 @@ export class MemberTypeList {
                                         : ` <div class="c_39_checkbox"></div>`}
                                       <div class="tx_normal fw-normal">${dd.title}</div>
                                     </div>`,
-                                    html` <div class="d-flex position-relative mt-2" style="">
+                                    html` <div class="d-flex position-relative mt-2" >
                                       <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                       <div
                                         class="flex-fill w-100 mt-n2 d-flex align-items-center"

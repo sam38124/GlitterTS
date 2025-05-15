@@ -297,7 +297,7 @@ export class ShoppingAllowanceManager {
                                                 },
                                                 {
                                                     key: '<div class="text-center">折讓金額</div>',
-                                                    value: html ` <div class="text-center" style="">
+                                                    value: html ` <div class="text-center" >
                                 ${(_a = dd.allowance_data.invoiceAmount) !== null && _a !== void 0 ? _a : 0}
                               </div>`,
                                                 },
@@ -580,7 +580,7 @@ export class ShoppingAllowanceManager {
                                                 return lineItem.title == item.ItemName.split('/')[0];
                                             });
                                             return html `
-                              <div class="d-flex w-100 align-items-center" style="">
+                              <div class="d-flex w-100 align-items-center" >
                                 <div class="col-7 d-flex align-items-center">
                                   <img
                                     src="${target.preview_image}"
@@ -686,7 +686,7 @@ ${(_2 = allowanceData.allowance_data.voidReason) !== null && _2 !== void 0 ? _2 
                                               </div>
                                               <div
                                                 class="w-100 d-flex align-items-center justify-content-center"
-                                                style=""
+                                                
                                               >
                                                 <svg
                                                   xmlns="http://www.w3.org/2000/svg"
@@ -1124,7 +1124,7 @@ ${reason}</textarea
                                     invoiceItem.ItemAmount = invoiceItem.ItemCount * invoiceItem.ItemPrice;
                                     viewModel.allowanceInvoiceTotalAmount += invoiceItem.ItemAmount;
                                     return html `
-                              <div class="d-flex w-100 align-items-center" style="">
+                              <div class="d-flex w-100 align-items-center" >
                                 <div class="col-6 d-flex align-items-center">
                                   <img
                                     src="${item.preview_image}"

@@ -204,7 +204,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                   }
                   </div>
                   <!--選單列表顯示區塊-->
-                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
+                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
                     ${gvc.bindView(() => {
                       const id = gvc.glitter.getUUID();
                       const vm = {

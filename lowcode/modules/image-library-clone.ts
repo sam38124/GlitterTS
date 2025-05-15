@@ -562,7 +562,7 @@ export class imageLibrary {
                                             上傳新圖片
                                         </div>
                                     </div>
-                                    <div class="">
+                                    <div >
                                         ${gvc.bindView({
                                             bind: `folderItemGroup`,
                                             view: () => {
@@ -612,7 +612,7 @@ export class imageLibrary {
                                             options: FilterOptions.imageLibraryOrderBy,
                                         })}
                                     </div>
-                                    <div class="">
+                                    <div >
                                         ${gvc.bindView({
                                             bind: `folderItemGroup`,
                                             view: () => {
@@ -765,7 +765,7 @@ export class imageLibrary {
                                             })
                                         )}
                                     </div>
-                                    <div class="">
+                                    <div >
                                         ${gvc.bindView({
                                             bind: `folderItemGroup`,
                                             view: () => {
@@ -786,7 +786,7 @@ export class imageLibrary {
 
                             function drawSelectImg() {
                                 return html`
-                                    <div style="">
+                                    <div >
                                         <div style="width: 100%;  position: relative">
                                             <div
                                                 style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex"
