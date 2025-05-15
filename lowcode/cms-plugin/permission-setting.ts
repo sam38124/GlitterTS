@@ -514,7 +514,7 @@ export class PermissionSetting {
                     ${[
                       BgWidget.editeInput({
                         gvc: gvc,
-                        title: '員工名稱',
+                        title: `員工名稱 ${BgWidget.requiredStar()}`,
                         placeHolder: `請輸入員工名稱`,
                         default: vm.data.config.name,
                         callback: text => {
@@ -523,7 +523,7 @@ export class PermissionSetting {
                       }),
                       BgWidget.editeInput({
                         gvc: gvc,
-                        title: '職稱',
+                        title: `職稱 ${BgWidget.requiredStar()}`,
                         placeHolder: `請輸入職稱`,
                         default: vm.data.config.title,
                         callback: text => {
@@ -532,7 +532,7 @@ export class PermissionSetting {
                       }),
                       BgWidget.editeInput({
                         gvc: gvc,
-                        title: '信箱帳號',
+                        title: `信箱帳號 ${BgWidget.requiredStar()}`,
                         placeHolder: '此信箱將會作為寄送邀請信之信箱',
                         default: vm.data.email ?? vm.data.config.verifyEmail,
                         callback: text => {
@@ -542,7 +542,7 @@ export class PermissionSetting {
                       }),
                       BgWidget.editeInput({
                         gvc: gvc,
-                        title: '電話',
+                        title: `電話 ${BgWidget.requiredStar()}`,
                         placeHolder: `請輸入電話`,
                         default: vm.data.config.phone,
                         callback: text => {
