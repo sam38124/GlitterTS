@@ -12,12 +12,12 @@ type ScheduleItem = {
 export class SystemSchedule {
     //檢查mysql狀態，如異常則重啟。
     async checkMysqlStatus(sec: number) {
-         const prepared_stmt_count=(await db.query(`show global status like 'prepared_stmt_count';`,[]))[0]['Value']
-       if(parseInt(prepared_stmt_count,10)> 10000){
+      const prepared_stmt_count=(await db.query(`show global status like 'prepared_stmt_count';`,[]))[0]['Value']
+      if(parseInt(prepared_stmt_count,10)> 10000){
            const response = await new Promise((resolve, reject) => {
                Ssh.exec([
                    //重啟MYSQL
-                   `sudo systemctl restart mysqld`,
+                   // `sudo systemctl restart mysqld`,
                    //重啟Docker
                    `sudo docker restart $(sudo docker ps --filter "expose=3080" --format "{{.ID}}")`]).then(
                    (res: any) => {
@@ -34,7 +34,7 @@ export class SystemSchedule {
 
      start() {
         const scheduleList: ScheduleItem[] = [
-            {second: 60, status: false, func: 'checkMysqlStatus', desc: 'MYSQL狀態檢查'}
+            {second: 60, status: true, func: 'checkMysqlStatus', desc: 'MYSQL狀態檢查'}
         ];
         try {
             scheduleList.forEach((schedule: any) => {

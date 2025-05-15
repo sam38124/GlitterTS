@@ -12,6 +12,7 @@ const html = String.raw;
 
 export class Blogs01 {
   static main(gvc: GVC, subData: any) {
+
     let initial = false;
     return gvc.bindView(() => {
       const bid = gvc.glitter.getUUID();
@@ -36,8 +37,26 @@ export class Blogs01 {
                   })
                 })
               ]);
+              //取得HeaderView
+              let ogHeaderView = new gvc.glitter.htmlGenerate(o_header.response.result[0].config, [], {}).render(
+                gvc,
+                {
+                  class: `w-100`,
+                  style: `position:relative;`,
+                  containerID: gvc.glitter.getUUID(),
+                  tag: gvc.glitter.getUUID(),
+                  jsFinish: () => {},
+                  onCreate: () => {},
+                  document: document,
+                },
+                {}
+              );
+
               console.log(`o_header===>`,o_header)
-              subData.content.config=subData.content.config.filter((dd:any)=>   dd.data.tag!=='c_header')
+              console.log(`subData===>`,subData)
+              subData.content.config=subData.content.config??[]
+              try {
+                subData.content.config=subData.content.config.filter((dd:any)=>   dd.data.tag!=='c_header')
                 //pages的自訂View
                 const view = (() => {
                   if (subData.content.generator !== 'page_editor') {
@@ -49,8 +68,8 @@ export class Blogs01 {
                       <h1
                         class="my-5 w-100 text-center p-0"
                         style="color:${subData.content.title};font-size:${document.body.clientWidth > 800
-                          ? `32px`
-                          : `24px`};font-weight: 600;"
+                      ? `32px`
+                      : `24px`};font-weight: 600;"
                       >
                         ${(dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title}
                       </h1>
@@ -203,20 +222,6 @@ export class Blogs01 {
                     }
                   }
                 })();
-                //取得HeaderView
-                let ogHeaderView = new gvc.glitter.htmlGenerate(o_header.response.result[0].config, [], {}).render(
-                  gvc,
-                  {
-                    class: `w-100`,
-                    style: `position:relative;`,
-                    containerID: gvc.glitter.getUUID(),
-                    tag: gvc.glitter.getUUID(),
-                    jsFinish: () => {},
-                    onCreate: () => {},
-                    document: document,
-                  },
-                  {}
-                );
                 // //判斷有自訂Header調整自訂選單內容
                 // if (c_header.response.value && c_header.response.value[0] && c_header.response.value[0].header_refer!=='def') {
                 //   ogHeaderView=new gvc.glitter.htmlGenerate([c_header.response.value[0]], [], {}).render(
@@ -237,6 +242,9 @@ export class Blogs01 {
                   ogHeaderView,
                   view
                 ].join('');
+              }catch (e) {
+
+              }
                 initial = true;
             } catch (e) {
               console.log(e)

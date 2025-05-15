@@ -29,7 +29,7 @@ export class SetGlobalValue {
                 view: () => {
                     return [
                         `  <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                    <h5 class=" offcanvas-title  " style="">
+                    <h5 class=" offcanvas-title  " >
                         全域設定</h5>
                     <div class="flex-fill"></div>
                     <div class="fs-5 text-black" style="cursor: pointer;" onclick="${gvc.event(() => {
@@ -593,7 +593,7 @@ ${(() => {
                 <div class="position-relative bgf6 d-flex align-items-center justify-content-between  px-2 py-3 border-bottom shadow">
                     <span class="fs-6 fw-bold " style="color:black;">網域設定</span>
                 </div>
-                <div class="d-flex " style="">
+                <div class="d-flex " >
                     <div>
                         ${gvc.bindView(() => {
             return {
@@ -613,7 +613,7 @@ ${(() => {
                         gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
                     });
                     return html ` <div class="d-flex">
-                                        <div style="" class="border-end w-100">
+                                        <div  class="border-end w-100">
                                             ${gvc.bindView(() => {
                         return {
                             bind: contentVM.leftID,
@@ -658,8 +658,8 @@ ${(() => {
             select: Storage.select_global_editor_tab,
         };
         return html `
-            <div class="bg-white rounded" style="">
-                <div class="d-flex " style="">
+            <div class="bg-white rounded" >
+                <div class="d-flex " >
                     <div>
                         ${gvc.bindView(() => {
             return {
@@ -728,7 +728,7 @@ ${(() => {
                             bind: id,
                             view: () => {
                                 return `<div class="fw-500 me-2 pb-1 " style="font-size:15px;color:#151515;">開發者模式</div>
-                                                                <div class="form-check form-switch mode-switch" style="" data-bs-toggle="mode"
+                                                                <div class="form-check form-switch mode-switch"  data-bs-toggle="mode"
                                                                      onchange="${gvc.event(() => {
                                     Storage.develop_mode = Storage.develop_mode === 'false' ? 'true' : 'false';
                                     gvc.notifyDataChange(['showView', id]);
@@ -899,7 +899,7 @@ ${EditorElem.arrayItem({
                             if (!dd) {
                                 return html `
                                     <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom  py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">插件說明</div>
-                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" style="">
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" >
                                         <div class="alert alert-info m-2 p-2 fw-500" style="white-space: normal;word-break: break-all;font-size:14px;">
                                             頁面模塊決定您能夠在網站上使用哪些設計模塊。<br /><br />您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。<br /><br />
                                             啟用開發者模式來切換路徑進行工程開發。<br />
@@ -1048,7 +1048,7 @@ ${EditorElem.arrayItem({
                                         插件說明
                                         <div class="flex-fill"></div>
                                     </div>
-                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" style="">
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" >
                                         <div class="alert alert-info m-2 p-2 fw-500" style="white-space: normal;word-break: break-all;font-size:14px;">
                                             為您的元件添加各樣的觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成。<br /><br />您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。<br /><br />
                                             啟用開發者模式來切換路徑進行工程開發。<br />
@@ -1194,7 +1194,7 @@ ${EditorElem.arrayItem({
                             if (!dd) {
                                 return html `
                                     <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom  py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">路徑説明</div>
-                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" style="">
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center" >
                                         <div class="alert alert-info m-2 p-2 fw-500" style="white-space: normal;word-break: break-all;font-size:14px;">
                                             設定資源相對路徑，來決定頁面與事件模塊所載入的路徑位置。<br /><br />
                                             使用$字符設定相對路徑。<br />範例 : $router/sample.js

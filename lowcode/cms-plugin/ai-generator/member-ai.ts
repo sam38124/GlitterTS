@@ -58,7 +58,7 @@ export class MemberAi {
         let place_holder = '顧客姓名是王小明，電子信箱是sam12345@gmail.com，電話號碼是0912345678，生日是民國83年11月5日，地址是台北市大安區望安路10號，備註來自Facebook的消費用戶。'
         let message = place_holder
         return html`
-            <div class="">
+            <div >
                 ${[
                     html`
                         <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"
@@ -125,7 +125,7 @@ ${BgWidget.save(gvc.event(() => {
                 const html = String.raw
                 let message = ''
                 return html`
-                    <div class="">
+                    <div >
                         ${[
                             html`
                                 <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"

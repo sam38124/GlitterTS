@@ -11,7 +11,7 @@ export class ProductService {
       if (postMD.product_category !== 'kitchen') {
         const salePrice = (postMD['variants'][0] as any)['sale_price'];
         if (salePrice === '' || salePrice === undefined || salePrice === null) {
-          dialog.infoMessage({ text: '尚未填寫售價' });
+          dialog.infoMessage({ text: '尚未輸入售價' });
           return false;
         }
       }
@@ -37,7 +37,7 @@ export class ProductService {
             Number(variant['v_length']) == 0
           ) {
             dialog.infoMessage({
-              text: `規格 ${variant.spec.join(',')} 材積資訊未填`,
+              text: `規格${variant.spec.length > 0 ? `「${variant.spec.join(',')}」` : ''}材積資訊未填`,
             });
             return false;
           }
@@ -45,7 +45,7 @@ export class ProductService {
         if (postMD.product_category !== 'weighing' && variant['shipment_type'] == 'weight') {
           if (variant['weight'] == undefined || Number(variant['weight']) == 0) {
             dialog.infoMessage({
-              text: `${variant.spec.length > 1 ? variant.spec.join(',') : ''}重量未填`,
+              text: `${variant.spec.length > 1 ? `「${variant.spec.join(',')}」` : ''}重量未填`,
             });
             return false;
           }
@@ -67,7 +67,7 @@ export class ProductService {
         {
           check: (data: LanguageData) => !data.seo.domain,
           errorMessage: '未設定商品連結',
-        }
+        },
         // {
         //   check: (data: LanguageData) => !CheckInput.isChineseEnglishNumberHyphen(data.seo.domain),
         //   errorMessage: '連結僅限使用中英文數字與連接號',
@@ -79,7 +79,6 @@ export class ProductService {
         const currentLanguageData = languageData[languageCode];
         currentLanguageData.seo.domain = currentLanguageData.seo.domain.replace(/\+/g, '');
         for (const rule of validationRules) {
-
           if (rule.check(currentLanguageData)) {
             vm.language = languageCode;
             refresh();

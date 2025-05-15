@@ -4,6 +4,8 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { LanguageLocation } from '../glitter-base/global/language.js';
 import { LanguageBackend } from './language-backend.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { AiChat } from '../glitter-base/route/ai-chat.js';
 
 const html = String.raw;
 
@@ -23,13 +25,15 @@ export class MenusSetting {
       index: number;
       dataList: any;
       query?: string;
+      select:{title:string,tag:string}
       tab:'menu'|'footer'
     } = {
       type: 'list',
       index: 0,
       dataList: undefined,
       query: '',
-      tab:'menu'
+      tab:'menu',
+      select:{title:'',tag:''}
     };
     const filterID = gvc.glitter.getUUID();
     let vmi: any = undefined;
@@ -56,19 +60,65 @@ export class MenusSetting {
         dataList: [{ obj: vm, key: 'type' }],
         view: () => {
           if (vm.type === 'list') {
+
             return BgWidget.container(html`
               <div class="title-container">
                 ${BgWidget.title('選單管理')}
                 <div class="flex-fill"></div>
-                ${false
-                  ? BgWidget.darkButton(
-                      '新增',
-                      gvc.event(() => {
-                        vm.type = 'add';
-                        gvc.notifyDataChange(id);
-                      })
-                    )
-                  : ''}
+                ${BgWidget.darkButton(
+                  `新增${vm.tab==='menu' ? `頁首選單`:`頁腳選單`}`,
+                  gvc.event(async () => {
+                    let title=''
+                    async function next(){
+                      const dialog=new ShareDialog(gvc.glitter)
+                      dialog.dataLoading({visible:true})
+                      const tab=vm.tab==='menu' ? `頁首選單`:`頁腳選單`
+                      let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
+                      menu_all.list=menu_all.list ?? [];
+                      menu_all.list=[
+                        {
+                          tag:gvc.glitter.getUUID(),
+                          title:[tab,`${menu_all.list.length+1}`].join(''),
+                          tab:vm.tab==='menu' ? 'menu-setting':'footer-setting'
+                        }
+                      ].concat(menu_all.list);
+                      await ApiUser.setPublicConfig({
+                        key:'menu-setting-list',
+                        value:menu_all,
+                        user_id:'manager'
+                      });
+                      dialog.dataLoading({visible:false});
+                      gvc.notifyDataChange(id)
+                    }
+                    BgWidget.settingDialog({
+                      gvc: gvc,
+                      title: '選單名稱',
+                      innerHTML: (gvc: GVC) => {
+                        return [
+                          BgWidget.editeInput({
+                            title:'',
+                            callback:(text)=>{
+                              title=text
+                            },
+                            default:title,
+                            gvc:gvc,
+                            placeHolder:'請輸入選單名稱'
+                          })
+                        ].join('')
+                      },
+                      footer_html: (gvc: GVC) => {
+                        return BgWidget.save(gvc.event(()=>{
+                         next()
+                          gvc.closeDialog()
+                        }),'儲存')
+                      },
+                      width: 300
+                    })
+                 
+                    // vm.index = index;
+                    // vm.type = 'replace';
+                  })
+                )}
               </div>
               ${BgWidget.tab(
                 [
@@ -81,18 +131,26 @@ export class MenusSetting {
                   vm.tab=text as any
                   gvc.notifyDataChange(id);
                 },
-                `margin-bottom:0px !important;`
+                `${document.body.clientWidth<800 ? ``:`margin-bottom:0px !important;`}
+                `
               )}
               ${BgWidget.container(
                 BgWidget.mainCard(
                   BgWidget.tableV3({
                     gvc: gvc,
-                    getData: vmi => {
+                    getData: async (vmi) => {
+                      const tag=vm.tab==='menu' ? 'menu-setting':'footer-setting'
+                      let menu_all= (await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
+                      menu_all.list = menu_all.list ?? [];
                       vm.dataList = [
-                        { tag: vm.tab==='menu' ? 'menu-setting':'footer-setting', title: `
+                        { tag: tag, title: `
                        <div> ${vm.tab==='menu' ? `頁首選單`:`頁腳選單`} <span style="font-size:12px;color:#36B;">系統預設</span></div>
-                        ` }
+                        ` },
+                        ...menu_all.list.filter((d1:any)=>{
+                          return d1.tab===tag
+                        })
                       ];
+                      
                       vmi.pageSize = 1;
                       vmi.originalData = vm.dataList;
                       vmi.tableData = getDatalist();
@@ -100,7 +158,7 @@ export class MenusSetting {
                       vmi.callback();
                     },
                     rowClick: (data, index) => {
-                      vm.index = index;
+                      vm.select=vm.dataList[index]
                       vm.type = 'replace';
                     },
                     filter: [],
@@ -123,8 +181,8 @@ export class MenusSetting {
               this.setMenu({
                 gvc: gvc,
                 widget: widget,
-                key: vm.dataList[vm.index].tag,
-                title: vm.dataList[vm.index].title,
+                key: vm.select.tag as any,
+                title: vm.select.title,
                 goBack: () => {
                   vm.type = 'list';
                   gvc.notifyDataChange(id);
@@ -145,7 +203,7 @@ export class MenusSetting {
     goBack: () => void;
     gvc: GVC;
     widget: any;
-    key: 'menu-setting' | 'footer-setting' | 'text-manager';
+    key: string;
     title: string;
   }) {
     const vm: {
@@ -157,7 +215,7 @@ export class MenusSetting {
       };
       loading: boolean;
       selected: boolean;
-      language: LanguageLocation;
+      language: LanguageLocation
     } = {
       id: cf.gvc.glitter.getUUID(),
       link: {
@@ -167,7 +225,7 @@ export class MenusSetting {
       },
       selected: false,
       loading: true,
-      language: (window.parent as any).store_info.language_setting.def,
+      language: (window.parent as any).store_info.language_setting.def
     };
 
     ApiUser.getPublicConfig(cf.key, 'manager').then((data: any) => {
@@ -183,13 +241,22 @@ export class MenusSetting {
         clearNoNeedData(dd.items || []);
       });
     }
-    function save() {
+    async function save() {
       for (const a of ['en-US', 'zh-CN', 'zh-TW']) {
+        (vm.link as any)[a]=(vm.link as any)[a]??[]
         clearNoNeedData((vm.link as any)[a]);
       }
 
-      cf.widget.event('loading', {
-        title: '儲存中...',
+     const dialog=new ShareDialog(gvc.glitter)
+      dialog.dataLoading({visible:true})
+      let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
+      menu_all.list=menu_all.list ?? []
+      const find_=menu_all.list.find((d1:any)=>{return d1.tag===cf.key});
+      find_ &&( find_.title=cf.title)
+      await ApiUser.setPublicConfig({
+        key:'menu-setting-list',
+        value:menu_all,
+        user_id:'manager'
       });
       ApiUser.setPublicConfig({
         key: cf.key,
@@ -197,12 +264,8 @@ export class MenusSetting {
         user_id: 'manager',
       }).then(data => {
         setTimeout(() => {
-          cf.widget.event('loading', {
-            visible: false,
-          });
-          cf.widget.event('success', {
-            title: '儲存成功',
-          });
+          dialog.dataLoading({visible:false})
+          dialog.successMessage({text:'儲存成功'})
         }, 1000);
       });
     }
@@ -252,14 +315,46 @@ export class MenusSetting {
       return {
         bind: vm.id,
         view: () => {
+          vm.link[vm.language]=vm.link[vm.language] ?? []
           const link = vm.link[vm.language];
+
           return html`<div class="title-container" style="width: 100%; max-width: 100%;">
               ${BgWidget.goBack(
                 cf.gvc.event(() => {
                   cf.goBack();
                 })
               )}${BgWidget.title(cf.title ?? '選單設定')}
+            <div class="mx-2 ${ ['menu-setting' , 'footer-setting' , 'text-manager'].includes(cf.key) ? `d-none`:``}">
+              ${BgWidget.grayButton('重新命名',gvc.event(()=>{
+                BgWidget.settingDialog({
+                  gvc: gvc,
+                  title: '重新命名',
+                  innerHTML: (gvc: GVC) => {
+                   return [
+                     BgWidget.editeInput({
+                       title:'',
+                       callback:(text)=>{
+                         cf.title=text
+                       },
+                       default:cf.title,
+                       gvc:gvc,
+                       placeHolder:''
+                     })
+                   ].join('')
+                  },
+                  footer_html: (gvc: GVC) => {
+                    return BgWidget.save(gvc.event(()=>{
+                      gvc.closeDialog()
+                      refresh()
+                    }),'儲存')
+                  },
+                  width: 500
+                })
+              }))}
+            </div>
+           
               <div class="flex-fill"></div>
+          
               ${LanguageBackend.switchBtn({
                 gvc: gvc,
                 language: vm.language,
@@ -565,6 +660,29 @@ export class MenusSetting {
               </div>`
             )}
             <div class="update-bar-container">
+              ${
+            ['menu-setting' , 'footer-setting' , 'text-manager'].includes(cf.key) ? ``:BgWidget.danger(gvc.event(async () => {
+              const dialog=new ShareDialog(gvc.glitter);
+              dialog.checkYesOrNot({
+                text:'是否確認刪除?',
+                callback:async (response)=>{
+                 if(response){
+                   dialog.dataLoading({visible:true});
+                   let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
+                   menu_all.list=menu_all.list.filter((d1:any)=>d1.tag!=cf.key);
+                   await ApiUser.setPublicConfig({
+                     key:'menu-setting-list',
+                     value:menu_all,
+                     user_id:'manager'
+                   });
+                   dialog.dataLoading({visible:false});
+                   cf.goBack();
+                 }
+                }
+              })
+              
+            }))
+              }
               ${BgWidget.cancel(
                 gvc.event(() => {
                   cf.goBack();

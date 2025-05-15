@@ -369,7 +369,7 @@ export class FormModule {
                                                                 })
                                                                     .join('') +
                                                                     html ` <div
-                                                                                              class=""
+                                                                                              
                                                                                               style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex; cursor: pointer;"
                                                                                               onclick="${gvc.event(() => {
                                                                         dd.form_config.option.push({

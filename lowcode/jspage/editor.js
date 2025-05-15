@@ -426,7 +426,7 @@ color: transparent;"
                 Storage.select_function === 'user-editor'
                 ? ``
                 : `d-none`}"
-                style=""
+                
               >
                 ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
@@ -439,7 +439,7 @@ color: transparent;"
                                 ? ``
                                 : html ` <div
                               class="ms-auto me-2 bt_orange_lin_mb d-md-flex"
-                              style=""
+                              
                               onclick="${gvc.event(() => {
                                     AiMessage.vm.select_bt = 'page_editor';
                                     AiMessage.setDrawer(gvc, [
@@ -864,7 +864,7 @@ color:white;
                     return (html `
                       <div
                         class="ms-auto me-2 bt_orange_lin_mb"
-                        style=""
+                        
                         onclick="${gvc.event(() => {
                         AiMessage.setDrawer(gvc);
                     })}"

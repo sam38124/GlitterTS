@@ -8,6 +8,7 @@ import { LanguageView } from '../public/language-view.js';
 import { HeaderClass } from './header-class.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
+import { PdClass } from '../product/pd-class.js';
 const html = String.raw;
 export class Sy03 {
     static main(gvc, widget, subData) {
@@ -37,7 +38,7 @@ export class Sy03 {
                 >
                   <!--手機版選單-->
                   <div
-                    class="d-flex align-items-center justify-content-center d-md-none"
+                    class=" align-items-center justify-content-center d-flex d-lg-none "
                     style="width:45px !important;height:40px !important;"
                     onclick="${gvc.event(() => {
                     gvc.glitter.setDrawer(gvc.bindView(() => {
@@ -100,7 +101,7 @@ export class Sy03 {
                                     const vm = {
                                         data: [],
                                     };
-                                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                                         vm.data = res.response.value[Language.getLanguage()];
                                         gvc.notifyDataChange(id);
                                     });
@@ -228,13 +229,13 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                   </div>
                 </div>
                 <!--選單列表顯示區塊-->
-                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" style="">
+                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" >
                   ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
                         data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                         vm.data = res.response.value[Language.getLanguage()];
                         gvc.notifyDataChange(id);
                     });
@@ -337,6 +338,9 @@ padding-bottom: 2px;
                             bind: vm.id,
                             view: () => {
                                 var _a, _b;
+                                if (PdClass.isShoppingPage()) {
+                                    return ``;
+                                }
                                 if (!vm.toggle) {
                                     return html `<i
                                           class="fa-regular fa-magnifying-glass"

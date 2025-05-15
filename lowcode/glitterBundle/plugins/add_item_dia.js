@@ -33,7 +33,7 @@ class Add_item_dia {
                     ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                     </div>
                 </div>
-                <div class="d-flex " style="">
+                <div class="d-flex " >
                     <div>
                         ${Add_item_dia.userMode(gvc, id, searchText)}
                     </div>
@@ -223,11 +223,11 @@ class Add_item_dia {
                                                                                                         <div class="modal-content bg-white rounded-3 p-3  "
                                                                                                              style="max-width:90%;width:400px;;">
                                                                                                             <div class="  "
-                                                                                                                 style="">
+                                                                                                                 >
                                                                                                                 <div class="ps-1 pe-1  "
-                                                                                                                     style="">
+                                                                                                                     >
                                                                                                                     <div class="mb-3  "
-                                                                                                                         style="">
+                                                                                                                         >
                                                                                                                         <label class="form-label mb-3  "
                                                                                                                                style="color: black;"
                                                                                                                                for="username">模塊標籤</label>
@@ -278,7 +278,7 @@ class Add_item_dia {
                                                                                                                      style="justify-content: end;"
                                                                                                                 >
                                                                                                                     <button class="btn btn-outline-dark me-2  "
-                                                                                                                            style=""
+                                                                                                                            
                                                                                                                             type="button"
                                                                                                                             onclick="${gvc.event(() => {
                                                                 gvc.closeDialog();
@@ -286,7 +286,7 @@ class Add_item_dia {
                                                                                                                         取消
                                                                                                                     </button>
                                                                                                                     <button class="btn btn-primary-c  "
-                                                                                                                            style=""
+                                                                                                                            
                                                                                                                             type="button"
                                                                                                                             onclick="${gvc.event(() => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -782,7 +782,7 @@ class Add_item_dia {
                                                                                                 </div>`;
                                                                                 }
                                                                                 else {
-                                                                                    return html ``;
+                                                                                    return '';
                                                                                 }
                                                                             }));
                                                                         }

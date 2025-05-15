@@ -8,6 +8,7 @@ import { LanguageView } from '../public/language-view.js';
 import { HeaderClass } from './header-class.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
+import { PdClass } from '../product/pd-class.js';
 const html = String.raw;
 export class Sy02 {
     static main(gvc, widget, subData) {
@@ -37,7 +38,7 @@ export class Sy02 {
                     <div class="d-flex align-items-center justify-content-center h-100 w-100 gap-2">
                         <!--手機版選單-->
                         <div
-                            class="d-flex align-items-center justify-content-center"
+                            class="d-flex d-lg-none align-items-center justify-content-center"
                             style="width:40px !important;height:40px !important;"
                             onclick="${gvc.event(() => {
                     gvc.glitter.setDrawer(gvc.bindView(() => {
@@ -111,7 +112,7 @@ export class Sy02 {
                                     const vm = {
                                         data: [],
                                     };
-                                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                                         vm.data = res.response.value[Language.getLanguage()];
                                         gvc.notifyDataChange(id);
                                     });
@@ -239,13 +240,13 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                    `}
                         </div>
                         <!--選單列表顯示區塊-->
-                        <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
+                        <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
                             ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
                         data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                         vm.data = res.response.value[Language.getLanguage()];
                         gvc.notifyDataChange(id);
                     });
@@ -341,7 +342,7 @@ padding-bottom: 2px;
                                 ${HeaderClass.hideShopperBtn()
                     ? ``
                     : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center "
-                                    style="">
+                                    >
                                     ${gvc.bindView(() => {
                         const vm = {
                             id: gvc.glitter.getUUID(),
@@ -351,6 +352,9 @@ padding-bottom: 2px;
                             bind: vm.id,
                             view: () => {
                                 var _a, _b;
+                                if (PdClass.isShoppingPage()) {
+                                    return ``;
+                                }
                                 if (!vm.toggle) {
                                     return html `<i
                                               class="fa-regular fa-magnifying-glass"
@@ -448,7 +452,7 @@ padding-bottom: 2px;
                                 </li>
                                 <li
                                     class="nav-item d-flex align-items-center justify-content-center ms-3 "
-                                    style=""
+                                    
                                     onclick="${gvc.event(() => {
                     if (GlobalUser.token) {
                         changePage('account_userinfo', 'page', {});
@@ -462,7 +466,7 @@ padding-bottom: 2px;
                 })}"
                                 >
                                     <div
-                                        class=""
+                                        
                                         style="background: ${(_d = widget.formData.theme_color['solid-button-bg']) !== null && _d !== void 0 ? _d : '#000'};
 color: ${(_e = widget.formData.theme_color['solid-button-text']) !== null && _e !== void 0 ? _e : '#000'};  cursor: pointer;
 display: flex;

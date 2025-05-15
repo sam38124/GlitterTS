@@ -173,7 +173,7 @@ export class SeoBlog {
                                                             gvc,
                                                             html`
                                                                 <div class="d-flex flex-column">
-                                                                    <div class=""
+                                                                    <div 
                                                                          style="width: 100vw;height: 100vh;position: fixed;left: 0;top: 0"
                                                                          onclick="${gvc.event(() => {
                                                                              QShow[0] = !QShow[0];
@@ -222,7 +222,7 @@ placeholder="請輸入網誌目錄描述">${vm.SEOData.seo.content || ''}</texta
                                                             html`
                                                                 <div class="d-flex flex-column"
                                                                      style="color:white;background: #393939;padding: 12px 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                                                    <div class="">
+                                                                    <div >
                                                                         1.選擇與您的產品或服務高度相關且搜索量高的關鍵字。
                                                                     </div>
                                                                     <div>

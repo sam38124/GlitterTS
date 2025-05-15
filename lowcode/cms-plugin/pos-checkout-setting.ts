@@ -81,14 +81,14 @@ export class PosCheckoutSetting {
                                                                                 {
                                                                                     title: html` <div class="d-flex flex-column">
                                                                                         開立發票
-                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">串接綠界電子發票系統進行發票開立</span>
+                                                                                        <span  style="color:#8D8D8D;font-size: 12px;">串接綠界電子發票系統進行發票開立</span>
                                                                                     </div>`,
                                                                                     value: 'ecpay',
                                                                                 },
                                                                                 // {
                                                                                 //     title: html` <div class="d-flex flex-column">
                                                                                 //                     線下開立
-                                                                                //                     <span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                //                     <span  style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
                                                                                 //                 </div>`,
                                                                                 //     value: 'off_line',
                                                                                 // },
@@ -113,7 +113,7 @@ export class PosCheckoutSetting {
                                                                                                     : ` <div class="c_39_checkbox"></div>`}
                                                                                                 <div class="tx_normal fw-normal">${dd.title}</div>
                                                                                             </div>`,
-                                                                                            html` <div class="d-flex position-relative mt-2" style="">
+                                                                                            html` <div class="d-flex position-relative mt-2" >
                                                                                                 <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                                                                                 <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
                                                                                                     ${(() => {
@@ -191,7 +191,7 @@ export class PosCheckoutSetting {
                                                                                                                         }
                                                                                                                     },
                                                                                                                 }),
-                                                                                                            ].join(html` <div class="" style="height: 12px;"></div>`);
+                                                                                                            ].join(html` <div  style="height: 12px;"></div>`);
                                                                                                         }
                                                                                                     })()}
                                                                                                 </div>

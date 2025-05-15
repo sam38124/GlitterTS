@@ -6,7 +6,7 @@ const html = String.raw;
 export class CustomStyle {
     static renderThemeEditor(gvc, widget, callback) {
         RenderValue.custom_style.initialWidget(widget);
-        return `<div class="" style="margin-top:-20px;">
+        return `<div  style="margin-top:-20px;">
 ${[
             EditorElem.editeInput({
                 gvc: gvc,
@@ -436,7 +436,7 @@ ${[
                     return [
                         {
                             title: html `套用統一容器`,
-                            hint: `<span class=""
+                            hint: `<span 
                                                   style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">選擇一個全站容器，若是進行了修改，全站所有應用此容器的元件將自動更新，方便未來統一管理。</span>`,
                             value: 'global',
                         },
@@ -474,7 +474,7 @@ ${[
                                             ${dd.title} ${widget.data._style_refer === dd.value ? dd.hint : ``}
                                         </div>
                                     </div>`,
-                            html ` <div class="d-flex position-relative mt-2" style="">
+                            html ` <div class="d-flex position-relative mt-2" >
                                         <div class="ms-0 border-end position-absolute h-100" style="left: 5px;"></div>
                                         <div class="flex-fill " style="margin-left:20px;max-width: 100%;">
                                             ${(() => {
@@ -538,7 +538,7 @@ ${[
                     return [
                         {
                             title: html `預設背景`,
-                            hint: `<span class="" style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">將依據父層的背景樣式，進行顯示。</span>`,
+                            hint: `<span  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">將依據父層的背景樣式，進行顯示。</span>`,
                             value: 'none',
                         },
                         {
@@ -579,7 +579,7 @@ ${[
                                             ${dd.title} ${widget.data._background_setting.type === dd.value ? dd.hint : ``}
                                         </div>
                                     </div>`,
-                            html ` <div class="d-flex position-relative mt-2" style="">
+                            html ` <div class="d-flex position-relative mt-2" >
                                         <div class="ms-0 border-end position-absolute h-100" style="left: 5px;"></div>
                                         <div class="flex-fill ${widget.data._background_setting.type !== dd.value ? `d-none` : ``} mt-n2" style="margin-left:20px;max-width: 100%;">
                                             ${(() => {
@@ -888,7 +888,7 @@ ${[
         const gvc = obj.gvc;
         const globalValue = gvc.glitter.share.editorViewModel.appConfig;
         return html `
-            <div class="">
+            <div >
                 <div
                     class="${obj.hide_title ? `d-none` : ``} px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
                     style="cursor: pointer;color:#393939;"

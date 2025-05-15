@@ -30,7 +30,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                      style="background-color: rgba(0,0,0,0.5);">
                                     <div class="bg-white rounded-3">
                                         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3"
-                                             style="">
+                                             >
                                             <h3 class="modal-title fs-5">選擇添加項目類型</h3>
                                             <i class="fa-solid fa-xmark text-dark position-absolute "
                                                style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
@@ -69,7 +69,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
    background-clip: text;
    -webkit-background-clip: text;
    color: transparent;" aria-hidden="true"></i>
-                                <h3 class=" h5 mb-1  " style="">${dd.title}</h3>
+                                <h3 class=" h5 mb-1  " >${dd.title}</h3>
                                 <div class="mb-1 w-100 px-2 mb-2" style="font-size:13px;white-space: normal;">${dd.desc}</div>
                                 <button class=" btn  btn-primary-c " style="height: 30px;width: 60px;" onclick="${gvc.event(() => {
                                     vm.type = 'select';
@@ -114,7 +114,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                     </div>
                 </div>
-                <div class="d-flex " style="">
+                <div class="d-flex " >
                     <div>
                         ${userMode(gvc, gvc.glitter.getUUID(), vm.searchText, vm.addType)}
                     </div>
@@ -133,7 +133,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             return `
             <div  class="w-100 h-100 d-flex flex-column  align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);" >
             <div class="m-auto rounded shadow bg-white" style="max-width: 100%;max-height: 100%;width: 360px;">
-        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3" style="">
+        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3" >
         <h3 class="modal-title fs-5" >添加頁面</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
@@ -456,11 +456,11 @@ function userMode(gvc, id, searchText, type) {
                                                                                                     <div class="modal-content bg-white rounded-3 p-3  "
                                                                                                          style="max-width:90%;width:400px;;">
                                                                                                         <div class="  "
-                                                                                                             style="">
+                                                                                                             >
                                                                                                             <div class="ps-1 pe-1  "
-                                                                                                                 style="">
+                                                                                                                 >
                                                                                                                 <div class="mb-3  "
-                                                                                                                     style="">
+                                                                                                                     >
                                                                                                                     <label class="form-label mb-3  "
                                                                                                                            style="color: black;"
                                                                                                                            for="username">${title}標籤</label>
@@ -511,7 +511,7 @@ function userMode(gvc, id, searchText, type) {
                                                                                                                  style="justify-content: end;"
                                                                                                             >
                                                                                                                 <button class="btn btn-outline-dark me-2  "
-                                                                                                                        style=""
+                                                                                                                        
                                                                                                                         type="button"
                                                                                                                         onclick="${gvc.event(() => {
                                                             gvc.closeDialog();
@@ -519,7 +519,7 @@ function userMode(gvc, id, searchText, type) {
                                                                                                                     取消
                                                                                                                 </button>
                                                                                                                 <button class="btn btn-primary-c  "
-                                                                                                                        style=""
+                                                                                                                        
                                                                                                                         type="button"
                                                                                                                         onclick="${gvc.event(() => {
                                                             const dialog = new ShareDialog(gvc.glitter);

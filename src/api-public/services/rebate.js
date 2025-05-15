@@ -343,18 +343,9 @@ class Rebate {
                 }
                 await database_1.default.execute(insertSQL, [user_id, amount, amount, note, proof !== null && proof !== void 0 ? proof : {}, nowTime, nowTime, deadTime]);
             }
-            if (amount < 0) {
+            else if (amount < 0) {
                 await this.updateOldestRebate(user_id, amount);
-                await database_1.default.execute(insertSQL, [
-                    user_id,
-                    amount,
-                    0,
-                    note,
-                    proof && proof.type ? { type: proof.type } : {},
-                    nowTime,
-                    nowTime,
-                    null,
-                ]);
+                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof !== null && proof !== void 0 ? proof : {}, nowTime, nowTime, null]);
             }
             return {
                 result: true,

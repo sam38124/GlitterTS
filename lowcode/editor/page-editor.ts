@@ -43,7 +43,7 @@ export class PageEditor {
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
                         </div>
-                        <div class="d-flex " style="">
+                        <div class="d-flex " >
                             <div>
                                 ${gvc.bindView(() => {
                                     return {
@@ -169,7 +169,7 @@ export class PageEditor {
                         select: "official"
                     }
                     return html`
-                        <div class="d-flex " style="">
+                        <div class="d-flex " >
                             <div>
                                 ${gvc.bindView(() => {
                                     return {
@@ -281,7 +281,7 @@ export class PageEditor {
                 title:title,
                 view:(()=>{
                     const id = gvc.glitter.getUUID()
-                    return  `<div class="d-flex" style="">${
+                    return  `<div class="d-flex" >${
                         [
                             gvc.bindView(() => {
                                 return {
@@ -340,7 +340,7 @@ export class PageEditor {
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
                         </div>
-                        <div class="d-flex " style="">
+                        <div class="d-flex " >
                             <div>
                                 ${gvc.bindView(() => {
                                     return {
@@ -503,7 +503,7 @@ console.log(`selectEditEvent-->`)
                                 <li class="btn-group d-flex flex-column"
                                     style="margin-top:1px;margin-bottom:1px;">
                                     <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd) ? `selectLeftItem` : ``} ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
-                                         style=""
+                                         
                                          onclick="${gvc.event(() => {
                                              if (dd.type === 'container' && option.justFolder) {
                                                  eval(toggle)
@@ -540,7 +540,7 @@ console.log(`selectEditEvent-->`)
                                         <div class="flex-fill"></div>
                                         ${(dd.type === 'container') ? html`
                                             <div class="btn-group me-0 subBt"
-                                                 style=""
+                                                 
                                                  onclick="${gvc.event((e, event) => {
                                                      dd.data.setting = dd.data.setting ?? []
                                                      viewModel.selectContainer = dd.data.setting
@@ -983,7 +983,7 @@ console.log(`selectEditEvent-->`)
                                     </div>
                                 </div>
                             </div>`,
-                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全站樣式</div>` :
+                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" >尚未設定全站樣式</div>` :
                             EditorElem.arrayItem({
                                 gvc: gvc,
                                 title: '',
@@ -2041,7 +2041,7 @@ console.log(`selectEditEvent-->`)
                 view: () => {
                     const editData = obj.viewModel.selectItem;
                     return html`
-                        <div class="mx-n2  mt-n2" style="">
+                        <div class="mx-n2  mt-n2" >
                             <div class=" d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                  style="color:#151515;font-size:16px;gap:0px;">
                                 SEO設定
@@ -2442,12 +2442,12 @@ console.log(`selectEditEvent-->`)
                                 editData = viewModel.selectItem
                             }
                             return html`
-                                <div class="mx-n2  mt-n2" style="">
+                                <div class="mx-n2  mt-n2" >
                                     <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top  bgf6"
                                          style="color:#151515;font-size:16px;gap:0px;height:48px;">
                                         ${editData.name}
                                     </div>
-                                    <div class=" pt-0 justify-content-start px-2" style="">
+                                    <div class=" pt-0 justify-content-start px-2" >
                                         ${[EditorElem.select({
                                             title: "設為首頁",
                                             gvc: gvc,
@@ -2505,7 +2505,7 @@ console.log(`selectEditEvent-->`)
                                                 let deleteText = ''
                                                 return html`
                                                     <div class="w-100 d-flex align-items-center justify-content-center mt-3"
-                                                         style="">
+                                                         >
                                                         <h3 style="font-size: 16px;width: 100px;white-space: nowrap;color:red;"
                                                             class="m-0 me-2 mb-2">刪除頁面</h3>
                                                         ${glitter.htmlGenerate.editeInput({
@@ -2535,7 +2535,7 @@ console.log(`selectEditEvent-->`)
                                                     </div>`
                                             })()
                                         ].map((dd) => {
-                                            return `<div class="">${dd}</div>`
+                                            return `<div >${dd}</div>`
                                         }).join(``)}
                                     </div>
                                     <div class="mt-2 d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
@@ -2679,7 +2679,7 @@ ${EditorElem.editeInput({
                                 {
                                     title: '步驟四：部署網域', content: `
 DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍加等待後再重新嘗試。
-<button type="button" class="btn btn-primary-c  w-100 mt-2" style=""
+<button type="button" class="btn btn-primary-c  w-100 mt-2" 
 onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(glitter);
                                         dialog.dataLoading({text: '', visible: true});
@@ -2745,7 +2745,7 @@ function uploadImage(obj: {
                     obj.def = e.value
                     obj.gvc.notifyDataChange(id)
                 })}">
-                                <div class="" style="width: 1px;height: 25px;background-"></div>
+                                <div  style="width: 1px;height: 25px;background-"></div>
                                 <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                     glitter.ut.chooseMediaCallback({
                         single: true,
@@ -2805,7 +2805,7 @@ function questionText(title: string, data: { title: string, content: string }[],
                   <h3 class="accordion-header">
                     <button class="accordion-button shadow-none rounded-3 ${(index === 0 || show) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${(index === 0 || show) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${(index === 0 || show) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" >
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>

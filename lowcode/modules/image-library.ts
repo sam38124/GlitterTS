@@ -732,7 +732,7 @@ export class imageLibrary {
               //資料夾的內容編輯
               if (vm.type == 'folderEdit') {
                 return html`
-                  <div class="d-flex flex-column ${gClass('album-title')}" style="">
+                  <div class="d-flex flex-column ${gClass('album-title')}" >
                     相簿名稱
                     <input
                       class="w-100"
@@ -880,7 +880,7 @@ export class imageLibrary {
                       })
                     )}
                   </div>
-                  <div class="">
+                  <div >
                     ${gvc.bindView({
                       bind: `folderItemGroup`,
                       view: () => {

@@ -235,7 +235,7 @@ export class StockStores {
                     html ` <div class="tx_700">${st_name}資訊</div>`,
                     html ` <div class="row">
                     <div class="col-12 col-md-6">
-                      <div class="tx_normal">${st_name}名稱</div>
+                      <div class="tx_normal">${st_name}名稱 ${BgWidget.requiredStar()}</div>
                       ${BgWidget.mbContainer(8)}
                       ${BgWidget.editeInput({
                         gvc: gvc,
@@ -249,7 +249,7 @@ export class StockStores {
                     </div>
                     ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
                     <div class="col-12 col-md-6">
-                      <div class="tx_normal">${st_name}地址</div>
+                      <div class="tx_normal">${st_name}地址 ${BgWidget.requiredStar()}</div>
                       ${BgWidget.mbContainer(8)}
                       ${BgWidget.editeInput({
                         gvc: gvc,

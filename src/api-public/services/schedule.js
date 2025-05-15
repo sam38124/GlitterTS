@@ -24,6 +24,9 @@ const invoice_js_1 = require("./invoice.js");
 const process_1 = __importDefault(require("process"));
 class Schedule {
     async preload(app) {
+        if (app === 'shopnex') {
+            return true;
+        }
         const brand_type = await app_js_1.App.checkBrandAndMemberType(app);
         if ((brand_type.brand === 'shopnex' && brand_type.domain) || (app === 'shopnex')) {
             if (!(await this.isDatabasePass(app)))
@@ -429,7 +432,9 @@ class Schedule {
     main() {
         const scheduleList = config_1.ConfigSetting.is_local
             ?
-                []
+                [
+                    { second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }
+                ]
             :
                 [
                     { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },

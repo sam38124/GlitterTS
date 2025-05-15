@@ -13,6 +13,7 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { FirstBanner } from '../../public-components/banner/first-banner.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { ApplicationConfig } from '../../application-config.js';
+const html = String.raw;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -28,64 +29,62 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     function load() {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            yield (new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _b;
                 for (const b of (_b = gBundle.app_config.initialList) !== null && _b !== void 0 ? _b : []) {
                     try {
                         yield TriggerEvent.trigger({
-                            gvc: gvc, widget: b, clickEvent: b.src.event,
-                        }).then(() => {
-                        }).catch(() => {
-                        });
+                            gvc: gvc,
+                            widget: b,
+                            clickEvent: b.src.event,
+                        })
+                            .then(() => { })
+                            .catch(() => { });
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 }
                 resolve(true);
-            })));
-            yield (new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            }));
+            yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 var _c;
                 ((_c = gBundle.page_config.initialList) !== null && _c !== void 0 ? _c : []).map((dd) => {
                     if (dd.when === 'initial') {
                         if (dd.type === 'script') {
                             try {
                                 TriggerEvent.trigger({
-                                    gvc: gvc, widget: undefined, clickEvent: dd,
+                                    gvc: gvc,
+                                    widget: undefined,
+                                    clickEvent: dd,
                                 });
                             }
-                            catch (e) {
-                            }
+                            catch (e) { }
                         }
                         else {
                             try {
                                 eval(dd.src.official);
                             }
-                            catch (e) {
-                            }
+                            catch (e) { }
                         }
                     }
                 });
                 resolve(true);
-            })));
+            }));
             ((_a = gBundle.page_config.initialStyleSheet) !== null && _a !== void 0 ? _a : []).map((data) => __awaiter(this, void 0, void 0, function* () {
                 if (data.type === 'script') {
                     try {
                         gvc.addStyleLink(data);
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 }
                 else {
                     try {
                         gvc.addStyle(data.src.official);
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 }
             }));
         });
     }
-    ;
     if (!gBundle.data) {
         gBundle.data = {};
     }
@@ -93,7 +92,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         onCreateView: () => {
             var _a, _b, _c, _d, _e, _f, _g, _h;
             FirstBanner.main({ gvc: gvc });
-            if (gBundle.page_config.seo && (gBundle.page_config.seo.type === 'custom') && gBundle.page_config.seo.title) {
+            if (gBundle.page_config.seo && gBundle.page_config.seo.type === 'custom' && gBundle.page_config.seo.title) {
                 glitter.setUrlParameter('', undefined, [
                     (_a = gBundle.page_config.seo.title_prefix) !== null && _a !== void 0 ? _a : '',
                     (_b = gBundle.page_config.seo.title) !== null && _b !== void 0 ? _b : '',
@@ -109,16 +108,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             if (gvc.glitter.getUrlParameter('page') === 'account_userinfo' && !GlobalUser.token) {
                 gvc.glitter.href = '/login';
-                return ``;
+                return '';
             }
-            document.querySelector('body').style.background = gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
+            document.querySelector('body').style.background =
+                gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
             console.log(`onCreateView-time:`, window.renderClock.stop());
             const mainId = glitter.getUUID();
             let map = [];
             if (gBundle.page_config.resource_from !== 'own') {
                 map.push(new glitter.htmlGenerate((_g = gBundle.app_config.globalScript) !== null && _g !== void 0 ? _g : [], [], gBundle.data, true).render(gvc, {
-                    class: ``,
-                    style: ``,
+                    class: '',
+                    style: '',
                     jsFinish: () => {
                         console.log(`jsFinish-time:`, window.renderClock.stop());
                         load().then(() => {
@@ -130,16 +130,16 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         });
                     },
                 }));
-                let globalStyleLink = ((_h = gBundle.app_config.globalStyle) !== null && _h !== void 0 ? _h : []).filter((dd) => {
-                    return dd.data.elem === 'link';
-                });
+                let globalStyleLink = ((_h = gBundle.app_config.globalStyle) !== null && _h !== void 0 ? _h : []).filter((dd) => dd.data.elem === 'link');
                 let check = globalStyleLink.length;
                 globalStyleLink.map((dd) => {
                     try {
                         $('#glitterPage').hide();
-                        glitter.addStyleLink(dd.data.attr.find((dd) => {
+                        glitter
+                            .addStyleLink(dd.data.attr.find((dd) => {
                             return dd.attr === 'href';
-                        }).value).then(() => {
+                        }).value)
+                            .then(() => {
                             check--;
                             if (check === 0) {
                                 $('#glitterPage').show();
@@ -147,12 +147,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         });
                     }
                     catch (e) {
-                        return ``;
+                        return '';
                     }
                 });
                 map.push(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], gBundle.data, true).render(gvc, {
-                    class: ``,
-                    style: ``,
+                    class: '',
+                    style: '',
                     app_config: gBundle.app_config,
                     page_config: gBundle.page_config,
                     onCreate: () => {
@@ -168,11 +168,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 bind: mainId,
                 view: () => {
                     if (vm.loading) {
-                        return ``;
+                        return '';
                     }
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                    return new Promise((resolve) => __awaiter(void 0, void 0, void 0, function* () {
                         console.log(`Render-time:`, window.renderClock.stop());
-                        (gBundle.config.formData = gBundle.page_config.formData);
+                        gBundle.config.formData = gBundle.page_config.formData;
                         if (gBundle.page_config.template) {
                             window.glitterInitialHelper.getPageData(gBundle.page_config.template, (data) => {
                                 const template_config = JSON.parse(JSON.stringify(data.response.result[0].config));
@@ -187,23 +187,25 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             else {
                                                 if (gBundle.editMode) {
                                                     set[index].type = 'widget';
-                                                    set[index].data.inner = (gBundle.editMode && gBundle.editMode.render(gvc, {
-                                                        class: ``,
-                                                        style: ``,
-                                                        app_config: gBundle.app_config,
-                                                        page_config: gBundle.page_config,
-                                                    }));
+                                                    set[index].data.inner =
+                                                        gBundle.editMode &&
+                                                            gBundle.editMode.render(gvc, {
+                                                                class: '',
+                                                                style: '',
+                                                                app_config: gBundle.app_config,
+                                                                page_config: gBundle.page_config,
+                                                            });
                                                 }
                                                 else {
                                                     set[index].type = 'container';
                                                     set[index].data = {
-                                                        'setting': gBundle.config,
-                                                        'elem': 'div',
-                                                        'style_from': set[index].style_from,
-                                                        'class': set[index].class,
-                                                        'style': set[index].style,
-                                                        'classDataType': set[index].classDataType,
-                                                        'dataType': set[index].dataType,
+                                                        setting: gBundle.config,
+                                                        elem: 'div',
+                                                        style_from: set[index].style_from,
+                                                        class: set[index].class,
+                                                        style: set[index].style,
+                                                        classDataType: set[index].classDataType,
+                                                        dataType: set[index].dataType,
                                                     };
                                                 }
                                                 function loopFormData(dd) {
@@ -224,8 +226,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 }
                                 findContainer(template_config);
                                 resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
-                                    class: ``,
-                                    style: ``,
+                                    class: '',
+                                    style: '',
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config,
                                 }));
@@ -234,29 +236,33 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         else {
                             function editorView() {
                                 return gBundle.editMode.render(gvc, {
-                                    class: ``,
-                                    style: ``,
+                                    class: '',
+                                    style: '',
                                     containerID: `MainView`,
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config,
                                 });
                             }
-                            resolve(((gBundle.editMode && editorView())
-                                ||
-                                    new glitter.htmlGenerate(gBundle.config, [], gBundle.data, true).render(gvc, {
-                                        class: ``,
-                                        style: ``,
-                                        app_config: gBundle.app_config,
-                                        page_config: gBundle.page_config,
-                                        is_page: true,
-                                    })));
+                            resolve((gBundle.editMode && editorView()) ||
+                                new glitter.htmlGenerate(gBundle.config, [], gBundle.data, true).render(gvc, {
+                                    class: '',
+                                    style: '',
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config,
+                                    is_page: true,
+                                }));
                         }
                     }));
                 },
                 divCreate: () => {
                     return {
-                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ((toggle_d_none) ? ' d-none' : ''),
-                        style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`,
+                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + (toggle_d_none ? ' d-none' : ''),
+                        style: `
+                overflow-x: hidden;
+                min-height: 100%;
+                min-width: 100%;
+                ${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
+              `,
                     };
                 },
                 onCreate: () => {
@@ -266,8 +272,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             try {
                                 eval(dd.src.official);
                             }
-                            catch (e) {
-                            }
+                            catch (e) { }
                         }
                     });
                     toggle_d_none = false;
@@ -281,48 +286,74 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 const gtag = window.gtag;
                 if (gtag) {
                     gtag('consent', 'default', {
-                        'ad_storage': 'granted',
-                        'analytics_storage': 'granted',
-                        'personalization_storage': 'granted',
-                        'security_storage': 'granted',
-                        'functionality_storage': 'granted'
+                        ad_storage: 'granted',
+                        analytics_storage: 'granted',
+                        personalization_storage: 'granted',
+                        security_storage: 'granted',
+                        functionality_storage: 'granted',
                     });
                 }
             }
             if (ApplicationConfig.is_application) {
                 localStorage.setItem('cookie_accept', 'true');
             }
-            if ((localStorage.getItem('cookie_accept') == 'true')) {
+            if (localStorage.getItem('cookie_accept') == 'true') {
                 acceptAd();
             }
-            if ((localStorage.getItem('cookie_accept') != 'true') && (window.store_info.cookie_check) && !glitter.htmlGenerate.isEditMode()) {
-                map.push(`
-            <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice shadow" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
-           color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
-            z-index: 99999;bottom: 30px;transform: translateX(-50%);left: 50%;">
-            <div style="font-size: 14px;
-            ">${Language.text('cookie_use')}</div>
+            if (localStorage.getItem('cookie_accept') != 'true' &&
+                window.store_info.cookie_check &&
+                !glitter.htmlGenerate.isEditMode()) {
+                map.push(html `
+          <div
+            class="position-fixed rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice shadow"
+            style="
+              width: 852px;
+              max-width: calc(100vw - 30px);
+              background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+              color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+              z-index: 99999;
+              bottom: 30px;
+              transform: translateX(-50%);
+              left: 50%;
+            "
+          >
+            <div style="font-size: 14px;">${Language.text('cookie_use')}</div>
             <div class="d-sm-none w-100 border-top my-3"></div>
-            <div class="d-flex align-items-center justify-content-center fw-bold" style="min-width: 150px;cursor: pointer;" onclick="${gvc.event(() => {
+            <div
+              class="d-flex align-items-center justify-content-center fw-bold"
+              style="min-width: 150px;cursor: pointer;"
+              onclick="${gvc.event(() => {
                     localStorage.setItem('cookie_accept', 'true');
                     for (const b of document.querySelectorAll('.privacy-notice')) {
                         b.remove();
                     }
                     acceptAd();
-                })}">${Language.text('i_known')}</div>
-</div>
-            `);
+                })}"
+            >
+              ${Language.text('i_known')}
+            </div>
+          </div>
+        `);
             }
-            if (window.store_info.chat_toggle && !glitter.share.is_application && !((document.body.clientWidth < 800) &&
-                ['account_userinfo', 'account_edit', 'order_list', 'voucher-list', 'rebate',
-                    'wishlist'].includes(gvc.glitter.getUrlParameter('page')))) {
+            if (window.store_info.chat_toggle &&
+                !glitter.share.is_application &&
+                !(document.body.clientWidth < 800 &&
+                    [
+                        'account_userinfo',
+                        'recipient_info',
+                        'account_edit',
+                        'order_list',
+                        'voucher-list',
+                        'rebate',
+                        'wishlist',
+                    ].includes(gvc.glitter.getUrlParameter('page')))) {
                 map.push(gvc.bindView(() => {
                     return {
                         bind: gvc.glitter.getUUID(),
                         view: () => {
-                            return new Promise((resolve, reject) => {
+                            return new Promise(resolve => {
                                 const url = new URL('./cms-plugin/customer-message-user.js', gvc.glitter.root_path);
-                                gvc.glitter.getModule(url.href, (CustomerMessageUser) => {
+                                gvc.glitter.getModule(url.href, CustomerMessageUser => {
                                     resolve(CustomerMessageUser.showCustomerMessage({
                                         gvc: gvc,
                                         userID: (() => {
@@ -338,8 +369,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             });
                         },
                         divCreate: {
-                            class: `customer-message`
-                        }
+                            class: `customer-message`,
+                        },
                     };
                 }));
             }

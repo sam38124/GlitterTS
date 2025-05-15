@@ -551,7 +551,7 @@ export class ShoppingInvoiceManager {
                                                     : html ` <div
                                               style="width: 16px;height: 16px;border-radius: 20px;border:solid 1px #DDD"
                                             ></div>`}
-                                        <label class="m-0" style="" for="${data}">${data}</label>
+                                        <label class="m-0"  for="${data}">${data}</label>
                                       </div>
                                     `;
                                             })
@@ -743,7 +743,7 @@ export class ShoppingInvoiceManager {
                                                 }
                                                 if (allowanceData.length) {
                                                     return BgWidget.mainCard(html `
-                              <div class="" style="display: flex;flex-direction: column;">
+                              <div  style="display: flex;flex-direction: column;">
                                 <div style="font-weight: 700;font-size: 16px;margin-bottom: 18px;">折讓單</div>
                                 <div class="d-flex" style="margin-bottom: 12px;">
                                   <div class="col-2">折讓日期</div>
@@ -777,8 +777,8 @@ export class ShoppingInvoiceManager {
                                               class="col-2 text-center d-flex align-items-center justify-content-center"
                                             >
                                               ${data.status == 1
-                                                                ? html ` <div class="" style="color:#10931D">已完成</div>`
-                                                                : html ` <div class="" style="color:#DA1313">已作廢</div>`}
+                                                                ? html ` <div  style="color:#10931D">已完成</div>`
+                                                                : html ` <div  style="color:#DA1313">已作廢</div>`}
                                             </div>
                                             <div class="flex-fill d-flex justify-content-end align-items-center">
                                               <div style="margin-right: 14px;">
@@ -839,7 +839,7 @@ export class ShoppingInvoiceManager {
                                                                         </div>
                                                                         <div
                                                                           class="w-100 d-flex align-items-center justify-content-center"
-                                                                          style=""
+                                                                          
                                                                         >
                                                                           <svg
                                                                             xmlns="http://www.w3.org/2000/svg"
@@ -1062,7 +1062,7 @@ ${reason}</textarea
                                                 var _a;
                                                 let sale_price = Math.ceil(item.sale_price * 0.95);
                                                 return html `
-                                  <div class="d-flex w-100 align-items-center" style="">
+                                  <div class="d-flex w-100 align-items-center" >
                                     <div class="col-7 d-flex align-items-center">
                                       <img
                                         src="${item.preview_image}"
@@ -1097,7 +1097,7 @@ ${reason}</textarea
                                   <div class="d-flex flex-row-reverse" style="width: 100%;margin-bottom:18px;">
                                     <div class="col-1 text-end">${item.value}</div>
                                     <div class="col-1"></div>
-                                    <div class="col-1 text-end" style="">${item.key}</div>
+                                    <div class="col-1 text-end" >${item.key}</div>
                                   </div>
                                 `;
                                             })
@@ -1200,7 +1200,7 @@ ${(_q = (_p = (_o = invoiceData.invoice_data) === null || _o === void 0 ? void 0
                                                       </div>
                                                       <div
                                                         class="w-100 d-flex align-items-center justify-content-center"
-                                                        style=""
+                                                        
                                                       >
                                                         <svg
                                                           xmlns="http://www.w3.org/2000/svg"
@@ -1592,7 +1592,7 @@ ${reason}</textarea
                                             : html ` <div
                                           style="width: 16px;height: 16px;border-radius: 20px;border:solid 1px #DDD"
                                         ></div>`}
-                                    <label class="m-0" style="" for="${data}">${data}</label>
+                                    <label class="m-0"  for="${data}">${data}</label>
                                   </div>
                                 `;
                                     })
@@ -1774,7 +1774,7 @@ ${reason}</textarea
                                         var _a;
                                         let sale_price = Math.ceil(item.sale_price * 0.95);
                                         return html `
-                            <div class="d-flex w-100 align-items-center" style="">
+                            <div class="d-flex w-100 align-items-center" >
                               <div class="col-7 d-flex align-items-center">
                                 <img
                                   src="${item.preview_image}"
@@ -1805,7 +1805,7 @@ ${reason}</textarea
                               <div class="d-flex flex-row-reverse" style="width: 100%;margin-bottom:18px;">
                                 <div class="col-1 text-end">${item.value}</div>
                                 <div class="col-1"></div>
-                                <div class="col-1 text-end" style="">${item.key}</div>
+                                <div class="col-1 text-end" >${item.key}</div>
                               </div>
                             `;
                                     })

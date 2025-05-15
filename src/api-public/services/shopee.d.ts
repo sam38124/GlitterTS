@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface LanguageData {
     title: string;
@@ -66,7 +65,7 @@ export declare class Shopee {
         content: string;
         specs: any[];
         language_data: {
-            'en-US': {
+            "en-US": {
                 content_array: any[];
                 title: string;
                 seo: {
@@ -77,11 +76,11 @@ export declare class Shopee {
                 };
                 content: string;
             };
-            'zh-TW': {
+            "zh-TW": {
                 title: any;
                 seo: any;
             };
-            'zh-CN': {
+            "zh-CN": {
                 content_array: any[];
                 title: string;
                 seo: {

@@ -633,7 +633,7 @@ export class POSSetting {
                                           footer_html: (fGVC: GVC) => {
                                             return [
                                               BgWidget.save(
-                                                fGVC.event(() => gvc.closeDialog()),
+                                                fGVC.event(() => fGVC.closeDialog()),
                                                 '確認'
                                               ),
                                             ].join();

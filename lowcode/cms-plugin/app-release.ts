@@ -637,7 +637,7 @@ export class AppRelease {
                         >
                           ${BgWidget.title(dd.title, 'font-size:20px;')}
                           <div class="flex-fill"></div>
-                          <div class="d-flex flex-column align-items-center justify-content-center" style="">
+                          <div class="d-flex flex-column align-items-center justify-content-center" >
                             <i class="fa-solid fa-caret-up fw-bold fs-2"></i>
                             <div class="fw-bold" style="font-size: 14px;margin-top: -5px;">收合</div>
                           </div>
@@ -665,7 +665,7 @@ export class AppRelease {
                     )}">
                                             ${BgWidget.title(dd.title, 'font-size:20px;')}
                                             <div class="flex-fill"></div>
-                                            <div class="d-flex flex-column align-items-center justify-content-center" style="" >
+                                            <div class="d-flex flex-column align-items-center justify-content-center"  >
                                                 <i class="fa-solid fa-caret-down fw-bold fs-2"></i>
                                                 <div  class="fw-bold" style="font-size: 14px;margin-top: -5px;">展開</div>
                                             </div>

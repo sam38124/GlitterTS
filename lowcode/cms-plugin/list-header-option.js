@@ -37,6 +37,7 @@ ListHeaderOption.orderListItems = [
             '訂單編號',
             '訂單日期',
             '訂購人',
+            '收件人',
             '訂單金額',
             '付款狀態',
             '出貨狀態',

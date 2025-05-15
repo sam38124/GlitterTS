@@ -149,7 +149,7 @@ export class SaasViewModel {
                       class="me-2 d-flex align-items-center justify-content-center fs-6"
                       style="width:24px;height: 24px;"
                     >
-                      <i class="fa-duotone fa-solid fa-shop " style=""></i>
+                      <i class="fa-duotone fa-solid fa-shop " ></i>
                     </div>
                     商店列表</a
                   >
@@ -934,7 +934,7 @@ export class SaasViewModel {
                                         title: html `
                           <div class="my-2">
                             <div class="mb-1">免費商店網址</div>
-                            <div class="d-flex flex-column" style="">
+                            <div class="d-flex flex-column" >
                               ${BgWidget.grayNote('建議輸入與品牌相關的英文名稱')}
                               ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.tw`, '', 'margin-top: 0.5rem')}
                             </div>

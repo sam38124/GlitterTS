@@ -18,7 +18,7 @@ export class Page_editor {
                 bind: id,
                 view: () => {
                     const seo = viewModel.data.page_config.seo;
-                    return `<div class="d-flex border-bottom position-absolute left-0 top-0 w-100" style="">
+                    return `<div class="d-flex border-bottom position-absolute left-0 top-0 w-100" >
                                     ${[{
                             key: 'pageSet',
                             label: "頁面設定"
@@ -40,7 +40,7 @@ export class Page_editor {
                                             style="color:#151515;font-size:16px;gap:0px;">
                                            頁面設定
                                        </div>
-                                       <div class=" pt-0 justify-content-start px-2" style="">
+                                       <div class=" pt-0 justify-content-start px-2" >
                                            ${[EditorElem.select({
                                         title: "首頁設定",
                                         gvc: gvc,
@@ -95,7 +95,7 @@ export class Page_editor {
                                         placeHolder: "請輸入頁面分類"
                                     })
                                 ].map((dd) => {
-                                    return `<div class="">${dd}</div>`;
+                                    return `<div >${dd}</div>`;
                                 }).join(``)}
                                        </div>
                                        <div class="mt-2 d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
@@ -320,7 +320,7 @@ function uploadImage(obj) {
                     obj.def = e.value;
                     obj.gvc.notifyDataChange(id);
                 })}">
-                                <div class="" style="width: 1px;height: 25px;background-"></div>
+                                <div  style="width: 1px;height: 25px;background-"></div>
                                 <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                     glitter.ut.chooseMediaCallback({
                         single: true,

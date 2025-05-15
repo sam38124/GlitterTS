@@ -94,7 +94,7 @@ export class Editor {
             obj.callback(e.value);
         })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  ms-2"
                     style="cursor: pointer;"
@@ -147,7 +147,7 @@ export class Editor {
         }" onchange="${obj.gvc.event((e: any) => {
             obj.callback(e.value);
         })}">
-                                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                                 <i class="fa-regular fa-upload text-white ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
@@ -211,7 +211,7 @@ export class Editor {
             obj.callback(e.value);
         })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  text-dark ms-2"
                     style="cursor: pointer;${(obj.color) ? `color:${obj.color};` : ``}"

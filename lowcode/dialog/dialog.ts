@@ -7,7 +7,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         onCreateView: () => {
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return `<div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style=""  ><div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><div class=" spinner-border" style=" font-size: 50px;color: #393939;  "  ></div><div class=" mt-3 fs-6 fw-500" style=" color: #393939;  "  >載入中...</div></div></div>`;
+                    return `<div class="vw-100 vh-100 d-flex align-items-center justify-content-center"   ><div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><div class=" spinner-border" style=" font-size: 50px;color: #393939;  "  ></div><div class=" mt-3 fs-6 fw-500" style=" color: #393939;  "  >載入中...</div></div></div>`;
 
                 case 'errorMessage':
                     return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">

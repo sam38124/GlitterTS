@@ -50,9 +50,9 @@ export class PosHomePage {
                                     class="d-flex flex-column flex-xl-row"
                                     style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
                                 >
-                                    <div class="" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
-                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
-                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-weight: 400; word-wrap: break-word;">查看目前的業務情形</div>
+                                    <div  style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
+                                        <div  style="align-self: stretch; color: #393939; font-size: 20px; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
+                                        <div  style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-weight: 400; word-wrap: break-word;">查看目前的業務情形</div>
                                     </div>
                                     <div
                                         class="d-flex flex-column flex-sm-row"
@@ -81,25 +81,25 @@ export class PosHomePage {
                                             },
                                         ]
                                             .map((dd) => {
-                                                return ` <div class=""
+                                                return ` <div 
                                              style="flex: 1 1 0; align-self: stretch; padding-left: 32px; padding-right: 32px; padding-top: 47px; padding-bottom: 47px; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
                                         >
-                                            <div class=""
+                                            <div 
                                                  style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 16px; display: inline-flex;"
                                             >
-                                                <div class=""
+                                                <div 
                                                      style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex;"
                                                 >
-                                                    <div class=""
+                                                    <div 
                                                          style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
                                                     >${dd.value}
                                                     </div>
-                                                    <div class=""
+                                                    <div 
                                                          style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; word-wrap: break-word;"
                                                     >${dd.title}
                                                     </div>
                                                 </div>
-                                                <img class="" style="width:30px;height: 30px;"
+                                                <img  style="width:30px;height: 30px;"
                                                      src="${dd.icon}">
                                             </div>
                                         </div>`;

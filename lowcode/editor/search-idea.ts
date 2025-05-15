@@ -107,7 +107,7 @@ ${gvc.bindView(() => {
             };
         })}
 </div>
-<div class="" style="${document.body.clientWidth < 768 ? `width: calc(100%)` : `width: calc(100% - 200px)`};">
+<div  style="${document.body.clientWidth < 768 ? `width: calc(100%)` : `width: calc(100% - 200px)`};">
 ${(()=>{
     if(obg.type==='idea'){
         return `<div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title('點擊喜愛的區塊進行複製', 'font-size:16px;')}</div>`
@@ -137,7 +137,7 @@ ${gvc.bindView(() => {
                             </div>`;
                     }
                     return [
-                        `<iframe class="" style="height: calc(2.5 * (100vh - 125px)) !important;
+                        `<iframe  style="height: calc(2.5 * (100vh - 125px)) !important;
 width: calc(250%);
 transform: scale(0.4) translateX(-75%) translateY(-75%);
     position: absolute;

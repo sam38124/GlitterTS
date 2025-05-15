@@ -111,7 +111,7 @@ export class GlobalWidget {
           };
         })}
       </div>
-      <div class="" style="${document.body.clientWidth < 768 ? `width: calc(100%)` : `width: calc(100% - 200px)`};">
+      <div  style="${document.body.clientWidth < 768 ? `width: calc(100%)` : `width: calc(100% - 200px)`};">
         ${gvc.bindView(() => {
           return {
             bind: vm.right_id,

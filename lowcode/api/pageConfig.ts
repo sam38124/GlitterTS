@@ -204,12 +204,14 @@ export class ApiPageConfig {
     }):Promise<{
       result: boolean
     }> {
-
+const glitter=(window as any).glitter;
       if(data.tag==='c_header' && ['pages/','hidden/','shop/'].find((dd)=>{
         return (window.parent as any).glitter.getUrlParameter('page').startsWith(dd)
       })){
        return  new Promise(async (resolve,reject)=>{
-         (data.config as any)[0].is_customer_header=true
+         (data.config as any)[0].is_customer_header=true;
+         (data.config as any)[0].data.menu_refer=glitter.share.menu_refer;
+
          await ApiUser.setPublicConfig({
            key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
            value: data.config,

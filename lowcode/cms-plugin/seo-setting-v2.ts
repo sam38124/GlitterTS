@@ -201,7 +201,7 @@ export class SeoSettingV2 {
                                             titleStyle: "font-weight:700!important;"
                                         })}
 <div class="d-flex align-items-center" style="gap:10px;">
-    <div class="" style="flex: 1;">${BgWidget.editeInput({
+    <div  style="flex: 1;">${BgWidget.editeInput({
         gvc: gvc,
         title: '統一標題前綴'+BgWidget.languageInsignia(vm.language as any,'margin-left:5px;'),
         default: vm.SEOData.seo.title_prefix,
@@ -232,7 +232,7 @@ export class SeoSettingV2 {
                                                             gvc,
                                                             html`
                                                                 <div class="d-flex flex-column">
-                                                                    <div class=""
+                                                                    <div 
                                                                          style="width: 100vw;height: 100vh;position: fixed;left: 0;top: 0"
                                                                          onclick="${gvc.event(() => {
                                                                              QShow[0] = !QShow[0];
@@ -280,7 +280,7 @@ ${BgWidget.languageInsignia(vm.language as any,'margin-left:5px;')}
                                                             html`
                                                                 <div class="d-flex flex-column"
                                                                      style="color:white;background: #393939;padding: 12px 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                                                    <div class="">
+                                                                    <div >
                                                                         1.選擇與您的產品或服務高度相關且搜索量高的關鍵字。
                                                                     </div>
                                                                     <div>
@@ -397,7 +397,7 @@ ${BgWidget.languageInsignia(vm.language as any,'margin-left:5px;')}
 
                                         ${BgWidget.textArea({
                                             gvc: gvc,
-                                            title: `<div class="d-flex align-items-center"><div class="tx_normal fw-bold" style="">自訂代碼區塊</div>${BgWidget.languageInsignia(vm.language as any,'margin-left:5px;')}</div>`,
+                                            title: `<div class="d-flex align-items-center"><div class="tx_normal fw-bold" >自訂代碼區塊</div>${BgWidget.languageInsignia(vm.language as any,'margin-left:5px;')}</div>`,
                                             default: vm.SEOData.seo.code,
                                             callback: (text) => {
                                                 vm.SEOData.seo.code = text;
@@ -407,7 +407,7 @@ ${BgWidget.languageInsignia(vm.language as any,'margin-left:5px;')}
                                         ${BgWidget.textArea({
                                             gvc: gvc,
                                             title: `<div class="d-flex flex-column mb-n2" style="gap:5px;">
-<div class="d-flex align-items-center"><div class="tx_normal fw-bold" style="">自訂Robots.txt</div></div>
+<div class="d-flex align-items-center"><div class="tx_normal fw-bold" >自訂Robots.txt</div></div>
 ${BgWidget.grayNote('未輸入則參照系統預設')}
 </div>`,
                                             default: vm.robots || ``,

@@ -282,7 +282,7 @@ export class UMOrder {
                   >
                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                   </div>
-                  <div id="paynow-container" class="" style="">
+                  <div id="paynow-container"  >
                     <div style="width:200px;height:200px;">loading...</div>
                   </div>
                   <div class="px-3 px-sm-0 w-100">
@@ -507,7 +507,7 @@ export class UMOrder {
                           class="o-title-container ${item.title === Language.text('payment_instructions')
                                         ? 'align-items-start mt-2'
                                         : ''}"
-                          style=""
+                          
                         >
                           <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
                           <div class="o-title fr-view">${item.value}</div>

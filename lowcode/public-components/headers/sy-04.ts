@@ -9,6 +9,7 @@ import { LanguageView } from '../public/language-view.js';
 import { HeaderClass } from './header-class.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
+import { PdClass } from '../product/pd-class.js';
 
 const html = String.raw;
 
@@ -107,7 +108,7 @@ export class Sy04 {
                                   const vm = {
                                     data: [],
                                   };
-                                  ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then(
+                                  ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', (window as any).appName).then(
                                     res => {
                                       vm.data = res.response.value[Language.getLanguage()];
 
@@ -129,6 +130,7 @@ export class Sy04 {
                                       }
 
                                       function loopItems(data: any, show_border: boolean) {
+                             
                                         return data
                                           .map((dd: any) => {
                                             return html`
@@ -247,7 +249,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                       `}
                 </div>
               </div>
-              <div class="">
+              <div >
                 <!--選單列表顯示區塊-->
                 <ul
                   class="navbar-nav position-absolute start-50 top-50 d-none d-lg-block"
@@ -258,7 +260,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                     const vm = {
                       data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', (window as any).appName).then(res => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', (window as any).appName).then(res => {
                       vm.data = res.response.value[Language.getLanguage()];
                       gvc.notifyDataChange(id);
                     });
@@ -266,6 +268,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                       bind: id,
                       view: () => {
                         function loopItems(data: any) {
+                     
                           return data
                             .map((dd: any) => {
                               return html` <li class="nav-item dropdown">
@@ -344,7 +347,7 @@ padding-bottom: 2px;
                   })}
                   ${HeaderClass.hideShopperBtn()
                     ? ``
-                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="">
+                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" >
                                 ${gvc.bindView(() => {
                                   const vm = {
                                     id: gvc.glitter.getUUID(),
@@ -353,6 +356,9 @@ padding-bottom: 2px;
                                   return {
                                     bind: vm.id,
                                     view: () => {
+                                      if(PdClass.isShoppingPage()){
+                                        return  ``
+                                      }
                                       if (!vm.toggle) {
                                         return html`<i
                                           class="fa-regular fa-magnifying-glass"

@@ -105,7 +105,7 @@ export class EditorConfig {
             bg_color = '#FEAD20'
             const plan = EditorConfig.getPaymentStatus();
             let text = '';
-            let paymentBtn = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; text-decoration: underline; word-wrap: break-word;cursor: pointer;"  class="" onclick="${gvc.event(
+            let paymentBtn = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; text-decoration: underline; word-wrap: break-word;cursor: pointer;"   onclick="${gvc.event(
                 () => {
                     gvc.glitter.setUrlParameter('tab', 'member_plan');
                     gvc.recreateView();

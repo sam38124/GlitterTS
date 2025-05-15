@@ -90,7 +90,7 @@ export class Editor {
             obj.callback(e.value);
         })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  ms-2 text-dark"
                     style="cursor: pointer;"
@@ -143,7 +143,7 @@ export class Editor {
         }" onchange="${obj.gvc.event((e: any) => {
             obj.callback(e.value);
         })}">
-                                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                                 <i class="fa-regular fa-upload text-white ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
@@ -207,7 +207,7 @@ export class Editor {
             obj.callback(e.value);
         })}"
                 />
-                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
+                <div  style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  text-dark ms-2"
                     style="cursor: pointer;${(obj.color) ? `color:${obj.color};`:``}"
@@ -320,7 +320,7 @@ export class Editor {
                 bind: id,
                 view: () => {
                     if (obj.data.expand) {
-                        return html`<div class="w-100  ${obj.class}" style="">
+                        return html`<div class="w-100  ${obj.class}" >
                             <div
                                 class="d-flex p-0 align-items-center mb-2 w-100 "
                                 onclick="${obj.gvc.event(() => {
@@ -340,7 +340,7 @@ export class Editor {
                     }
                     return html`<div
                         class="w-100   "
-                        style=""
+                        
                     >
                         <div
                             class="w-100 d-flex p-0 align-items-center "

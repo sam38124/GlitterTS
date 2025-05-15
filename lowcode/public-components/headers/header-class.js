@@ -96,20 +96,25 @@ export class HeaderClass {
               outline: 0;
             }
 
-            .${classPrefix}-cart-container {
+            .${classPrefix}-cart-header {
               display: flex;
+              flex-direction: column;
               width: 100%;
-              align-items: center;
+              margin-bottom: 12px;
               padding: 0;
-              margin-bottom: 18px;
               padding: 12px;
               border-bottom: 1px solid #dddddd;
+              position: sticky;
+              top: 0;
+              background-color: #fff;
+              z-index: 2;
             }
 
-            .${classPrefix}-cart-title {
-              letter-spacing: 4px;
-              font-size: 22px;
-              font-weight: 700;
+            .${classPrefix}-cart-div {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              width: 100%;
             }
 
             .${classPrefix}-shipping-title {
@@ -175,20 +180,30 @@ export class HeaderClass {
                         if (vm.loading) {
                             return html ` <div class="w-100 vh-100 bg-white">${this.spinner()}</div>`;
                         }
-                        return html ` <div class="position-relative">
-                  <div class="${classPrefix}-cart-container align-items-center">
-                    <div
-                      class="d-flex align-items-center justify-content-center fs-5 py-3 px-2"
-                      style="cursor:pointer;"
-                      onclick="${gvc.event(() => {
+                        return html ` <div class="position-relative" style="padding-bottom: 120px;">
+                  <div class="${classPrefix}-cart-header">
+                    <div class="${classPrefix}-cart-div">
+                      <div
+                        class="d-flex align-items-center justify-content-center fs-5 py-3 px-2"
+                        style="cursor:pointer;"
+                        onclick="${gvc.event(() => {
                             gvc.glitter.closeDrawer();
                         })}"
-                    >
-                      <i class="fa-sharp fa-solid fa-angle-left"></i>
+                      >
+                        <i class="fa-sharp fa-solid fa-angle-left"></i>
+                      </div>
+                      <div class="flex-fill"></div>
+                      ${goToCheckoutButton(ApiCart.globalCart)}
                     </div>
-                    <div class="${classPrefix}-cart-title">${Language.text('cart')}</div>
-                    <div class="flex-fill"></div>
-                    ${goToCheckoutButton(ApiCart.globalCart)}
+                    ${(() => {
+                            if (vm.dataList.length === 0) {
+                                return '';
+                            }
+                            const num = vm.dataList.reduce((sum, item) => sum + item.count * item.price, 0);
+                            return html `<div class="text-end px-2 py-1 fw-bold">
+                        ${Language.text('cart_subtotal')} $ ${num.toLocaleString()}
+                      </div>`;
+                        })()}
                   </div>
                   ${(() => {
                             if (vm.dataList.length === 0) {
@@ -235,31 +250,28 @@ export class HeaderClass {
                             </div>
                             <div class="d-flex flex-column gap-1 flex-fill">
                               <div class="${classPrefix}-title pe-3">${item.title}</div>
-                              <div class="${classPrefix}-spec ">
+                              <div class="${classPrefix}-spec">
                                 ${(() => {
                                         const spec = (() => {
-                                            if (item.spec) {
-                                                return item.spec.map((dd, index) => {
-                                                    try {
-                                                        return (item.specs[index].option.find((d1) => {
-                                                            return d1.title === dd;
-                                                        }).language_title[Language.getLanguage()] || dd);
-                                                    }
-                                                    catch (e) {
-                                                        return dd;
-                                                    }
-                                                });
-                                            }
-                                            else {
+                                            if (!item.spec)
                                                 return [];
-                                            }
+                                            return item.spec.map((dd, index) => {
+                                                try {
+                                                    return (item.specs[index].option.find((d1) => {
+                                                        return d1.title === dd;
+                                                    }).language_title[Language.getLanguage()] || dd);
+                                                }
+                                                catch (e) {
+                                                    return dd;
+                                                }
+                                            });
                                         })();
                                         return spec.join(' / ');
                                     })()}
                               </div>
                               <div class="d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-1" style="font-size:14px;">
-                                  ${Language.text('quantity')} ：<select
+                                <div class="d-flex align-items-center gap-2" style="font-size: 14px;">
+                                  ${Language.text('quantity')}<select
                                     class="${classPrefix}-select"
                                     style="width: 100px;"
                                     onchange="${gvc.event(e => {

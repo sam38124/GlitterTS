@@ -37,13 +37,13 @@ export class ImageSelector {
               ${widget.bundle.form_title}
               <button
                 class="btn-size-sm btn-gray "
-                style=""
+                
                 type="button"
                 onclick="${gvc.event(() => {
                         selectImage();
                     })}"
               >
-                <span class="tx_700" style="">替換</span>
+                <span class="tx_700" >替換</span>
               </button>
             </div>
             <div
@@ -106,7 +106,7 @@ background-image: url('${src ||
                             }));
                         })}"
                                 >
-                                    <span class="tx_700" style="">ALT</span>
+                                    <span class="tx_700" >ALT</span>
                                 </button>
                                 <i
                                         class="fa-regular fa-eye"
@@ -125,13 +125,13 @@ background-image: url('${src ||
                         : `
                                 <button
                                         class="btn-size-sm btn-gray "
-                                        style=""
+                                        
                                         type="button"
                                         onclick="${gvc.event(() => {
                             selectImage();
                         })}"
                                 >
-                                    <span class="tx_700" style="">選擇圖片</span>
+                                    <span class="tx_700" >選擇圖片</span>
                                 </button>
                                 `}
               </div>

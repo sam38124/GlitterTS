@@ -11,6 +11,9 @@ const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../api-public/utils/ut-database.js");
 const user_js_1 = require("../api-public/services/user.js");
 class Template {
+    constructor(token) {
+        this.token = token;
+    }
     async createPage(config) {
         var _a, _b, _c;
         if (config.copy) {
@@ -145,9 +148,7 @@ class Template {
             query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
             query.template_from === 'me' && sql.push(`template_type in (3,2)`);
             query.template_from === 'all' && sql.push(`template_type = 2`);
-            const data = await new ut_database_js_1.UtDatabase(config_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `
-            id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config
-            `);
+            const data = await new ut_database_js_1.UtDatabase(config_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config`);
             return data;
         }
         catch (e) {
@@ -237,7 +238,15 @@ class Template {
                 }
             }
         }
-        if (['account_userinfo', 'voucher-list', 'rebate', 'order_list', 'wishlist', 'account_edit'].includes(query_page) &&
+        if ([
+            'account_userinfo',
+            'voucher-list',
+            'rebate',
+            'order_list',
+            'wishlist',
+            'recipient_info',
+            'account_edit',
+        ].includes(query_page) &&
             appName !== 'cms_system') {
             return 'official-router';
         }
@@ -338,8 +347,6 @@ class Template {
                 if (config.me === 'true') {
                     query.push(`userID = ${this.token.userID}`);
                 }
-                else {
-                }
                 return query.join(' and ');
             })()}`;
             if (config.type) {
@@ -363,10 +370,10 @@ class Template {
             if (config.req.query.page_refer) {
                 for (const b of response_) {
                     if (b.tag === 'c_header') {
-                        const c_config = (await new user_js_1.User(b.appName).getConfigV2({
+                        const c_config = await new user_js_1.User(b.appName).getConfigV2({
                             key: 'c_header_' + config.req.query.page_refer,
-                            user_id: 'manager'
-                        }));
+                            user_id: 'manager',
+                        });
                         if (c_config && c_config[0]) {
                             console.log(`c_config[0]==>`, c_config[0]);
                             b.config = c_config;
@@ -379,9 +386,6 @@ class Template {
         catch (e) {
             throw exception_1.default.BadRequestError('Forbidden', 'No permission.' + e, null);
         }
-    }
-    constructor(token) {
-        this.token = token;
     }
 }
 exports.Template = Template;

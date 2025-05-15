@@ -28,7 +28,7 @@ export class ColorThemeSelector {
                                 ${[
                                     {
                                         title: html`全站統一配色`,
-                                        hint: `  <span class=""
+                                        hint: `  <span 
                                                   style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">選擇一個配色，若是進行了修改，全站所有應用此配色的元件將自動更新，方便未來統一管理。</span>`,
                                         value: 'global',
                                     },
@@ -68,7 +68,7 @@ export class ColorThemeSelector {
                                                         ${dd.title} ${(`${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`) === dd.value ? dd.hint : ``}
                                                     </div>
                                                 </div>`,
-                                                html` <div class="d-flex position-relative mt-2" style="">
+                                                html` <div class="d-flex position-relative mt-2" >
                                                     <div class="ms-0 border-end position-absolute h-100" style="left: 5px;"></div>
                                                     <div class="flex-fill " style="margin-left:20px;max-width: 100%;">
                                                         ${(() => {

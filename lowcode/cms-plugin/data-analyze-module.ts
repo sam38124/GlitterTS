@@ -1642,7 +1642,7 @@ export class DataAnalyzeModule {
             </div>`,
             vm.id,
             '#39afd1',
-            html``
+            ''
           );
         },
         onCreate: () => {
@@ -1920,7 +1920,7 @@ export class DataAnalyzeModule {
             </div>`,
             vm.id,
             '#ff6c02',
-            html``
+            ''
           );
         },
         onCreate: () => {
@@ -2210,7 +2210,7 @@ export class DataAnalyzeModule {
             </div>`,
             vm.id,
             '#ffbc00',
-            html``
+            ''
           );
         },
         onCreate: () => {

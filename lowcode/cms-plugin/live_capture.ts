@@ -939,7 +939,7 @@ export class LiveCapture {
     function drawPurposeSelect() {
       return (
         BgWidget.mainCard(html`
-          <div class="" style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+          <div  style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
             ${gvc.bindView({
               bind: `purposeSelect`,
               view: () => {
@@ -1038,7 +1038,7 @@ export class LiveCapture {
                           >
                             團購群組
                             <div
-                              class=""
+                              
                               style="color: #4D86DB;font-size: 14px;font-weight: 400; line-height: normal;cursor: pointer;"
                               onclick="${gvc.event(() => {
                                 vm.type = 'add';
@@ -1165,7 +1165,7 @@ export class LiveCapture {
                                 gvc.notifyDataChange(['getLineGroup', 'summary']);
                               });
                               return html`
-                                <select class="border-0 w-100" style="">
+                                <select class="border-0 w-100" >
                                   <option>團購群組搜尋中</option>
                                 </select>
                               `;
@@ -1173,7 +1173,7 @@ export class LiveCapture {
                               return html`
                                 <select
                                   class="border-0 w-100"
-                                  style=""
+                                  
                                   onchange="${gvc.event(e => {
                                     viewModel.formData.lineGroup.groupId = viewModel.lineGroup[e.value].group_id;
                                     viewModel.formData.lineGroup.groupName = viewModel.lineGroup[e.value].group_name;
@@ -1515,7 +1515,7 @@ export class LiveCapture {
                                                         html`
                                                           <div class="d-flex flex-column">
                                                             <div
-                                                              class=""
+                                                              
                                                               style="width: 100vw;height: 100vh;position: fixed;left: 0;top: 0"
                                                               onclick="${gvc.event(() => {})}"
                                                             ></div>
@@ -1844,7 +1844,7 @@ export class LiveCapture {
                                                                                             </div>
                                                                                           `;
                                                                                         } else {
-                                                                                          return html``;
+                                                                                          return '';
                                                                                         }
                                                                                       })()}
                                                                                       <input
@@ -2181,7 +2181,7 @@ export class LiveCapture {
                                                                                 : ``}
                                                                               <div
                                                                                 class="flex-fill text-left d-flex align-items-center"
-                                                                                style=""
+                                                                                
                                                                               >
                                                                                 <div
                                                                                   class="flex-shrink-0"
@@ -3491,7 +3491,7 @@ export class LiveCapture {
                       >
                         <select
                           class="border-0 w-100"
-                          style=""
+                          
                           onchange="${gvc.event(e => {
                             viewModel.formData.stock.period = e.value;
                             if (e.value >= 0) {
@@ -4021,7 +4021,7 @@ export class LiveCapture {
     function drawPurposeSelect() {
       return (
         BgWidget.mainCard(html`
-          <div class="" style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+          <div  style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
             ${gvc.bindView({
               bind: `purposeSelect`,
               view: () => {
@@ -4187,7 +4187,7 @@ export class LiveCapture {
                         },
                         {
                           title: '團購時間',
-                          value: html` <div style="">
+                          value: html` <div >
                             ${viewModel.formData.start_date} ${viewModel.formData.start_time}<br />${viewModel.formData
                               .end_date}
                             ${viewModel.formData.end_time}
@@ -4362,7 +4362,7 @@ export class LiveCapture {
                                 class="fa-light fa-square "
                                 style="color: #393939; font-size: 22px;margin-right: 18px;"
                               ></div>
-                              <div class="" style="font-size: 16px;font-weight: 700;${dataSet[0].width}">
+                              <div  style="font-size: 16px;font-weight: 700;${dataSet[0].width}">
                                 ${dataSet[0].text}
                               </div>
                               <div class="d-flex flex-grow-1" style="gap:68px;">
@@ -4645,7 +4645,7 @@ export class LiveCapture {
                                     if (item.content.specs.length > 0) {
                                       return html`
                                         <div class="d-flex flex-column">
-                                          <div class="d-flex align-items-center w-100 " style="">
+                                          <div class="d-flex align-items-center w-100 " >
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
                                               ${item.content.variants
                                                 .map((variant: any) => {
@@ -4710,7 +4710,7 @@ export class LiveCapture {
                                               ${item.content.title}
                                             </div>
                                           </div>
-                                          <div class="d-flex align-items-center w-100 " style="">
+                                          <div class="d-flex align-items-center w-100 " >
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
                                               ${item.content.variants
                                                 .map((variant: any) => {
@@ -4766,7 +4766,7 @@ export class LiveCapture {
                         <div style="display: flex;align-items: center;gap: 26px;">
                           ${(() => {
                             const dateSet = [{}];
-                            return html``;
+                            return '';
                           })()}
                         </div>
                         <div style="display: flex;align-items: flex-start;gap: 36px;"></div>
@@ -4775,7 +4775,7 @@ export class LiveCapture {
                   `,
                   ratio: 70,
                 },
-                { html: html``, ratio: 30 }
+                { html: '', ratio: 30 }
               );
             }
           }
@@ -4784,7 +4784,7 @@ export class LiveCapture {
         divCreate: {},
       })}
       <div style="margin-top:240px;"></div>
-      <div class="update-bar-container" style="">
+      <div class="update-bar-container" >
         ${BgWidget.cancel(
           gvc.event(() => {
             vm.type = 'list';
@@ -4846,7 +4846,7 @@ export class LiveCapture {
         .btn-primary:hover {
             background-color: #0056b3;
         }`);
-    return html` <div class="container" style="">
+    return html` <div class="container" >
       <div class="verification-container text-center">
         <h2 class="mb-3">🔐 驗證您的帳號</h2>
         <p class="text-muted">請輸入您的 <strong>Shopnex</strong> 驗證碼以完成綁定。</p>

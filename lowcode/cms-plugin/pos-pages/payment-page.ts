@@ -20,6 +20,7 @@ import { PaymentFunction } from './payment-function.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
 import { FormCheck } from '../module/form-check.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
+import { Tool } from '../../modules/tool.js';
 
 const html = String.raw;
 
@@ -60,16 +61,6 @@ export class PaymentPage {
         return { title: item.title, value: item.value };
       });
 
-    // 可用的運送選項(原)
-    // const availableOptions = [
-    //   { title: '一般宅配', value: 'normal' },
-    //   { title: '全家店到店', value: 'FAMIC2C' },
-    //   { title: '萊爾富店到店', value: 'HILIFEC2C' },
-    //   { title: 'OK超商店到店', value: 'OKMARTC2C' },
-    //   { title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C' },
-    //   { title: '門市取貨', value: 'shop' },
-    // ].filter(option => orderDetail.shipment_support.includes(option.value));
-
     // 合併預設選項和可用運送選項
     return defaultOptions.concat(availableOptions);
   }
@@ -84,6 +75,7 @@ export class PaymentPage {
     const vm = obj.vm;
     const dialog = new ShareDialog(gvc.glitter);
     PaymentPage.storeHistory(obj.ogOrderData);
+    PaymentPage.addStyle(gvc);
 
     // 確保初始化包含預設值
     obj.ogOrderData.pos_info = obj.ogOrderData.pos_info || {
@@ -117,8 +109,8 @@ export class PaymentPage {
       return {
         bind: id,
         view: () => {
-          return new Promise(async (resolve, reject) => {
-            //後端返回的訂單資料預覽
+          return new Promise(async resolve => {
+            // 後端返回的訂單資料預覽
             const orderDetail = await (async () => {
               dialog.dataLoading({ visible: true });
               const userInfo = obj.ogOrderData.user_info || {};
@@ -153,7 +145,7 @@ export class PaymentPage {
               ) {
                 (obj.ogOrderData.user_info.shipment as any) = 'now';
               }
-              //儲存資料至本地暫存
+              // 儲存資料至本地暫存
               obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter(dd => {
                 return orderDetail.lineItems.find((d1: any) => {
                   return dd.id + dd.spec.join('-') === d1.id + d1.spec.join('-');
@@ -183,9 +175,9 @@ export class PaymentPage {
                 >
                   ${PosWidget.bigTitle('訂單明細')}
                   <div
-                    class="d-flex flex-column ${document.body.offsetWidth < 800 ? `` : ``}"
+                    class="d-flex flex-column ${document.body.offsetWidth < 800 ? '' : ''}"
                     style="${document.body.offsetWidth < 800
-                      ? ``
+                      ? ''
                       : `padding:24px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);margin-top:32px;`}"
                   >
                     <div
@@ -198,112 +190,134 @@ export class PaymentPage {
                       <div class="col-2 text-center">數量${hasWeighing ? ' / 重量' : ''}</div>
                       <div class="col-2 text-center">小計</div>
                     </div>
-                    <div class="d-flex flex-column" style="${document.body.offsetWidth < 800 ? `` : ``}">
+                    <div class="d-flex flex-column" style="${document.body.offsetWidth < 800 ? '' : ''}">
                       ${(() => {
-                        if (orderDetail.lineItems.length > 0) {
-                          return orderDetail.lineItems
-                            .map((data: any, index: number) => {
-                              return html`
-                                <div class="d-flex" style="">
-                                  <div class="col-12 col-sm-6 d-flex align-items-center">
+                        if (orderDetail.lineItems.length === 0) {
+                          return '';
+                        }
+
+                        const ogOrderMap = new Map(
+                          obj.ogOrderData.lineItems.map((ogItem, index) => {
+                            return [`${ogItem.id}-${ogItem.spec.join('/')}`, index];
+                          })
+                        );
+
+                        const lineItemCountMap = new Map(
+                          orderDetail.lineItems.map((item: any) => {
+                            return [`${item.id}-${item.spec.join('/')}`, item.count];
+                          })
+                        );
+
+                        const resetSalePriceIcon = (data: any, index: number) => {
+                          return html`<i
+                            class="fa-solid fa-pencil cursor_pointer"
+                            onclick="${gvc.event(() => {
+                              const def = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+
+                              PosFunction.setMoney(
+                                gvc,
+                                def,
+                                money => {
+                                  if (money === data.sale_price) {
+                                    delete obj.ogOrderData.lineItems[index].custom_price;
+                                  } else {
+                                    obj.ogOrderData.lineItems[index].custom_price = money;
+                                  }
+                                  refreshOrderView();
+                                },
+                                '更改商品單價'
+                              );
+                            })}"
+                          ></i>`;
+                        };
+
+                        return [...ogOrderMap.keys()]
+                          .filter(key => {
+                            return lineItemCountMap.get(key);
+                          })
+                          .map(key => {
+                            const lineItemKeys = [...lineItemCountMap.keys()].findIndex(k => k === key);
+                            const index = ogOrderMap.get(key);
+                            const data = orderDetail.lineItems[lineItemKeys];
+
+                            if (index === undefined) {
+                              console.error(`ogOrderData LineItems 不存在商品規格 ${key}`);
+                              return '';
+                            }
+
+                            return html`
+                              <div class="d-flex">
+                                <div class="col-12 col-sm-6 d-flex align-items-center">
+                                  <div
+                                    class="d-flex flex-column align-items-center justify-content-center"
+                                    style="gap:5px;width:75px;"
+                                  >
+                                    <div style="height: 20px;"></div>
                                     <div
-                                      class="d-flex flex-column align-items-center justify-content-center"
-                                      style="gap:5px;width:75px;"
+                                      style="width: 70px;height: 70px; min-width: 70px;min-height: 70px; border-radius: 5px;background: 50%/cover url('${data.preview_image ||
+                                      'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"
+                                    ></div>
+                                    <div
+                                      style="font-size: 13px;height: 20px;"
+                                      class="fw-500 ${data.pre_order ? `text-danger` : ''}"
                                     >
-                                      <div style="height: 20px;"></div>
-                                      <div
-                                        style="width: 70px;height: 70px; min-width: 70px;min-height: 70px; border-radius: 5px;background: 50%/cover url('${data.preview_image ||
-                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"
-                                      ></div>
-                                      <div
-                                        style="font-size: 13px;height: 20px;"
-                                        class="fw-500 ${data.pre_order ? `text-danger` : ``}"
-                                      >
-                                        庫存:${(() => {
-                                          if (`${data.show_understocking}` === 'false') {
-                                            return `不追蹤`;
-                                          } else {
-                                            return (
-                                              (data.stockList[POSSetting.config.where_store] &&
-                                                data.stockList[POSSetting.config.where_store].count) ||
-                                              0
-                                            );
-                                          }
-                                        })()}
-                                      </div>
+                                      ${(() => {
+                                        if (`${data.show_understocking}` === 'false') {
+                                          return '不追蹤庫存';
+                                        }
+
+                                        const stock = data.stockList[POSSetting.config.where_store];
+                                        return `庫存: ${stock?.count || 0}`;
+                                      })()}
                                     </div>
-                                    <div
-                                      class="d-flex flex-column py-2"
-                                      onclick="${gvc.event(() => {
-                                        const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
-
-                                        PosFunction.setMoney(
-                                          gvc,
-                                          def,
-                                          count => {
-                                            obj.ogOrderData.lineItems[index].count = count;
-                                            refreshOrderView();
-                                          },
-                                          '更改商品數量'
-                                        );
-                                      })}"
-                                      style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
-                                    >
-                                      <div class="d-flex justify-content-center flex-column" style="gap:5px;">
-                                        ${(() => {
-                                          if (!data.pre_order) {
-                                            return ``;
-                                          } else {
-                                            return html` <div>${BgWidget.dangerInsignia('需預購')}</div>`;
-                                          }
-                                        })()}
-                                        ${data.title}
-                                      </div>
-                                      <span
-                                        style="color: #949494; font-size: 16px; font-style: normal; font-weight: 500; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
-                                      >
-                                        ${(() => {
-                                          return data.spec.length > 0
-                                            ? data.spec
-                                                .map((spec: any) => {
-                                                  return html` ${spec}`;
-                                                })
-                                                .join(',')
-                                            : html``;
-                                        })()}
-                                      </span>
-
-                                      ${document.body.clientWidth < 800
-                                        ? html` <div
-                                            style="color: #393939; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
-                                          >
-                                            NT.${parseInt(data.sale_price as any, 10).toLocaleString()}
-                                            ${document.body.clientWidth < 800 ? `x` : ``} ${data.count}
-                                          </div>`
-                                        : ``}
+                                  </div>
+                                  <div
+                                    class="d-flex flex-column mt-3 gap-1"
+                                    style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;"
+                                  >
+                                    ${data.pre_order
+                                      ? html`<div>${BgWidget.warningInsignia('需預購', { size: 'sm' })}</div>`
+                                      : ''}
+                                    <div class="d-flex justify-content-start align-items-center gap-2">
+                                      ${data.title}
                                     </div>
-                                    <div class="flex-fill"></div>
-                                    <div
-                                      class="d-sm-none d-flex align-items-center justify-content-center flex-column"
-                                      style="gap:0px;"
-                                      onclick="${gvc.event(() => {
-                                        const n = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
-
-                                        PosFunction.setMoney(
-                                          gvc,
-                                          n,
-                                          money => {
-                                            if (money === data.sale_price) {
-                                              delete obj.ogOrderData.lineItems[index].custom_price;
-                                            } else {
-                                              obj.ogOrderData.lineItems[index].custom_price = money;
-                                            }
-                                            refreshOrderView();
-                                          },
-                                          '更改商品單價'
-                                        );
-                                      })}"
+                                    <span
+                                      style="color: #949494; font-size: 16px; font-style: normal; font-weight: 500; letter-spacing: 0.64px; text-transform: uppercase;"
                                     >
+                                      ${data.spec.length > 0 ? data.spec.map((spec: any) => `${spec}`).join(',') : ''}
+                                    </span>
+                                    ${document.body.clientWidth < 800
+                                      ? html` <div
+                                          style="color: #393939; font-size: 16px; font-style: normal; font-weight: 400; letter-spacing: 0.64px; text-transform: uppercase;"
+                                        >
+                                          ${resetSalePriceIcon(data, index)}
+                                          NT.${parseInt(data.sale_price as any, 10).toLocaleString()}
+                                          ${document.body.clientWidth < 800 ? `x` : ''} ${data.count}
+                                        </div>`
+                                      : ''}
+                                  </div>
+                                  <div class="flex-fill"></div>
+                                  <div
+                                    class="d-sm-none d-flex flex-column align-items-end justify-content-between h-100"
+                                    style="padding: 16px 0px 4px;"
+                                  >
+                                    <div>
+                                      <i
+                                        class="fa-sharp fa-regular fa-xmark fs-4"
+                                        onclick="${gvc.event(() => {
+                                          function callMinus(index: number) {
+                                            obj.ogOrderData.lineItems[index].count = 0;
+                                            refreshOrderView();
+                                          }
+
+                                          dialog.checkYesOrNot({
+                                            text: '確定要移除此商品嗎？',
+                                            callback: bool => bool && callMinus(index),
+                                          });
+                                        })}"
+                                      ></i>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center flex-column gap-0">
                                       ${(() => {
                                         function formatPrice(price: any) {
                                           return `$${parseInt(`${price}`, 10).toLocaleString()}`;
@@ -324,80 +338,114 @@ export class PaymentPage {
                                       })()}
                                     </div>
                                   </div>
-                                  <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
-                                    $${parseInt(data.sale_price as any, 10).toLocaleString()}
-                                  </div>
+                                </div>
+                                <div class="col-2 d-none d-sm-flex align-items-center justify-content-start gap-2">
+                                  $ ${parseInt(data.sale_price as any, 10).toLocaleString()}
+                                  ${resetSalePriceIcon(data, index)}
+                                </div>
+                                <div
+                                  class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
+                                >
                                   <div
-                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
-                                    style="gap:10px;cursor: pointer;"
+                                    class="pos-count-button"
                                     onclick="${gvc.event(() => {
-                                      const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+                                      function callMinus(index: number) {
+                                        obj.ogOrderData.lineItems[index].count = Tool.floatAdd(
+                                          obj.ogOrderData.lineItems[index].count,
+                                          -1
+                                        );
+                                        refreshOrderView();
+                                      }
 
-                                      PosFunction.setMoney(
-                                        gvc,
-                                        def,
-                                        count => {
-                                          obj.ogOrderData.lineItems[index].count = count;
-                                          refreshOrderView();
-                                        },
-                                        '更改商品數量'
-                                      );
+                                      if (obj.ogOrderData.lineItems[index].count - 1 > 0) {
+                                        callMinus(index);
+                                      } else {
+                                        dialog.checkYesOrNot({
+                                          text: '確定要移除此商品嗎？',
+                                          callback: bool => bool && callMinus(index),
+                                        });
+                                      }
                                     })}"
                                   >
-                                    ${Number(data.count as any).toLocaleString()}
+                                    ${this.minusSVG}
                                   </div>
-                                  <div
-                                    class="col-3 col-lg-2 d-flex align-items-center justify-content-center  d-none d-sm-flex"
-                                    style="gap:10px;cursor: pointer;"
-                                    onclick="${gvc.event(() => {
-                                      const def = obj.ogOrderData.lineItems?.[index]?.custom_price || 0;
+                                  ${data.product_category === 'weighing'
+                                    ? html`<input
+                                        class="border-0 pos-count-input"
+                                        value="${obj.ogOrderData.lineItems[index].count}"
+                                        onchange="${gvc.event(e => {
+                                          const originNum = obj.ogOrderData.lineItems[index].count;
+                                          const n = parseFloat(e.value);
 
-                                      PosFunction.setMoney(
-                                        gvc,
-                                        def,
-                                        money => {
-                                          if (money === data.sale_price) {
-                                            delete obj.ogOrderData.lineItems[index].custom_price;
+                                          if (CheckInput.isNumberString(`${n}`) && n > 0) {
+                                            obj.ogOrderData.lineItems[index].count = Tool.floatAdd(n, 0);
+                                            refreshOrderView();
                                           } else {
-                                            obj.ogOrderData.lineItems[index].custom_price = money;
+                                            e.value = originNum;
                                           }
-                                          refreshOrderView();
-                                        },
-                                        '更改商品單價'
+                                        })}"
+                                      />`
+                                    : html`<div
+                                        class="border-0 pos-count-input cursor_pointer"
+                                        style="margin-bottom: 3px;"
+                                        onclick="${gvc.event(() => {
+                                          const def = obj.ogOrderData.lineItems?.[index]?.count || 0;
+
+                                          PosFunction.setMoney(
+                                            gvc,
+                                            def,
+                                            count => {
+                                              obj.ogOrderData.lineItems[index].count = count;
+                                              refreshOrderView();
+                                            },
+                                            '更改商品數量'
+                                          );
+                                        })}"
+                                      >
+                                        ${data.count}
+                                      </div>`}
+                                  <div
+                                    class="pos-count-button"
+                                    onclick="${gvc.event(() => {
+                                      obj.ogOrderData.lineItems[index].count = Tool.floatAdd(
+                                        obj.ogOrderData.lineItems[index].count,
+                                        1
                                       );
+                                      refreshOrderView();
                                     })}"
                                   >
-                                    ${(() => {
-                                      function formatPrice(price: any) {
-                                        return `$${parseInt(`${price}`, 10).toLocaleString()}`;
-                                      }
-
-                                      if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
-                                        return html`
-                                          <span class="text-decoration-line-through"
-                                            >${formatPrice(data.variant_sale_price * data.count)}</span
-                                          >
-                                          <span class="text-danger">${formatPrice(data.sale_price * data.count)}</span>
-                                        `;
-                                      }
-
-                                      return html` <span>${formatPrice(data.sale_price * data.count)}</span> `;
-                                    })()}
+                                    ${this.plusSVG}
                                   </div>
                                 </div>
-                              `;
-                            })
-                            .join(
-                              (() => {
-                                if (document.body.clientWidth < 800) {
-                                  return `<div style="margin-top: 20px;background: #DDD;width: 100%;height: 1px;"></div>`;
-                                } else {
-                                  return `<div style=""></div>`;
-                                }
-                              })()
-                            );
-                        }
-                        return ``;
+                                <div
+                                  class="col-3 col-lg-2 d-flex align-items-center justify-content-center d-none d-sm-flex"
+                                  style="gap:10px;"
+                                >
+                                  ${(() => {
+                                    function formatPrice(price: any) {
+                                      return `$${parseInt(`${price}`, 10).toLocaleString()}`;
+                                    }
+
+                                    if (data.variant_sale_price && data.sale_price !== data.variant_sale_price) {
+                                      return html`
+                                        <span class="text-decoration-line-through"
+                                          >${formatPrice(data.variant_sale_price * data.count)}</span
+                                        >
+                                        <span class="text-danger">${formatPrice(data.sale_price * data.count)}</span>
+                                      `;
+                                    }
+
+                                    return html`<span>${formatPrice(data.sale_price * data.count)}</span> `;
+                                  })()}
+                                </div>
+                              </div>
+                            `;
+                          })
+                          .join(
+                            document.body.clientWidth < 800
+                              ? html`<div style="margin-top: 20px;background: #DDD;width: 100%;height: 1px;"></div>`
+                              : ''
+                          );
                       })()}
                     </div>
                   </div>
@@ -424,7 +472,7 @@ export class PaymentPage {
                               class="w-100 d-flex align-items-center justify-content-center"
                               style="cursor:pointer;flex:1; height: 65px; ${vm.type === 'old'
                                 ? `border-radius: 0px 10px 0px 0px; background: #FFF;`
-                                : ``}"
+                                : ''}"
                               onclick="${gvc.event(() => {
                                 vm.type = 'old';
                                 gvc.notifyDataChange(vm.id);
@@ -436,7 +484,7 @@ export class PaymentPage {
                               class="w-100 d-flex align-items-center justify-content-center"
                               style="cursor:pointer;flex:1; height: 65px;${vm.type === 'new'
                                 ? `border-radius: 10px 10px 0px 0px; background: #FFF;`
-                                : ``}"
+                                : ''}"
                               onclick="${gvc.event(() => {
                                 vm.type = 'new';
                                 gvc.notifyDataChange(vm.id);
@@ -564,7 +612,6 @@ export class PaymentPage {
                                         </div>
                                       </div>
                                       <div
-                                        class=""
                                         style="display: flex; width: 44px; height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid #DDD; justify-content: center; align-items: center; gap: 8px; flex-shrink: 0;"
                                         onclick="${gvc.event(() => {
                                           gvc.glitter.runJsInterFace('start_scan', {}, async res => {
@@ -797,7 +844,7 @@ export class PaymentPage {
                                             }
                                           },
                                           divCreate: {
-                                            class: `w-100 my-3`,
+                                            class: 'w-100 my-3',
                                             style: `padding: 20px; border-radius: 10px; border: 1px #DDDDDD solid; flex-direction: column; justify-content: flex-start; align-items: flex-end; gap: 18px; display: inline-flex;`,
                                           },
                                         };
@@ -807,8 +854,8 @@ export class PaymentPage {
                                   return inView.join('');
                                 },
                                 divCreate: {
-                                  class: ` p-3 bg-white`,
-                                  style: `gap:14px;`,
+                                  class: 'p-3 bg-white',
+                                  style: 'gap: 14px;',
                                 },
                               };
                             })
@@ -823,10 +870,7 @@ export class PaymentPage {
                             address: '',
                             managerNote: '',
                           };
-                          const saasConfig: {
-                            config: any;
-                            api: any;
-                          } = (window.parent as any).saasConfig;
+
                           view.push(
                             gvc.bindView(() => {
                               const id = gvc.glitter.getUUID();
@@ -845,7 +889,7 @@ export class PaymentPage {
                                       let h = '';
                                       data.map((item: any) => {
                                         if (item.hidden) {
-                                          return ``;
+                                          return '';
                                         }
                                         if (item.require) {
                                           need_check[item.key] = true;
@@ -987,11 +1031,11 @@ export class PaymentPage {
                       divCreate: {
                         class: `mx-sm-0`,
                         style: `
-                                                    border-radius: 10px;
-                                                    overflow: hidden;
-                                                    background: #eaeaea;
-                                                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);
-                                                `,
+                          border-radius: 10px;
+                          overflow: hidden;
+                          background: #eaeaea;
+                          box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);
+                        `,
                       },
                     };
                   })}
@@ -1064,18 +1108,21 @@ export class PaymentPage {
                         </div>
                       `;
                     } else if (obj.ogOrderData.user_info.shipment === 'normal') {
-                      return `<input class="form-control mt-2" value="${obj.ogOrderData.user_info.address ?? ''}" onchange="${gvc.event(
-                        (e, event) => {
+                      return html`<input
+                        class="form-control mt-2"
+                        value="${obj.ogOrderData.user_info.address ?? ''}"
+                        onchange="${gvc.event(e => {
                           obj.ogOrderData.user_info.address = e.value;
-                        }
-                      )}" placeholder="請輸入宅配地址">`;
+                        })}"
+                        placeholder="請輸入宅配地址"
+                      />`;
                     } else {
-                      return ``;
+                      return '';
                     }
                   })()}
                   ${(() => {
                     if (obj.ogOrderData.user_info.shipment === 'now') {
-                      return ``;
+                      return '';
                     } else {
                       return html` ${PaymentPage.spaceView()}
                         <div
@@ -1106,7 +1153,7 @@ export class PaymentPage {
                             },
                           ]
                             .map(dd => {
-                              return html` <div class="mb-2 col-${dd.col} ps-0" style="">
+                              return html` <div class="mb-2 col-${dd.col} ps-0">
                                 <div>
                                   <div
                                     class="fw-normal mb-2 fs-6"
@@ -1137,11 +1184,14 @@ export class PaymentPage {
                       {
                         title: '小計總額',
                         hint: '',
-                        value: (
-                          Number(orderDetail.total) +
-                          Number(orderDetail.discount) -
-                          Number(orderDetail.shipment_fee) +
-                          Number(orderDetail.use_rebate)
+                        value: parseInt(
+                          `${
+                            Number(orderDetail.total) +
+                            Number(orderDetail.discount) -
+                            Number(orderDetail.shipment_fee) +
+                            Number(orderDetail.use_rebate)
+                          }`,
+                          10
                         ).toLocaleString(),
                       },
                       ...(() => {
@@ -1192,7 +1242,7 @@ export class PaymentPage {
                                     return `${isMinus} $${(dd.discount_total * isNegative).toLocaleString()}`;
                                   })()}
                               <i
-                                class="fa-solid fa-xmark ${dd.code || dd.id === 0 ? `` : `d-none`} fs-5"
+                                class="fa-solid fa-xmark ${dd.code || dd.id === 0 ? '' : `d-none`} fs-5"
                                 style="color:#949494;"
                                 onclick="${gvc.event(() => {
                                   const dialog = new ShareDialog(gvc.glitter);
@@ -1238,7 +1288,7 @@ export class PaymentPage {
                               ${dd.title}
                             </div>
                             <div
-                              class="${dd.hint ? `` : 'd-none'}"
+                              class="${dd.hint ? '' : 'd-none'}"
                               style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; text-transform: uppercase; letter-spacing: 0.64px; word-wrap: break-word"
                             >
                               ${dd.hint}
@@ -1417,7 +1467,7 @@ export class PaymentPage {
                                   .join('');
                               } else {
                                 return html` <div class="w-100 d-flex flex-column">
-                                  <div class="d-flex align-items-center justify-content-center w-100 " style="">
+                                  <div class="d-flex align-items-center justify-content-center w-100 ">
                                     <div class="d-flex" style="flex:68;">${PosWidget.fontLight('付款方式')}</div>
                                     <div class="d-flex" style="flex:94;">${PosWidget.fontLight('付款金額')}</div>
                                     <div class="d-flex" style="flex:68;">${PosWidget.fontLight('狀態')}</div>
@@ -1448,7 +1498,6 @@ export class PaymentPage {
                                         <div class="d-flex" style="flex:94;">
                                           <input
                                             style="display: flex;width: calc(100% - 20px);padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
-                                            class=""
                                             value="${dd.total}"
                                             onclick="${gvc.event(() => {
                                               if (dd.paied) {
@@ -1531,8 +1580,12 @@ export class PaymentPage {
                               }
                             },
                             divCreate: {
-                              class: ``,
-                              style: `display: flex;justify-content: space-between;margin-top: 24px;gap:15px;`,
+                              style: `
+                                display: flex;
+                                justify-content: space-between;
+                                margin-top: 24px;
+                                gap: 15px;
+                              `,
                             },
                           })}`,
                           html` <div style="height:24px;"></div>`,
@@ -1549,7 +1602,7 @@ export class PaymentPage {
                               });
                             })
                           ),
-                          `<div style="height:24px;"></div>`,
+                          html`<div style="height:24px;"></div>`,
                         ];
                         if (
                           obj.ogOrderData.pos_info.payment.length === 1 &&
@@ -1582,9 +1635,7 @@ export class PaymentPage {
                         }
                         view.push(PaymentPage.spaceView());
                         const total = obj.ogOrderData.pos_info.payment
-                          .map((dd: any) => {
-                            return dd.total;
-                          })
+                          .map((dd: any) => dd.total)
                           .reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0);
 
                         view.push(
@@ -1640,7 +1691,8 @@ export class PaymentPage {
                             dialog.errorMessage({ text: '請選擇到店門市' });
                             return;
                           }
-                          //設定POS機資訊
+
+                          // 設定POS機資訊
                           orderDetail.pos_info = {
                             who: gvc.glitter.share.select_member,
                             where_store: POSSetting.config.where_store,
@@ -1654,7 +1706,8 @@ export class PaymentPage {
                           passData.orderStatus = 1;
                           passData.pay_status = 1;
                           passData.pre_order = pre_order;
-                          //只有一種付款方式時結帳付款
+
+                          // 只有一種付款方式時結帳付款
                           if (
                             obj.ogOrderData.pos_info.payment.length === 1 &&
                             obj.ogOrderData.pos_info.payment.find((dd: any) => {
@@ -1733,7 +1786,6 @@ export class PaymentPage {
                               <i class="fa-solid fa-down-to-bracket fs-4"></i>
                             </div>
                             <div
-                              class=""
                               style="flex:1;display: flex;padding: 10px;justify-content: center;align-items: center;border-radius: 10px;background: #FF6C02;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
                               onclick="${gvc.event(() => {
                                 if (
@@ -1760,7 +1812,6 @@ export class PaymentPage {
                               建立預購單
                             </div>
                             <div
-                              class=""
                               style="flex:1;display: flex;padding: 10px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
                               onclick="${gvc.event(() => {
                                 if (total - parseInt(orderDetail.total as any, 10) < 0) {
@@ -1791,7 +1842,7 @@ export class PaymentPage {
 
                                 PaymentPage.storeHistory(orderDetail);
                                 dialog.checkYesOrNot({
-                                  text: '是否確認前往結帳?',
+                                  text: '是否確認前往結帳？',
                                   callback: response => {
                                     if (response) {
                                       paymentNext(false);
@@ -1867,9 +1918,7 @@ export class PaymentPage {
         async function next() {
           const dialog = new ShareDialog(gvc.glitter);
           orderDetail.code_array = orderDetail.code_array || [];
-          orderDetail.code_array = orderDetail.code_array.filter((dd: any) => {
-            return dd !== c_vm.value;
-          });
+          orderDetail.code_array = orderDetail.code_array.filter((dd: any) => dd !== c_vm.value);
           orderDetail.code_array.push(c_vm.value);
           dialog.dataLoading({ visible: true });
           const od: any = (
@@ -1881,15 +1930,8 @@ export class PaymentPage {
             })
           ).response.data;
           dialog.dataLoading({ visible: false });
-          if (
-            !od ||
-            !od.voucherList.find((dd: any) => {
-              return dd.code === c_vm.value;
-            })
-          ) {
-            orderDetail.code_array = orderDetail.code_array.filter((dd: any) => {
-              return dd !== c_vm.value;
-            });
+          if (!od || !od.voucherList.find((dd: any) => dd.code === c_vm.value)) {
+            orderDetail.code_array = orderDetail.code_array.filter((dd: any) => dd !== c_vm.value);
             dialog.errorMessage({ text: '請輸入正確的優惠代碼' });
           } else {
             gvc.closeDialog();
@@ -1908,7 +1950,6 @@ export class PaymentPage {
                 請掃描或輸入優惠代碼
               </div>
               <img
-                class=""
                 style="max-width:70%;"
                 src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png"
               />
@@ -2003,7 +2044,6 @@ export class PaymentPage {
                 請掃描或輸入會員代碼
               </div>
               <img
-                class=""
                 style="max-width:70%;"
                 src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png"
               />
@@ -2182,9 +2222,9 @@ export class PaymentPage {
             PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
           ) {
             if (PayConfig.deviceType === 'pos') {
-              //客戶聯
+              // 客戶聯
               await IminModule.printTransactionDetails(res.response.data.orderID, invoice, glitter.share.staff_title);
-              //如果需要收執聯的話
+              // 如果需要收執聯的話
               if (
                 PayConfig.pos_config.pos_support_finction.includes('print_order_receipt') &&
                 PayConfig.pos_config.pos_support_finction.includes('print_order_detail')
@@ -2225,34 +2265,11 @@ export class PaymentPage {
                   <div
                     style="position: relative;max-width:calc(100% - 20px);width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
-                      onclick="${gvc.event(() => {
+                    ${PaymentPage.checkSVG(
+                      gvc.event(() => {
                         gvc.glitter.closeDiaLog();
-                      })}"
-                    >
-                      <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
-                      <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round" />
-                    </svg>
-
-                    <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75" fill="none">
-                      <g clip-path="url(#clip0_9850_171427)">
-                        <path
-                          d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
-                          fill="#393939"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_9850_171427">
-                          <rect width="75" height="75" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
+                      })
+                    )}
                     <div
                       style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;"
                     >
@@ -2264,22 +2281,18 @@ export class PaymentPage {
             },
             'orderFinish',
             {
-              dismiss: () => {
-                // vm.type = "list";
-              },
+              dismiss: () => {},
             }
           );
         }
       });
     }
 
-    //不開立電子發票直接執行
+    // 不開立電子發票直接執行
     if (
       (await ApiShop.getInvoiceType()).response.method === 'nouse' ||
       orderDetail.pos_info.payment
-        .map((dd: any) => {
-          return dd.total;
-        })
+        .map((dd: any) => dd.total)
         .reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0) < orderDetail.total ||
       !PayConfig.pos_config.pos_support_finction.includes('print_invoice')
     ) {
@@ -2312,22 +2325,22 @@ export class PaymentPage {
                       {
                         title: PayConfig.deviceType === 'pos' || ConnectionMode.on_connected_device ? `列印` : `寄送`,
                         value: 'print',
-                        icon: `<i class="fa-regular fa-print"></i>`,
+                        icon: html`<i class="fa-regular fa-print"></i>`,
                       },
                       {
                         title: `載具`,
                         value: 'carry',
-                        icon: `<i class="fa-regular fa-mobile"></i>`,
+                        icon: html`<i class="fa-regular fa-mobile"></i>`,
                       },
                       {
                         title: `統編`,
                         value: 'company',
-                        icon: `<i class="fa-regular fa-building"></i>`,
+                        icon: html`<i class="fa-regular fa-building"></i>`,
                       },
                       {
                         title: `不開立`,
                         value: 'nouse',
-                        icon: `<i class="fa-solid fa-ban"></i>`,
+                        icon: html`<i class="fa-solid fa-ban"></i>`,
                       },
                     ];
                     return btnArray
@@ -2346,7 +2359,7 @@ export class PaymentPage {
                                 gvc.recreateView();
                               })}"
                             >
-                              <div style="" class="fs-2">${btn.icon}</div>
+                              <div class="fs-2">${btn.icon}</div>
                               <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">${btn.title}</div>
                             </div>
                           </div>
@@ -2422,7 +2435,7 @@ export class PaymentPage {
                       </div>
                     </div>`;
                   } else {
-                    return ``;
+                    return '';
                   }
                 })()}
                 <div
@@ -2432,9 +2445,7 @@ export class PaymentPage {
                   <div
                     class="flex-fill"
                     style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
-                    onclick="${gvc.event(() => {
-                      next();
-                    })}"
+                    onclick="${gvc.event(() => next())}"
                   >
                     確定
                   </div>
@@ -2446,7 +2457,6 @@ export class PaymentPage {
         'selectInvoice',
         {
           dismiss: () => {
-            // vm.type = "list";
             gvc.glitter.share.scan_back = () => {};
           },
         }
@@ -2485,5 +2495,218 @@ export class PaymentPage {
       dialog.successMessage({ text: '成功新增優惠券' });
       callback();
     }
+  }
+
+  static minusSVG = html`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <path
+      d="M9.64314 5C9.64314 5.3457 9.32394 5.625 8.92885 5.625H1.07171C0.676618 5.625 0.357422 5.3457 0.357422 5C0.357422 4.6543 0.676618 4.375 1.07171 4.375H8.92885C9.32394 4.375 9.64314 4.6543 9.64314 5Z"
+      fill="white"
+    />
+  </svg>`;
+
+  static plusSVG = html`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <path
+      d="M5.76923 0.769231C5.76923 0.34375 5.42548 0 5 0C4.57452 0 4.23077 0.34375 4.23077 0.769231V4.23077H0.769231C0.34375 4.23077 0 4.57452 0 5C0 5.42548 0.34375 5.76923 0.769231 5.76923H4.23077V9.23077C4.23077 9.65625 4.57452 10 5 10C5.42548 10 5.76923 9.65625 5.76923 9.23077V5.76923H9.23077C9.65625 5.76923 10 5.42548 10 5C10 4.57452 9.65625 4.23077 9.23077 4.23077H5.76923V0.769231Z"
+      fill="white"
+    />
+  </svg>`;
+
+  static checkSVG = (clickEvent: string) =>
+    html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
+        onclick="${clickEvent}"
+      >
+        <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
+        <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round" />
+      </svg>
+
+      <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75" fill="none">
+        <g clip-path="url(#clip0_9850_171427)">
+          <path
+            d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
+            fill="#393939"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_9850_171427">
+            <rect width="75" height="75" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>`;
+
+  static addStyle(gvc: GVC) {
+    const isPhone = document.body.offsetWidth < 800;
+    gvc.addStyle(`
+      .pos-select {
+        font-size: 18px;
+        width: ${isPhone ? '100%' : '131px'};
+        height: 51px;
+        white-space: nowrap;
+        display: flex;
+        padding: 12px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
+      }
+
+      .pos-category {
+        font-size: 18px;
+        width: 131px;
+        height: 51px;
+        margin-right: 16px;
+        white-space: nowrap;
+        display: flex;
+        padding: 12px 24px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
+      }
+
+      .pos-product-card {
+        flex-basis: 188px;
+        flex-grow: 1;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+      }
+
+      .pos-bgr-image {
+        border-radius: 10px 10px 0 0;
+        background: 50% / cover no-repeat;
+      }
+
+      .pos-product-title {
+        font-size: 18px;
+        width: 100%;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        text-overflow: ellipsis;
+        word-break: break-word;
+        -webkit-box-orient: vertical;
+      }
+
+      .pos-product-container {
+        overflow: scroll;
+        max-height: 100%;
+        padding-bottom: 100px !important;
+        ${
+          isPhone
+            ? `
+                padding-left: 12px;
+                padding-right: 12px;
+                justify-content: space-between;
+              `
+            : `
+                gap: 26px;
+                margin-left: 32px;
+                margin-right: 32px;
+              `
+        }
+      }
+
+      .pos-drawer {
+        height: 100%;
+        width: 352px;
+        max-width: 100%;
+        overflow: auto;
+        background: #fff;
+        box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      .pos-check-container {
+        height: 50px;
+        margin-bottom: 24px;
+        margin-top: ${gvc.glitter.share.top_inset}px;
+      }
+
+      .pos-check-loading {
+        background: #ffb400;
+        color: #393939;
+        gap: 10px;
+      }
+
+      .pos-cart-list {
+        color: #393939;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 3px;
+      }
+
+      .pos-cart-image {
+        height: 67px;
+        width: 66px;
+        margin-right: 12px;
+        min-height: 67px;
+        min-width: 66px;
+        background: 50% / cover;
+      }
+
+      .pos-spec {
+        color: #949494;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 500;
+      }
+
+      .pos-count-button {
+        display: flex;
+        width: 30px;
+        height: 30px;
+        padding: 8px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        background: #393939;
+      }
+
+      .pos-count-input {
+        width: 60px;
+        height: 25px;
+        color: #393939;
+        font-size: 18px;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .pos-subtotal {
+        color: #393939;
+        font-size: 18px;
+        font-style: normal;
+        font-weight: 500;
+        letter-spacing: 0.72px;
+      }
+
+      .pos-price-container {
+        margin-top: 24px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        background: #fff;
+        display: flex;
+        padding: 24px;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .pos-goto-checkout {
+        margin-top: 32px;
+        display: flex;
+        padding: 12px 24px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        background: #393939;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: 500;
+        color: #fff;
+      }
+    `);
   }
 }

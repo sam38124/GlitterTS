@@ -124,7 +124,7 @@ export class ProductAi {
         const language=(window.parent as any).store_info.language_setting.def;
         let message = '商品標題為Adidas衣服，規格有顏色和尺寸，其中有紅藍黃三種顏色，尺寸有S,M,L三種尺寸，紅色S號的販售價格為2000，紅色M號的價格為1500，其餘販售價格為1000元。'
         return html`
-            <div class="">
+            <div >
                 ${[
                     html`
                         <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"
@@ -240,7 +240,7 @@ ${BgWidget.save(gvc.event(() => {
                 const html = String.raw
                 let message = ''
                 return html`
-                    <div class="">
+                    <div >
                         ${[
                             html`
                                 <lottie-player src="${gvc.glitter.root_path}lottie/ai.json" class="mx-auto my-n4"

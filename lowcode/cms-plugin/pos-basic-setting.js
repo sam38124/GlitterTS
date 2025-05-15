@@ -28,7 +28,7 @@ export class PosBasicSetting {
     <div class="guide6-3 mt-0"
          style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;margin-top: 24px;"
     >
-        <div class=""
+        <div 
              style="color: #393939; font-size: 16px;  font-weight: 700; word-wrap: break-word;"
         >商店基本資訊
         </div>

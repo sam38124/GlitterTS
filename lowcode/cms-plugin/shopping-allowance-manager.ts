@@ -355,7 +355,7 @@ export class ShoppingAllowanceManager {
                             },
                             {
                               key: '<div class="text-center">折讓金額</div>',
-                              value: html` <div class="text-center" style="">
+                              value: html` <div class="text-center" >
                                 ${dd.allowance_data.invoiceAmount ?? 0}
                               </div>`,
                             },
@@ -741,7 +741,7 @@ export class ShoppingAllowanceManager {
                               return lineItem.title == item.ItemName.split('/')[0];
                             });
                             return html`
-                              <div class="d-flex w-100 align-items-center" style="">
+                              <div class="d-flex w-100 align-items-center" >
                                 <div class="col-7 d-flex align-items-center">
                                   <img
                                     src="${target!.preview_image}"
@@ -861,7 +861,7 @@ ${allowanceData.allowance_data.voidReason ?? ''}</textarea
                                               </div>
                                               <div
                                                 class="w-100 d-flex align-items-center justify-content-center"
-                                                style=""
+                                                
                                               >
                                                 <svg
                                                   xmlns="http://www.w3.org/2000/svg"
@@ -1323,7 +1323,7 @@ ${reason}</textarea
                             invoiceItem.ItemAmount = invoiceItem.ItemCount * invoiceItem.ItemPrice;
                             viewModel.allowanceInvoiceTotalAmount += invoiceItem.ItemAmount;
                             return html`
-                              <div class="d-flex w-100 align-items-center" style="">
+                              <div class="d-flex w-100 align-items-center" >
                                 <div class="col-6 d-flex align-items-center">
                                   <img
                                     src="${item.preview_image}"

@@ -476,7 +476,7 @@ export class PosFunction {
   }
 
   // SetMoney
-  public static setMoney(gvc: GVC, def: string|number, callback: (money: number) => void, title?: string) {
+  public static setMoney(gvc: GVC, def: string | number, callback: (money: number) => void, title?: string) {
     gvc.glitter.innerDialog(gvc => {
       const c_vm = {
         id: gvc.glitter.getUUID(),
@@ -576,7 +576,9 @@ export class PosFunction {
                     .join('<div style="border-top: 1px #DDDDDD solid; height: 1px; width: 100%;"></div>')}
                 </div>
               </div>
-              <div>${BgWidget.save(gvc.event(saveEvent), '確認')}</div>
+              <div class="d-flex gap-2">
+                ${[BgWidget.cancel(gvc.event(closeEvent)), BgWidget.save(gvc.event(saveEvent))].join('')}
+              </div>
             </div>
           `;
         },
@@ -657,7 +659,6 @@ export class PosFunction {
         };
 
         const handlePaymentAmountClick = (method: any, id: string, gvc: GVC, dialog: ShareDialog) => {
-          console.log(method);
           if (method.paied) {
             dialog.errorMessage({ text: '此付款金額已結清，無法進行調整' });
             return;

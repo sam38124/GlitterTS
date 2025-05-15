@@ -47,171 +47,7 @@ export class ProductsPage {
         }
         loadData();
         gvc.glitter.share.reloadProduct = loadData;
-        gvc.addStyle(`
-      .pos-select {
-        font-size: 18px;
-        width: ${isPhone ? '100%' : '131px'};
-        height: 51px;
-        white-space: nowrap;
-        display: flex;
-        padding: 12px;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
-      }
-
-      .pos-category {
-        font-size: 18px;
-        width: 131px;
-        height: 51px;
-        margin-right: 16px;
-        white-space: nowrap;
-        display: flex;
-        padding: 12px 24px;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
-      }
-
-      .pos-product-card {
-        flex-basis: 188px;
-        flex-grow: 1;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
-      }
-
-      .pos-bgr-image {
-        border-radius: 10px 10px 0 0;
-        background: 50% / cover no-repeat;
-      }
-
-      .pos-product-title {
-        font-size: 18px;
-        width: 100%;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        text-overflow: ellipsis;
-        word-break: break-word;
-        -webkit-box-orient: vertical;
-      }
-
-      .pos-product-container {
-        overflow: scroll;
-        max-height: 100%;
-        padding-bottom: 100px !important;
-        ${isPhone
-            ? `
-                padding-left: 12px;
-                padding-right: 12px;
-                justify-content: space-between;
-              `
-            : `
-                gap: 26px;
-                margin-left: 32px;
-                margin-right: 32px;
-              `}
-      }
-
-      .pos-drawer {
-        height: 100%;
-        width: 352px;
-        max-width: 100%;
-        overflow: auto;
-        background: #fff;
-        box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.1);
-      }
-
-      .pos-check-container {
-        height: 50px;
-        margin-bottom: 24px;
-        margin-top: ${gvc.glitter.share.top_inset}px;
-      }
-
-      .pos-check-loading {
-        background: #ffb400;
-        color: #393939;
-        gap: 10px;
-      }
-
-      .pos-cart-list {
-        color: #393939;
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: 3px;
-      }
-
-      .pos-cart-image {
-        height: 67px;
-        width: 66px;
-        margin-right: 12px;
-        min-height: 67px;
-        min-width: 66px;
-        background: 50% / cover;
-      }
-
-      .pos-spec {
-        color: #949494;
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 500;
-      }
-
-      .pos-count-button {
-        display: flex;
-        width: 30px;
-        height: 30px;
-        padding: 8px;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        background: #393939;
-      }
-
-      .pos-count-input {
-        width: 50px;
-        height: 25px;
-        color: #393939;
-        font-size: 18px;
-        font-weight: 500;
-        text-align: center;
-      }
-
-      .pos-subtotal {
-        color: #393939;
-        font-size: 18px;
-        font-style: normal;
-        font-weight: 500;
-        letter-spacing: 0.72px;
-      }
-
-      .pos-price-container {
-        margin-top: 24px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        background: #fff;
-        display: flex;
-        padding: 24px;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      .pos-goto-checkout {
-        margin-top: 32px;
-        display: flex;
-        padding: 12px 24px;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        background: #393939;
-        font-size: 20px;
-        font-style: normal;
-        font-weight: 500;
-        color: #fff;
-      }
-    `);
+        PaymentPage.addStyle(gvc);
         const selectOptionView = gvc.bindView({
             bind: 'selectOption',
             view: () => {
@@ -440,7 +276,7 @@ export class ProductsPage {
                         gvc.notifyDataChange('order');
                     })}"
                         >
-                          ${this.minusSVG}
+                          ${PaymentPage.minusSVG}
                         </div>
                         <input
                           class="border-0 pos-count-input"
@@ -461,7 +297,7 @@ export class ProductsPage {
                         gvc.notifyDataChange('order');
                     })}"
                         >
-                          ${this.plusSVG}
+                          ${PaymentPage.plusSVG}
                         </div>
                       </div>
                     </div>
@@ -479,7 +315,9 @@ export class ProductsPage {
                       >
                         ${this.xmarkSVG}
                       </div>
-                      <div class="pos-subtotal">$${(item.sale_price * item.count).toLocaleString()}</div>
+                      <div class="pos-subtotal">
+                        $${parseInt(`${item.sale_price * item.count}`, 10).toLocaleString()}
+                      </div>
                     </div>
                   </div>
                 `;
@@ -669,16 +507,4 @@ ProductsPage.noImage = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/172
 ProductsPage.xmarkSVG = html `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
     <path d="M1 1L13 13" stroke="#949494" stroke-width="2" stroke-linecap="round" />
     <path d="M13 1L1 13" stroke="#949494" stroke-width="2" stroke-linecap="round" />
-  </svg>`;
-ProductsPage.minusSVG = html `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
-    <path
-      d="M9.64314 5C9.64314 5.3457 9.32394 5.625 8.92885 5.625H1.07171C0.676618 5.625 0.357422 5.3457 0.357422 5C0.357422 4.6543 0.676618 4.375 1.07171 4.375H8.92885C9.32394 4.375 9.64314 4.6543 9.64314 5Z"
-      fill="white"
-    />
-  </svg>`;
-ProductsPage.plusSVG = html `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
-    <path
-      d="M5.76923 0.769231C5.76923 0.34375 5.42548 0 5 0C4.57452 0 4.23077 0.34375 4.23077 0.769231V4.23077H0.769231C0.34375 4.23077 0 4.57452 0 5C0 5.42548 0.34375 5.76923 0.769231 5.76923H4.23077V9.23077C4.23077 9.65625 4.57452 10 5 10C5.42548 10 5.76923 9.65625 5.76923 9.23077V5.76923H9.23077C9.65625 5.76923 10 5.42548 10 5C10 4.57452 9.65625 4.23077 9.23077 4.23077H5.76923V0.769231Z"
-      fill="white"
-    />
   </svg>`;

@@ -218,7 +218,7 @@ export class PathSelect {
                 bind: dropMenu.id,
                 view: () => {
                   if (dropMenu.loading) {
-                    return html``;
+                    return '';
                   } else {
                     let h1 = '';
                     if (dropMenu.prevList.length > 0) {

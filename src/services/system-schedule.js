@@ -13,7 +13,6 @@ class SystemSchedule {
         if (parseInt(prepared_stmt_count, 10) > 10000) {
             const response = await new Promise((resolve, reject) => {
                 ssh_1.Ssh.exec([
-                    `sudo systemctl restart mysqld`,
                     `sudo docker restart $(sudo docker ps --filter "expose=3080" --format "{{.ID}}")`
                 ]).then((res) => {
                     resolve(res && res.join('').indexOf('Successfully') !== -1);
@@ -28,7 +27,7 @@ class SystemSchedule {
     }
     start() {
         const scheduleList = [
-            { second: 60, status: false, func: 'checkMysqlStatus', desc: 'MYSQL狀態檢查' }
+            { second: 60, status: true, func: 'checkMysqlStatus', desc: 'MYSQL狀態檢查' }
         ];
         try {
             scheduleList.forEach((schedule) => {

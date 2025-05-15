@@ -78,9 +78,7 @@ export class UMInfo {
                             >
                               <div style="color: white; font-size: 14px;  font-weight: 700; word-wrap: break-word">
                                 ${(() => {
-                            const mem = vm.data.member.find(d => {
-                                return d.trigger;
-                            });
+                            const mem = vm.data.member.find(d => d.trigger);
                             return mem ? mem.tag_name : Language.text('normal_member');
                         })()}
                               </div>
@@ -264,7 +262,6 @@ export class UMInfo {
                                         </div>`;
                                                 }
                                             },
-                                            divCreate: {},
                                             onCreate: () => {
                                                 if (loading) {
                                                     glitter.addMtScript([
@@ -441,18 +438,18 @@ export class UMInfo {
                             },
                         ]
                             .map(dd => {
-                            return `<div
-                        style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; display: inline-flex"
-                      >
-                        ${dd.value}
-                        <div
-                          style="align-self: stretch; text-align: center; color: #393939; font-size: 16px;  font-weight: 400; line-height: 22.40px; word-wrap: break-word"
-                        >
-                          ${dd.title}
-                        </div>
-                      </div>`;
+                            return html `<div
+                            style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; display: inline-flex"
+                          >
+                            ${dd.value}
+                            <div
+                              style="align-self: stretch; text-align: center; color: #393939; font-size: 16px;  font-weight: 400; line-height: 22.40px; word-wrap: break-word"
+                            >
+                              ${dd.title}
+                            </div>
+                          </div>`;
                         })
-                            .join(`<div class="border-end" style="width:1px;height: 30px;"></div>`)}
+                            .join(html `<div class="border-end" style="width:1px;height: 30px;"></div>`)}
                     </div>
                   </div>
                 </div>
@@ -491,19 +488,17 @@ export class UMInfo {
                             },
                         ]
                             .map((dd) => {
-                            return `
-                    <div
-                      style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;cursor:pointer;"
-                      onclick="${gvc.event(() => {
+                            return html `
+                          <div
+                            style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;cursor:pointer;"
+                            onclick="${gvc.event(() => {
                                 dd.event();
-                            })}">
-                     ${dd.icon}
-                      <div
-                        style="font-size:16px;" class="fw-500">
-                        ${dd.title}
-                      </div>
-                    </div>
-                 `;
+                            })}"
+                          >
+                            ${dd.icon}
+                            <div style="font-size:16px;" class="fw-500">${dd.title}</div>
+                          </div>
+                        `;
                         })
                             .join('')}
                   </div>
@@ -517,7 +512,6 @@ export class UMInfo {
                     }
                 }
             },
-            divCreate: {},
             onCreate: () => {
                 if (loadings.view) {
                     UmClass.getUserData(gvc).then((resp) => {
@@ -738,23 +732,30 @@ export class UMInfo {
                         };
                     });
                     return [
-                        ` <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
-
-                  <div  class="d-none d-lg-flex" style="background: #FF9705;background: #FF9705;width:4px;height: 20px;" onclick="${gvc.event(() => {
+                        html ` <div class="w-100  align-items-center d-flex py-3 pb-lg-3 pt-lg-0" style="gap:10px;">
+              <div
+                class="d-none d-lg-flex"
+                style="background: #FF9705;background: #FF9705;width:4px;height: 20px;"
+                onclick="${gvc.event(() => {
                             gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
                                 cl.changePage('account_userinfo', 'home', {});
                             });
-                        })}"></div>
-                    <div class="d-flex d-lg-none align-items-center justify-content-center" style="width:20px;height: 20px;" onclick="${gvc.event(() => {
+                        })}"
+              ></div>
+              <div
+                class="d-flex d-lg-none align-items-center justify-content-center"
+                style="width:20px;height: 20px;"
+                onclick="${gvc.event(() => {
                             gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'official_event/page/change-page.js', import.meta.url).href, cl => {
                                 cl.changePage('account_userinfo', 'home', {});
                             });
-                        })}">
-                   <i class="fa-solid fa-angle-left fs-4"></i>
-</div>
-                  <div class="um-info-title fw-bold " style="font-size: 24px;">${Language.text('member_info')}</div>
-                </div>`,
-                        `<div style="height:5px;"></div>`,
+                        })}"
+              >
+                <i class="fa-solid fa-angle-left fs-4"></i>
+              </div>
+              <div class="um-info-title fw-bold " style="font-size: 24px;">${Language.text('member_info')}</div>
+            </div>`,
+                        html `<div style="height:5px;"></div>`,
                         FormWidget.editorView({
                             gvc: gvc,
                             array: form_array.map((dd) => {
@@ -781,7 +782,7 @@ export class UMInfo {
                             },
                             formData: update_userData,
                         }),
-                        html ` <div
+                        html `<div
               class="mt-2 w-100 d-flex align-items-center justify-content-end ${JSON.stringify(update_userData) ===
                             JSON.stringify(vm.data.userData)
                             ? `d-none`

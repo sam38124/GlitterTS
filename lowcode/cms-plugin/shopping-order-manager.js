@@ -367,6 +367,8 @@ export class ShoppingOrderManager {
                                     dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
                                     const isWatchUser = watchUsers.includes(dd.orderData.email);
                                     const tooltipText = isWatchUser ? '此份訂單的顧客為觀察名單' : '';
+                                    const userName = dd.orderData.customer_info ? dd.orderData.customer_info.name || '未填寫' : '匿名';
+                                    const receiveName = dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名';
                                     if (query.isShipment) {
                                         return [
                                             {
@@ -382,7 +384,11 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                                                value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                                            },
+                                            {
+                                                key: '收件人',
+                                                value: receiveName,
                                             },
                                             {
                                                 key: '出貨狀態',
@@ -412,7 +418,11 @@ export class ShoppingOrderManager {
                                             },
                                             {
                                                 key: '訂購人',
-                                                value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : '匿名',
+                                                value: dd.orderData.orderSource === 'POS' ? receiveName : userName,
+                                            },
+                                            {
+                                                key: '收件人',
+                                                value: receiveName,
                                             },
                                             {
                                                 key: '訂單金額',
@@ -778,7 +788,7 @@ export class ShoppingOrderManager {
                                         title: '批量更改出貨狀態',
                                         innerHTML: (gvc) => {
                                             return html ` <div>
-                            <div class="tx_700 mb-2">更改為</div>
+                            <div class="tx_700 mb-2">更改為 ${BgWidget.requiredStar()}</div>
                             ${BgWidget.select({
                                                 gvc,
                                                 callback: (value) => {
@@ -2655,12 +2665,14 @@ export class ShoppingOrderManager {
                                     >
                                       ${[
                                                 (() => {
-                                                    var _a;
+                                                    var _a, _b, _c;
                                                     const name = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name;
                                                     if (name) {
                                                         return html `<span style="font-weight: 500; color: #4D86DB;">${name}</span>`;
                                                     }
-                                                    return html `<span style="font-weight: normal; color: #393939;">訪客</span>`;
+                                                    return html `<span style="font-weight: normal; color: #393939;"
+                                            >${((_c = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.customer_info) === null || _c === void 0 ? void 0 : _c.name) || '訪客'}</span
+                                          >`;
                                                 })(),
                                                 (() => {
                                                     if (userData.status === 0) {
@@ -3471,15 +3483,23 @@ export class ShoppingOrderManager {
                 return false;
             }
             if (!passData.customer_info.name || !passData.customer_info.email) {
-                dialog.infoMessage({ text: '「顧客資料」尚未填寫完畢' });
+                dialog.infoMessage({ text: '「顧客資料」姓名與信箱尚未填寫' });
                 return false;
             }
             if (!CheckInput.isEmail(passData.customer_info.email)) {
                 dialog.infoMessage({ text: '「顧客資料」信箱格式錯誤' });
                 return false;
             }
+            if (CheckInput.isEmpty(passData.customer_info.payment_select)) {
+                dialog.infoMessage({ text: '請選擇「付款方式」' });
+                return false;
+            }
+            if (CheckInput.isEmpty(passData.user_info.shipment)) {
+                dialog.infoMessage({ text: '請選擇「配送方式」' });
+                return false;
+            }
             if (!passData.user_info.name || !passData.user_info.email) {
-                dialog.infoMessage({ text: '「收件人資料」尚未填寫完畢' });
+                dialog.infoMessage({ text: '「收件人資料」姓名與信箱尚未填寫' });
                 return false;
             }
             if (CheckInput.isEmpty(passData.user_info.phone) && !CheckInput.isTaiwanPhone(passData.user_info.phone)) {
@@ -3512,7 +3532,7 @@ export class ShoppingOrderManager {
       <div
         style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
       >
-        <div class="tx_700">訂單內容</div>
+        <div class="tx_700">訂單內容 ${BgWidget.requiredStar()}</div>
         <div style="width: 100%;display: flex;align-items: center;padding-right: 20px;">
           <div class="flex-fill d-flex align-items-center col-5 tx_700">商品</div>
           <div class="col-3 pe-lg-3" style="display: flex;align-items: flex-start;font-size: 16px;font-weight: 700;">
@@ -3987,7 +4007,7 @@ export class ShoppingOrderManager {
                 }
                 syncUserData();
                 return html `
-              <div class="tx_700">顧客資料</div>
+              <div class="tx_700">顧客資料 ${BgWidget.requiredStar()}</div>
               <div class="d-flex flex-column">
                 ${customerData.type == 'auto'
                     ? html `
@@ -4462,7 +4482,7 @@ export class ShoppingOrderManager {
                         callback: dd => {
                             orderDetail.customer_info.payment_select = dd;
                         },
-                        title: '付款方式',
+                        title: `付款方式 ${BgWidget.requiredStar()}`,
                         default: (_a = orderDetail.customer_info.payment_select) !== null && _a !== void 0 ? _a : '',
                         options: (yield PaymentConfig.getSupportPayment()).map(dd => {
                             return { key: dd.key, value: dd.name };
@@ -4470,7 +4490,7 @@ export class ShoppingOrderManager {
                     }),
                     BgWidget.select({
                         gvc: gvc,
-                        title: '配送方式',
+                        title: `配送方式 ${BgWidget.requiredStar()}`,
                         callback: dd => {
                             orderDetail.user_info.shipment = dd;
                             orderDetailRefresh = true;
@@ -4524,7 +4544,7 @@ export class ShoppingOrderManager {
                   同顧客資料
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
-                  <div>姓名</div>
+                  <div>姓名 ${BgWidget.requiredStar()}</div>
                   <input
                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
                     value="${(_b = orderDetail.user_info.name) !== null && _b !== void 0 ? _b : ''}"
@@ -4536,7 +4556,7 @@ export class ShoppingOrderManager {
                   />
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
-                  <div>電話</div>
+                  <div>電話 ${BgWidget.requiredStar()}</div>
                   <input
                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
                     value="${(_c = orderDetail.user_info.phone) !== null && _c !== void 0 ? _c : ''}"
@@ -4547,7 +4567,7 @@ export class ShoppingOrderManager {
                   />
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
-                  <div>電子信箱</div>
+                  <div>電子信箱 ${BgWidget.requiredStar()}</div>
                   <input
                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
                     value="${(_d = orderDetail.customer_info.email) !== null && _d !== void 0 ? _d : ''}"
@@ -4594,13 +4614,13 @@ export class ShoppingOrderManager {
                             </div>
                           `;
                                 return html `
-                            <div>配送門市</div>
+                            <div>配送門市 ${BgWidget.requiredStar()}</div>
                             ${returnHTML}
                           `;
                             }
                             else {
                                 return html `
-                            <div>配送門市</div>
+                            <div>配送門市 ${BgWidget.requiredStar()}</div>
                             <div
                               style="color: #4D86DB;cursor: pointer;margin-top:8px;cursor: pointer"
                               onclick="${gvc.event(() => {
@@ -4614,7 +4634,7 @@ export class ShoppingOrderManager {
                         }
                         else {
                             return html `
-                          <div>宅配地址</div>
+                          <div>宅配地址 ${BgWidget.requiredStar()}</div>
                           <input
                             style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;margin-top:8px;width: 100%;"
                             value="${(_c = orderDetail.user_info.address) !== null && _c !== void 0 ? _c : ''}"

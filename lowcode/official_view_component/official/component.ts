@@ -1079,7 +1079,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                               subData.editor_updated_callback &&
                                                                 subData.editor_updated_callback(oWidget);
                                                             }
-
+                                                            glitter.share.refer_form=refer_form
+                                                            glitter.share.refresh_global=(()=>{
+                                                              refresh(widget,type)
+                                                            })
                                                             //設定顯示編輯與否
                                                             function getItemsVisibility(dd: any) {
                                                               const descriptor = Object.getOwnPropertyDescriptor(
@@ -1886,7 +1889,7 @@ ${devEditorView()}
                 },
               };
             }),
-          ].join(`<div style=""></div>`);
+          ].join(`<div ></div>`);
         },
       };
     },

@@ -79,7 +79,7 @@ export class Main_editor {
                   <div
                     id=""
                     class="rounded-3 border p-1"
-                    style=""
+                    
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     data-bs-custom-class="custom-tooltip"
@@ -627,7 +627,7 @@ export class Main_editor {
         bind: id,
         view: () => {
           return html`
-            <div class="guide-user-editor-11" style="">
+            <div class="guide-user-editor-11" >
               ${(() => {
                 if (vm.type === 'list') {
                   return [
@@ -648,7 +648,7 @@ export class Main_editor {
                               gvc.glitter.closeDrawer();
                             })}"
                           >
-                            <i class="fa-sharp fa-regular fa-circle-xmark" style=""></i>
+                            <i class="fa-sharp fa-regular fa-circle-xmark" ></i>
                           </div>
                         </div>`;
                       } else {
@@ -800,7 +800,7 @@ export class Main_editor {
     filter?: (key: string) => boolean;
   }) {
     const gvc = vm.gvc;
-    return `<div style="">${EditorConfig.color_setting_config
+    return `<div >${EditorConfig.color_setting_config
       .filter(dd => {
         return !vm.filter || vm.filter(dd.key);
       })
@@ -1706,8 +1706,8 @@ export class Main_editor {
                         ? `d-none`
                         : ``}"
                     >
-                      <div class="w-100" style="">
-                        <div style="" class="d-flex align-items-center justify-content-around  w-100 p-2 ">
+                      <div class="w-100" >
+                        <div  class="d-flex align-items-center justify-content-around  w-100 p-2 ">
                           ${(() => {
                             const items = [
                               {

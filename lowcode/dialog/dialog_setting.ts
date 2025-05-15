@@ -162,7 +162,7 @@ ${pageSelect(viewModel.data.tag, (tag) => {
                     }
                 }
             })}
-<div style="" class="p-2">
+<div  class="p-2">
 ${
                 gvc.bindView(() => {
                     return {

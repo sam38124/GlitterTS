@@ -1388,7 +1388,7 @@ onclick="${gvc.event(() => {
                                                                           return {
                                                                               bind: selectID,
                                                                               view: () => {
-                                                                                  return html` <div class="w-100 " style="">
+                                                                                  return html` <div class="w-100 " >
                                                                                       <div class="d-flex align-items-center justify-content-around w-100 p-2">
                                                                                           ${[
                                                                                               {
@@ -2452,7 +2452,7 @@ background: white;
                                 const detID = cf.gvc.glitter.getUUID();
                                 const plusID = cf.gvc.glitter.getUUID();
                                 let block_close = false;
-                                return html` <div class="" style="z-index:9999;min-height: 20px;max-height: 20px;width: 100%;" onmouseout="${cf.gvc.event(() => {})}">
+                                return html` <div  style="z-index:9999;min-height: 20px;max-height: 20px;width: 100%;" onmouseout="${cf.gvc.event(() => {})}">
                                     <div
                                         id="${detID}"
                                         class="d-none"

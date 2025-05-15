@@ -35,7 +35,7 @@ export class BgGlobalEvent {
     static mainPage(gvc) {
         const rightID = gvc.glitter.getUUID();
         return `<div class="d-flex w-100">
-                <div style="width:300px;" class="">
+                <div style="width:300px;" >
                     ${BgGlobalEvent.leftBar(gvc, (tag) => {
             BgGlobalEvent.selectTag = tag;
             gvc.notifyDataChange(rightID);

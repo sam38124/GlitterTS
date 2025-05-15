@@ -66,11 +66,11 @@ export class AboutUs {
                        <h2 class="f_20">從<span class="gradint fw-bold f_20">零</span>開始出發，打造<span class="gradint fw-bold f_20">完美系統</span></h2>
                    </div>
                     <div style="${(document.body.clientWidth < 800) ? `gap:18px;margin-top: 32px;` : `margin-top: 64px;`}" class="d-flex flex-column flex-sm-row justify-content-between">
-                        <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_1.png" class="" style="max-width: 100%;width: 743px;">
+                        <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_1.png"  style="max-width: 100%;width: 743px;">
                         <div class="d-flex flex-lg-column" style="${(document.body.clientWidth < 800) ? `width:100%;` : `width: calc(100% - 773px);`}">
-                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_2.png" class="" style="${(document.body.clientWidth < 800) ? `width: calc(50% - 10px);` : `width: 100%;`}">
+                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_2.png"  style="${(document.body.clientWidth < 800) ? `width: calc(50% - 10px);` : `width: 100%;`}">
                             <div class="flex-fill"></div>
-                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_3.png" class="" style="${(document.body.clientWidth < 800) ? `width: calc(50% - 10px);` : `width: 100%;`}">
+                            <img src="${gvc.glitter.root_path}/landing-page/about-src/team_work_3.png"  style="${(document.body.clientWidth < 800) ? `width: calc(50% - 10px);` : `width: 100%;`}">
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-center justify-content-center mx-auto" style="${(((document.body.clientWidth < 800))) ? `gap:8;margin-top:132px;` : `gap:16px;margin-top:200px;`}">
@@ -79,9 +79,9 @@ export class AboutUs {
                             展望更加輝煌的未來</h2>
                     </div>
                     ${(document.body.clientWidth > 800) ? `
-                     <img src="${gvc.glitter.root_path}/landing-page/about-src/time_line.png" class="" style="width: 100%;margin-bottom:293px;margin-top:59px;">
+                     <img src="${gvc.glitter.root_path}/landing-page/about-src/time_line.png"  style="width: 100%;margin-bottom:293px;margin-top:59px;">
                     ` : `
-                     <img src="${gvc.glitter.root_path}/landing-page/about-src/mobile_time_line.png" class="" style="width: calc(100% + 30px);margin-left:-15px;margin-top:17px;">
+                     <img src="${gvc.glitter.root_path}/landing-page/about-src/mobile_time_line.png"  style="width: calc(100% + 30px);margin-left:-15px;margin-top:17px;">
                     `}
                     <div class="d-flex flex-column align-items-center justify-content-center mx-auto" style="${(((document.body.clientWidth < 800))) ? `gap:8;margin-top:132px;` : ``}">
                         <h1 class="f_20 gradint fw-bold">團隊介紹</h1>

@@ -269,7 +269,7 @@ ${[
                                             <i class="fa-solid fa-trash-can " style="color:black;"></i>
                                         </div>
                                     ` : ``}
-                               <div class="" style=""><i class="fa-solid fa-pencil me-1" 
+                               <div  ><i class="fa-solid fa-pencil me-1" 
                                    data-bs-toggle="tooltip" data-bs-placement="top"
                                                                  data-bs-custom-class="custom-tooltip"
                                                                  data-bs-title="編輯樣式名稱"
@@ -377,7 +377,7 @@ ${[
                                                                                          </div>
                                                                                      </div>
                                                                                      <div class="d-flex "
-                                                                                          style="">
+                                                                                          >
                                                                                          <div>
                                                                                              ${gvc.bindView(() => {
                                                                     return {
@@ -793,7 +793,7 @@ border-radius: 0px 10px 10px 0px;" data-bs-toggle="tooltip" data-bs-placement="t
                     bind: gvc.glitter.getUUID(),
                     view: () => {
                         return html `
-                        <div class="w-100 mt-n2" style="">
+                        <div class="w-100 mt-n2" >
                             <div class="d-flex align-items-center justify-content-around w-100 p-2">
                                 ${[
                             {
@@ -1110,7 +1110,7 @@ class Render {
                                     <l1 class="btn-group "
                                         style="margin-top:1px;margin-bottom:1px;">
                                         <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
-                                             style=""
+                                             
                                              onclick="${option.selectEvent || gvc.event(() => {
                             viewModel.selectContainer = original;
                             viewModel.selectItem = dd;
@@ -1126,7 +1126,7 @@ class Render {
                                             ${dd.label}
                                             <div class="flex-fill"></div>
                                             ${(dd.type === 'container') ? ` <l1 class="btn-group me-0 subBt"
-                                                                                style=""
+                                                                                
                                                                                 onclick="${gvc.event((e, event) => {
                             var _a;
                             dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];

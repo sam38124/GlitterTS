@@ -133,7 +133,7 @@ export class BgCustomerMessage {
                              style="background: white;border-radius: 50%;width: 40px;height: 40px;" width="40"
                              alt="Albert Flores">
                         <div class="d-flex  px-1 text-white align-items-center" style="gap:8px;">
-                            <h6 class="mb-0 text-white " style="">一站式客服整合系統</h6>
+                            <h6 class="mb-0 text-white " >一站式客服整合系統</h6>
       ${BgWidget.iconButton({
         icon: 'question',
         event: gvc.event(() => {
@@ -416,7 +416,7 @@ export class BgCustomerMessage {
                                         view: () => {
                                           return html`
                                             <div class="d-flex flex-column" style="gap:5px;">
-                                              <div class="tx_normal fw-normal" style="">AI客服機器人</div>
+                                              <div class="tx_normal fw-normal" >AI客服機器人</div>
                                               <div class="d-flex">
                                                 ${BgWidget.switchButton(gvc, keyData.ai_toggle, bool => {
                                                   keyData.ai_toggle = bool;
@@ -465,7 +465,7 @@ export class BgCustomerMessage {
                                                                         style: ``,
                                                                       }
                                                                     )}
-                                                                    <div style="" class="p-2">
+                                                                    <div  class="p-2">
                                                                       ${gvc.bindView(() => {
                                                                         return {
                                                                           bind: id,
@@ -852,7 +852,7 @@ export class BgCustomerMessage {
                                       >常見問題 ${BgWidget.grayNote('將顯示於客服聊天首頁，讓用戶直接點選')}</span
                                     >
                                   </div>
-                                  <div style="" class="p-2">
+                                  <div  class="p-2">
                                     ${gvc.bindView(() => {
                                       return {
                                         bind: id,

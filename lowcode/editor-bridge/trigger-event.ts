@@ -282,7 +282,7 @@ function questionText(title: string, data: { title: string, content: string }[])
                   <h3 class="accordion-header">
                     <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" >
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>

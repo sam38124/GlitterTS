@@ -1,9 +1,9 @@
-/// <reference types="cookie-parser" />
 import { IToken } from '../models/Auth.js';
 import { LanguageLocation } from '../Language.js';
 import express from 'express';
 export declare class Template {
     token?: IToken;
+    constructor(token?: IToken);
     createPage(config: {
         appName: string;
         tag: string;
@@ -69,5 +69,4 @@ export declare class Template {
         language?: LanguageLocation;
         req: express.Request;
     }): Promise<any>;
-    constructor(token?: IToken);
 }

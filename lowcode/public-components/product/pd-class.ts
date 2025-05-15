@@ -575,6 +575,13 @@ export class PdClass {
     });
   }
 
+  static isShoppingPage(){
+    const glitter = (window as any).glitter;
+   return ['hidden/','shop/'].find((dd)=>{
+     return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd))
+   });
+  }
+  // document.querySelector('.check_out_cart_data').scrollIntoView()
   static changePage(prod: any, gvc: GVC) {
     const glitter = gvc.glitter;
     let path = '';
@@ -1178,8 +1185,8 @@ export class PdClass {
               }
               viewMap.push(
                 html`<button
-                  class="add-cart-btn fw-bold fs-sm"
-                  style=" flex: 1;height:44px;"
+                  class="${PdClass.isShoppingPage() ? `add-cart-imd-btn`:`add-cart-btn`} fw-bold fs-sm"
+                  style="flex: 1;height:44px;"
                   onclick="${gvc.event(() => {
                     if (document.body.clientWidth < 800) {
                       this.addProductPopUp(obj, 'addCart', () => refreshAll());
@@ -1215,8 +1222,9 @@ export class PdClass {
                   ${isOutOfStock ? Language.text('preorder_item') : Language.text('add_to_cart')}
                 </button>`
               );
-              viewMap.push(
-                html`<button
+              if(!PdClass.isShoppingPage()){
+                viewMap.push(
+                  html`<button
                   class="add-cart-imd-btn fw-bold fs-sm"
                   style="cursor: pointer; flex: 1;height:44px;"
                   onclick="${gvc.event(() => {
@@ -1245,7 +1253,9 @@ export class PdClass {
                 >
                   ${Language.text('buy_it_now')}
                 </button>`
-              );
+                );
+              }
+             
               return viewMap.join('');
             },
             divCreate: {

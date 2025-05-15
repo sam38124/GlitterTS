@@ -2035,7 +2035,7 @@ class User {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
             }) &&
-                !['level_status', 'level_default', 'contact_phone', 'contact_name', 'tags'].includes(dd)) {
+                !['level_status', 'level_default', 'contact_phone', 'contact_name', 'tags', 'receive_list'].includes(dd)) {
                 delete userData[dd];
             }
         });

@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const manager_js_1 = require("./api-public/services/manager.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -427,7 +429,6 @@ class SeoConfig {
                 console.log(`req.query.page_refer`, req.query.page_refer);
             }
             let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language, req);
-            console.log(`initial-data:`, data);
             let home_page_data = await (async () => {
                 return await seo_js_1.Seo.getPageInfo(appName, 'index', language, req);
             })();
@@ -457,17 +458,10 @@ class SeoConfig {
                     data.page_config.seo.image = seo.image || data.page_config.seo.image;
                     data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                 }
-                else if (`${req.query.page}`.startsWith('blogs/')) {
+                else if (['pages/', 'shop/', 'hidden/', 'blogs/'].find(dd => {
+                    return `${req.query.page}`.startsWith(dd);
+                })) {
                     data.page_config.seo = await SeoConfig.articleSeo({
-                        article: req.query.article,
-                        page: req.query.page,
-                        language,
-                        appName,
-                        data,
-                    });
-                }
-                else if (`${req.query.page}`.startsWith('pages/')) {
-                    await SeoConfig.articleSeo({
                         article: req.query.article,
                         page: req.query.page,
                         language,
@@ -768,7 +762,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -777,7 +770,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

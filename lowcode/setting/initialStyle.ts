@@ -20,7 +20,7 @@ export function initialStyle(gvc: GVC, viewModel: any, id: string) {
                         title: '文字區塊內容',
                         array: viewModel.initialStyleSheet.map((dd: any, index: number) => {
                             return {
-                                title: `<span style="">${dd.name || `區塊:${index}`}</span>`,
+                                title: `<span >${dd.name || `區塊:${index}`}</span>`,
                                 innerHtml: (() => {
                                     return gvc.bindView(() => {
                                         const cid = glitter.getUUID();
@@ -148,7 +148,7 @@ export function initialStylePage(gvc: GVC, viewModel: any, id: string) {
                         title: '文字區塊內容',
                         array: viewModel.data.page_config.initialStyleSheet.map((dd: any, index: number) => {
                             return {
-                                title: `<span style="">${dd.name || `區塊:${index}`}</span>`,
+                                title: `<span >${dd.name || `區塊:${index}`}</span>`,
                                 innerHtml: (() => {
                                     return gvc.bindView(() => {
                                         const cid = glitter.getUUID();

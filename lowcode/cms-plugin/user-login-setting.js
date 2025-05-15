@@ -103,7 +103,7 @@ export class UserLoginSetting {
                                                     <div class="ms-auto" style="right: 0px;top: 0px;">
                                                         <div
                                                             class="btn-sm bt_primary bt_c39 fs-sm fw-500"
-                                                            style=""
+                                                            
                                                             onclick="${gvc.event(() => {
                             EditorElem.openEditorDialog(gvc, (gvc) => {
                                 return gvc.bindView(() => {

@@ -8,6 +8,7 @@ import { LanguageView } from '../public/language-view.js';
 import { HeaderClass } from './header-class.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
+import { PdClass } from '../product/pd-class.js';
 const html = String.raw;
 export class Sy04 {
     static main(gvc, widget, subData) {
@@ -105,7 +106,7 @@ export class Sy04 {
                                     const vm = {
                                         data: [],
                                     };
-                                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                                         vm.data = res.response.value[Language.getLanguage()];
                                         gvc.notifyDataChange(id);
                                     });
@@ -240,7 +241,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                       `}
                 </div>
               </div>
-              <div class="">
+              <div >
                 <!--選單列表顯示區塊-->
                 <ul
                   class="navbar-nav position-absolute start-50 top-50 d-none d-lg-block"
@@ -251,7 +252,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                     const vm = {
                         data: [],
                     };
-                    ApiUser.getPublicConfig('menu-setting', 'manager', window.appName).then(res => {
+                    ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', window.appName).then(res => {
                         vm.data = res.response.value[Language.getLanguage()];
                         gvc.notifyDataChange(id);
                     });
@@ -337,7 +338,7 @@ padding-bottom: 2px;
                 })}
                   ${HeaderClass.hideShopperBtn()
                     ? ``
-                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="">
+                    : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" >
                                 ${gvc.bindView(() => {
                         const vm = {
                             id: gvc.glitter.getUUID(),
@@ -347,6 +348,9 @@ padding-bottom: 2px;
                             bind: vm.id,
                             view: () => {
                                 var _a, _b;
+                                if (PdClass.isShoppingPage()) {
+                                    return ``;
+                                }
                                 if (!vm.toggle) {
                                     return html `<i
                                           class="fa-regular fa-magnifying-glass"

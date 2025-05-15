@@ -1708,6 +1708,13 @@ ${obj.default ?? ''}</textarea
     return vmt.dataList.map((item: any) => this.printOption(gvc, vmt, { key: item, value: `#${item}` })).join('');
   }
 
+  static requiredStar() {
+    return html`<i
+      class="fa-solid fa-star-of-life"
+      style="font-size: 8px; color: #da1313; vertical-align: text-top; line-height: 16px;"
+    ></i>`;
+  }
+
   // 頁面
   static dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 
