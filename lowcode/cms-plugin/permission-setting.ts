@@ -998,8 +998,7 @@ export class PermissionSetting {
     callback?: () => void
   ) {
     const id = gvc.glitter.getUUID();
-    const inputColor = undefined;
-    const randomString = BgWidget.getCheckedClass(gvc, inputColor);
+    const randomString = BgWidget.getCheckedClass(gvc);
     const viewId = Tool.randomString(5);
 
     function renderCheck(key: string | undefined, status: boolean) {
@@ -1082,7 +1081,7 @@ export class PermissionSetting {
           `;
         });
 
-        return html` <div class="row" >${checkboxHTML}</div> `;
+        return html` <div class="row">${checkboxHTML}</div> `;
       },
     });
   }

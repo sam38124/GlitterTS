@@ -2282,7 +2282,7 @@ export class CheckoutIndex {
                                                 gvc.notifyDataChange(id);
                                             });
                                         }
-                                        const checkbox = this.getCheckedClass(gvc, '#393939');
+                                        const checkbox = this.getCheckedClass(gvc);
                                         return {
                                             bind: id,
                                             view: () => __awaiter(this, void 0, void 0, function* () {

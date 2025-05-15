@@ -2850,9 +2850,8 @@ ${obj.default ?? ''}</textarea
     }
   ) {
     const id = gvc.glitter.getUUID();
-    const inputColor = obj && obj.readonly ? '#808080' : undefined;
-    const randomString =
-      obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
+    const isReadonly = Boolean(obj && obj.readonly);
+    const randomString = obj?.single ? this.getWhiteDotClass(gvc, isReadonly) : this.getCheckedClass(gvc, isReadonly);
     const viewId = Tool.randomString(5);
 
     return gvc.bindView({
@@ -2924,9 +2923,8 @@ ${obj.default ?? ''}</textarea
       readonly?: boolean;
     }
   ) {
-    const inputColor = undefined;
-    const checkedString = this.getCheckedClass(gvc, inputColor);
-    const squareString = this.getSquareClass(gvc, inputColor);
+    const checkedString = this.getCheckedClass(gvc);
+    const squareString = this.getSquareClass(gvc);
     const viewId = Tool.randomString(5);
     const randomKey = Tool.randomString(5);
 
@@ -2995,9 +2993,7 @@ ${obj.default ?? ''}</textarea
   }) {
     obj.type = obj.type ?? 'single';
     const gvc = obj.gvc;
-    const inputColor = undefined;
-    const randomString =
-      obj.type === 'single' ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
+    const randomString = obj.type === 'single' ? this.getWhiteDotClass(gvc) : this.getCheckedClass(gvc);
     return html`
       ${obj.title ? html` <div class="tx_normal fw-normal">${obj.title}</div>` : ``}
       ${obj.gvc.bindView(() => {
@@ -5261,9 +5257,17 @@ ${obj.default ?? ''}</textarea
     return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='${color}'%3e%3cpath d='M225.813 48.907L128 146.72 30.187 48.907 0 79.093l128 128 128-128z'/%3e%3c/svg%3e"`;
   }
 
-  static checkedDataImage(color: string): string {
-    color = color.replace('#', '%23');
-    return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
+  static checkedDataImage(): string {
+    const color = '#fff'.replace('#', '%23');
+    return `"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2217%22%20viewBox%3D%220%200%2016%2017%22%20fill%3D%22none%22%3E%0A%20%20%3Crect%20y%3D%220.5%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22%23393939%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M4.5%209L7%2011.5L11.5%205.5%22%20stroke%3D%22${color}%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3C%2Fsvg%3E"`;
+    // return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
+  }
+
+  static readonlyCheckedDataImage(): string {
+    const color = '#fff'.replace('#', '%23');
+    const bgr = '#8d8d8d'.replace('#', '%23');
+    return `"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2217%22%20viewBox%3D%220%200%2016%2017%22%20fill%3D%22none%22%3E%0A%20%20%3Crect%20y%3D%220.5%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22${bgr}%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M4.5%209L7%2011.5L11.5%205.5%22%20stroke%3D%22${color}%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3C%2Fsvg%3E"`;
+    // return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
   }
 
   static squareDataImage(color: string): string {
@@ -5281,17 +5285,17 @@ ${obj.default ?? ''}</textarea
     return `"data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='16' height='16' rx='8' fill='${color}'/%3e%3crect x='4' y='4' width='8' height='8' rx='4' fill='white'/%3e%3c/svg%3e"`;
   }
 
-  static getCheckedClass(gvc: GVC, color?: string) {
-    const className = color ? 'checked-image' : 'checked-image-readonly';
+  static getCheckedClass(gvc: GVC, readonly?: boolean) {
+    const className = readonly ? 'checked-image-readonly' : 'checked-image';
     gvc.addStyle(`
       .${className} {
         min-width: 1.25rem;
         min-height: 1.25rem;
       }
       .${className}:checked[type='checkbox'] {
-        border: 2px solid ${color ?? '#000'};
+        border: 0;
         background-color: #fff;
-        background-image: url(${this.checkedDataImage(color ?? '#000')});
+        background-image: url(${readonly ? this.readonlyCheckedDataImage() : this.checkedDataImage()});
         background-position: center center;
       }
     `);
@@ -5331,8 +5335,8 @@ ${obj.default ?? ''}</textarea
     return className;
   }
 
-  static getWhiteDotClass(gvc: GVC, color?: string) {
-    const className = color ? 'white-dot-image' : 'white-dot-image-readonly';
+  static getWhiteDotClass(gvc: GVC, readonly?: boolean) {
+    const className = readonly ? 'white-dot-image-readonly' : 'white-dot-image';
     gvc.addStyle(`
       .${className} {
         min-width: 1.15rem;
@@ -5342,7 +5346,7 @@ ${obj.default ?? ''}</textarea
       .${className}:checked[type='radio'] {
         border: 0px solid #000;
         background-color: #fff;
-        background-image: url(${this.whiteDotDataImage(color ?? '#000')});
+        background-image: url(${this.whiteDotDataImage(readonly ? '#808080' : '#000')});
         background-position: center center;
       }
     `);
