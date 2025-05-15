@@ -960,13 +960,13 @@ export class UMLogin {
         });
     }
     static sendResetEmail(widget, vm) {
+        const email = this.checkValue('vm-email');
+        vm.resetEmail = email;
         if (!vm.resetEmail) {
-            const email = this.checkValue('vm-email');
             if (!email) {
                 widget.event('error', { title: Language.text('email_placeholder') });
                 return;
             }
-            vm.resetEmail = email;
         }
         widget.event('loading', { visible: true });
         ApiUser.forgetPwd(vm.resetEmail).then(r => {
@@ -980,7 +980,7 @@ export class UMLogin {
                 }
             }
             else {
-                widget.event('error', { title: Language.text('system_error') });
+                widget.event('error', { title: Language.text('no_account') });
             }
         });
     }

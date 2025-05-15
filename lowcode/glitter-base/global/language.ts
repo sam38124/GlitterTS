@@ -850,6 +850,7 @@ export class Language {
       { key: 'shipping_notes', tw: '配送備註', cn: '配送备注', en: 'Shipping Notes' },
       { key: 'return_to_order_list', tw: '返回訂單列表', cn: '返回订单列表', en: 'Return to OrderEvent List' },
       { key: 'order_not_found', tw: '查無此訂單', cn: '查无此订单', en: 'OrderEvent not found' },
+      { key: 'no_account', tw: '查無此帳號', cn: '查無此帳號', en: 'Cant find account' },
       { key: 'expired', tw: '已過期', cn: '已过期', en: 'Expired' },
       { key: 'not_yet_shipped', tw: '尚未出貨', cn: '尚未出货', en: 'Not yet shipped' },
       { key: 'get_verification_code', tw: '取得驗證碼', cn: '获取验证码', en: 'Get Verification Code' },

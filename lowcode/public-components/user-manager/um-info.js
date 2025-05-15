@@ -804,6 +804,7 @@ export class UMInfo {
                                 userData: update_userData,
                             }).then(res => {
                                 dialog.dataLoading({ visible: false });
+                                console.log(res);
                                 if (!res.result && res.response.data.msg === 'email-verify-false') {
                                     dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
                                 }
@@ -815,6 +816,9 @@ export class UMInfo {
                                 }
                                 else if (!res.result && res.response.data.msg === 'email-exists') {
                                     dialog.errorMessage({ text: Language.text('email_already_exists') });
+                                }
+                                else if (!res.result && res.response.message === 'User phone already exists.') {
+                                    dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
                                 }
                                 else if (!res.result) {
                                     dialog.errorMessage({ text: Language.text('update_exception') });

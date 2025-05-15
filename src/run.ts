@@ -9,7 +9,7 @@ const zackPath = `/Users/wangjianzhi/Desktop/CODENEX/staging.env`;
 
 if (fs.existsSync(path.resolve(wangPath))) {
   console.log('使用 Wang 路徑環境');
-  ConfigSetting.runSchedule = true;
+  ConfigSetting.runSchedule = false;
   ConfigSetting.setConfig(wangPath);
 }
 

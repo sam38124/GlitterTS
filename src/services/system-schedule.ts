@@ -13,13 +13,14 @@ export class SystemSchedule {
     //檢查mysql狀態，如異常則重啟。
     async checkMysqlStatus(sec: number) {
       const prepared_stmt_count=(await db.query(`show global status like 'prepared_stmt_count';`,[]))[0]['Value']
-      if(parseInt(prepared_stmt_count,10)> 100000){
+      if(parseInt(prepared_stmt_count,10)> 200000){
            const response = await new Promise((resolve, reject) => {
                Ssh.exec([
                    //重啟MYSQL
                    // `sudo systemctl restart mysqld`,
                    //重啟Docker
-                   `sudo docker restart $(sudo docker ps --filter "expose=3080" --format "{{.ID}}")`]).then(
+                   `sudo docker restart $(sudo docker ps --filter "expose=3080" --format "{{.ID}}")`
+               ]).then(
                    (res: any) => {
                        resolve(res && res.join('').indexOf('Successfully') !== -1);
                    }

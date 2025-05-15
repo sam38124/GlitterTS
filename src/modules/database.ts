@@ -64,7 +64,7 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement because params=null');
   }
   try {
-    const [results] = await pool.execute(sql, params);
+    const [results] = (await pool.execute(sql, params));
     return results;
   } catch (err) {
     logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
