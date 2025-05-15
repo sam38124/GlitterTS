@@ -24,7 +24,8 @@ const createPool = async () => {
         user: config_1.default.DB_USER,
         password: config_1.default.DB_PWD,
         supportBigNumbers: true,
-        waitForConnections: true
+        waitForConnections: true,
+        maxPreparedStatements: 10000,
     });
     try {
         return pool;

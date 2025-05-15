@@ -583,13 +583,11 @@ export class EditorElem {
                 type: 'getData',
                 value: obj.dontRefactor
                   ? obj.initial
-                  : `
-                      style {
-                        ${addNewlineAfterSemicolon(obj.initial)}
-                      }
-                    `,
+                  : `style {
+                  ${addNewlineAfterSemicolon(obj.initial)}
+                  }`,
                 language: 'css',
-                refactor: !obj.dontRefactor,
+                refactor: false,
               },
               domain
             );

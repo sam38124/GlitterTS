@@ -98,6 +98,7 @@ export async function initial(serverPort: number) {
       new Schedule().main();
       new SystemSchedule().start();
     }
+    //
     WebSocket.start();
     logger.info('[Init]', `Server is listening on port: ${serverPort}`);
     CaughtError.initial();

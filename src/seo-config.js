@@ -429,7 +429,6 @@ class SeoConfig {
                 console.log(`req.query.page_refer`, req.query.page_refer);
             }
             let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language, req);
-            console.log(`initial-data:`, data);
             let home_page_data = await (async () => {
                 return await seo_js_1.Seo.getPageInfo(appName, 'index', language, req);
             })();
@@ -459,17 +458,10 @@ class SeoConfig {
                     data.page_config.seo.image = seo.image || data.page_config.seo.image;
                     data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                 }
-                else if (`${req.query.page}`.startsWith('blogs/')) {
+                else if (['pages/', 'shop/', 'hidden/', 'blogs/'].find(dd => {
+                    return `${req.query.page}`.startsWith(dd);
+                })) {
                     data.page_config.seo = await SeoConfig.articleSeo({
-                        article: req.query.article,
-                        page: req.query.page,
-                        language,
-                        appName,
-                        data,
-                    });
-                }
-                else if (`${req.query.page}`.startsWith('pages/')) {
-                    await SeoConfig.articleSeo({
                         article: req.query.article,
                         page: req.query.page,
                         language,

@@ -21,7 +21,8 @@ const createPool = async () => {
     user: config.DB_USER,
     password: config.DB_PWD,
     supportBigNumbers: true,
-waitForConnections:true
+    waitForConnections:true,
+    maxPreparedStatements: 10000,
     // // 啟用連線保持活躍
     // enableKeepAlive: true,
     // // 每 10 秒發送一次保持活躍訊號

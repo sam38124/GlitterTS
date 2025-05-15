@@ -73,14 +73,14 @@ export class NormalPageEditor {
         return html` <div
                 id="norView"
                 class="vw-100 vh-100 position-fixed top-0 d-none"
-                style="z-index: 999999;background: rgba(0,0,0,0.5);"
+                style="z-index: 99999;background: rgba(0,0,0,0.5);"
                 onclick="${gvc.event(() => {
                     NormalPageEditor.toggle({
                         visible: false,
                     });
                 })}"
             ></div>
-            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 999999;max-width: 100vw;display: none;">${NormalPageEditor.view(gvc)}</div>`;
+            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;max-width: 100vw;display: none;">${NormalPageEditor.view(gvc)}</div>`;
     }
 
     public static viewArray: any = [];

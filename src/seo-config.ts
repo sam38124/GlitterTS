@@ -501,7 +501,6 @@ export class SeoConfig {
       }
       //取得SEO頁面資訊
       let data = await Seo.getPageInfo(appName, req.query.page as string, language,req);
-      console.log(`initial-data:`, data);
       //首頁SEO
       let home_page_data = await (async () => {
         return await Seo.getPageInfo(appName, 'index', language,req);
@@ -532,18 +531,11 @@ export class SeoConfig {
           data.page_config.seo.keywords = seo.keywords || data.page_config.seo.keywords;
           data.page_config.seo.image = seo.image || data.page_config.seo.image;
           data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
-        } else if (`${req.query.page}`.startsWith('blogs/')) {
-          //網誌搜索
-          data.page_config.seo = await SeoConfig.articleSeo({
-            article: req.query.article as any,
-            page: req.query.page as any,
-            language,
-            appName,
-            data,
-          });
-        } else if (`${req.query.page}`.startsWith('pages/')) {
+        } else if (['pages/','shop/','hidden/','blogs/'].find(dd => {
+          return `${req.query.page}`.startsWith(dd)
+        })) {
           //頁面搜索
-          await SeoConfig.articleSeo({
+          data.page_config.seo = await SeoConfig.articleSeo({
             article: req.query.article as any,
             page: req.query.page as any,
             language,
