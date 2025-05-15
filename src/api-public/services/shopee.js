@@ -46,23 +46,25 @@ class Shopee {
             return `https://partner.shopeemobile.com`;
         }
     }
-    static get partner_id() {
-        if (process_1.default.env.shopee_beta === 'true') {
-            return process_1.default.env.shopee_test_partner_id;
-        }
-        else {
-            return process_1.default.env.shopee_partner_id;
-        }
+    get partner_id() {
+        return (process_1.default.env.shopee_beta === 'true')
+            ? (this.type === 'order'
+                ? process_1.default.env.shopee_order_test_partner_id
+                : process_1.default.env.shopee_test_partner_id)
+            : (this.type === 'order'
+                ? process_1.default.env.shopee_order_partner_id
+                : process_1.default.env.shopee_partner_id);
     }
-    static get partner_key() {
-        if (process_1.default.env.shopee_beta === 'true') {
-            return process_1.default.env.shopee_test_partner_key;
-        }
-        else {
-            return process_1.default.env.shopee_partner_key;
-        }
+    get partner_key() {
+        return (process_1.default.env.shopee_beta === 'true')
+            ? (this.type === 'order'
+                ? process_1.default.env.shopee_order_test_partner_key
+                : process_1.default.env.shopee_test_partner_key)
+            : (this.type === 'order'
+                ? process_1.default.env.shopee_order_partner_key
+                : process_1.default.env.shopee_partner_key);
     }
-    constructor(app, token) {
+    constructor(app, token, type = 'product') {
         this.getDateTime = (n = 0) => {
             const now = new Date();
             now.setDate(now.getDate() + n);
@@ -76,6 +78,7 @@ class Shopee {
         };
         this.app = app;
         this.token = token;
+        this.type = type;
     }
     generateUrl(partner_id, api_path, timestamp) {
         const sign = this.cryptoSign(partner_id, api_path, timestamp);
@@ -87,14 +90,14 @@ class Shopee {
     }
     cryptoSign(partner_id, api_path, timestamp, access_token, shop_id) {
         const baseString = `${partner_id}${api_path}${timestamp}${access_token !== null && access_token !== void 0 ? access_token : ''}${shop_id !== null && shop_id !== void 0 ? shop_id : ''}`;
-        const partner_key = Shopee.partner_key;
+        const partner_key = this.partner_key;
         return crypto_1.default
             .createHmac('sha256', partner_key !== null && partner_key !== void 0 ? partner_key : '')
             .update(baseString)
             .digest('hex');
     }
     generateAuth(redirectUrl) {
-        const partner_id = Shopee.partner_id;
+        const partner_id = this.partner_id;
         const api_path = '/api/v2/shop/auth_partner';
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${api_path}${timestamp}`;
@@ -104,7 +107,7 @@ class Shopee {
     async getToken(code, shop_id) {
         var _a;
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+        const partner_id = (_a = this.partner_id) !== null && _a !== void 0 ? _a : '';
         const api_path = '/api/v2/auth/token/get';
         const config = {
             method: 'post',
@@ -154,7 +157,7 @@ class Shopee {
     async getItemList(start, end, index = 0) {
         var _a;
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+        const partner_id = (_a = this.partner_id) !== null && _a !== void 0 ? _a : '';
         const api_path = '/api/v2/product/get_item_list';
         await this.fetchShopeeAccessToken();
         const data = await database_js_1.default.execute(`select *
@@ -263,7 +266,7 @@ class Shopee {
         async function getModel(postMD) {
             var _a;
             const timestamp = Math.floor(Date.now() / 1000);
-            const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+            const partner_id = (_a = that.partner_id) !== null && _a !== void 0 ? _a : '';
             const api_path = '/api/v2/product/get_model_list';
             const config = {
                 method: 'get',
@@ -353,7 +356,7 @@ class Shopee {
             }
         }
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+        const partner_id = (_a = this.partner_id) !== null && _a !== void 0 ? _a : '';
         const api_path = '/api/v2/product/get_item_base_info';
         const config = {
             method: 'get',
@@ -484,7 +487,7 @@ class Shopee {
             item_id: obj.product.content.shopee_id,
             stock_list: [],
         };
-        const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+        const partner_id = (_a = this.partner_id) !== null && _a !== void 0 ? _a : '';
         const api_path = '/api/v2/product/get_model_list';
         const timestamp = Math.floor(Date.now() / 1000);
         const config = {
@@ -604,7 +607,7 @@ class Shopee {
             obj.accessToken = sqlData;
             if (new Date().getTime() >= new Date(sqlData[0].updated_at).getTime() + 3.9 * 3600 * 1000) {
                 console.log(`確認要刷新token`);
-                const partner_id = Shopee.partner_id;
+                const partner_id = this.partner_id;
                 const api_path = '/api/v2/auth/access_token/get';
                 const timestamp = Math.floor(Date.now() / 1000);
                 const config = {
@@ -650,7 +653,7 @@ class Shopee {
     async getOrderList(start, end, index = 0) {
         var _a;
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : '';
+        const partner_id = (_a = this.partner_id) !== null && _a !== void 0 ? _a : '';
         const api_path = '/api/v2/order/get_order_list';
         await this.fetchShopeeAccessToken();
         console.log();

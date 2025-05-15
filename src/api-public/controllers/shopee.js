@@ -25,6 +25,16 @@ router.post('/getAuth', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/getOrderAuth', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            "result": new shopee_1.Shopee(req.get('g-app'), req.body.token, 'order').generateAuth(req.body.redirect)
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/getToken', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {

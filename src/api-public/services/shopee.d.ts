@@ -12,10 +12,11 @@ export interface LanguageData {
 export declare class Shopee {
     app: string;
     token: IToken | undefined;
+    private type;
     static get path(): "https://partner.test-stable.shopeemobile.com" | "https://partner.shopeemobile.com";
-    static get partner_id(): string | undefined;
-    static get partner_key(): string | undefined;
-    constructor(app: string, token?: IToken);
+    get partner_id(): string | undefined;
+    get partner_key(): string | undefined;
+    constructor(app: string, token?: IToken, type?: string);
     generateUrl(partner_id: string, api_path: string, timestamp: number): string;
     generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number): string;
     private cryptoSign;

@@ -13,7 +13,6 @@ export class ApiShopee {
                 redirect: redirect,
             }),
         }).then(r => {
-            console.log('r.response.result -- ', r.response.result);
             localStorage.setItem('shopee', window.parent.location.href);
             window.parent.location.href = r.response.result;
         });
@@ -31,7 +30,6 @@ export class ApiShopee {
                 redirect: redirect,
             }),
         }).then(r => {
-            console.log('r.response.result -- ', r.response.result);
             localStorage.setItem('shopee', window.parent.location.href);
             window.parent.location.href = r.response.result;
         });

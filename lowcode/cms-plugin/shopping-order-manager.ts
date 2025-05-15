@@ -379,6 +379,7 @@ export class ShoppingOrderManager {
           BgWidget.tableV3({
             gvc: gvc,
             defPage: ShoppingOrderManager.vm.page,
+            
             getData: vmi => {
               ShoppingOrderManager.vm.page = vmi.page;
               vm.apiJSON = {

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShopee } from '../glitter-base/route/shopee.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 const css = String.raw;
@@ -327,24 +326,7 @@ export class MarketShopee {
                             ApiShopee.generateOrderAuth(window.parent.location.href);
                         })}"
                   >
-                    授權蝦皮訂單同步
-                  </button>
-                  <button
-                    id=""
-                    class="shopee-btn mt-3 d-none"
-                    onclick="${gvc.event(() => {
-                            const dialog = new ShareDialog(gvc.glitter);
-                            dialog.dataLoading({
-                                visible: true,
-                            });
-                            ApiShopee.syncProduct((res) => {
-                                dialog.dataLoading({
-                                    visible: false,
-                                });
-                            });
-                        })}"
-                  >
-                    同步商品庫存
+                    授權訂單同步
                   </button>
                 `),
                         BgWidget.mbContainer(18),
@@ -358,6 +340,24 @@ export class MarketShopee {
                                     const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                                     const endTime = Math.floor(new Date(endDate).getTime() / 1000);
                                     ApiShopee.getItemList(startTime, endTime, (response) => {
+                                        gvcDialog.closeDialog();
+                                        gvc.notifyDataChange(blockID);
+                                    });
+                                    loading = true;
+                                });
+                            },
+                        }),
+                        BgWidget.mbContainer(18),
+                        showShopeeBlock({
+                            btnText: '匯入訂單',
+                            subTitle: '如要同步蝦皮訂單，請先匯入定單。',
+                            title: '匯入蝦皮訂單',
+                            url: '',
+                            click: (blockID) => {
+                                drawDialog((startDate, endDate, gvcDialog) => {
+                                    const startTime = Math.floor(new Date(startDate).getTime() / 1000);
+                                    const endTime = Math.floor(new Date(endDate).getTime() / 1000);
+                                    ApiShopee.getOrderList(startTime, endTime, (response) => {
                                         gvcDialog.closeDialog();
                                         gvc.notifyDataChange(blockID);
                                     });
