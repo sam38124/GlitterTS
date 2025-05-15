@@ -1132,7 +1132,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         }, 400);
         function checkSwitchToUiEditor() {
             function next() {
-                Object.keys(window.glitterInitialHelper.share).map((dd) => {
+                Object.keys(window.glitterInitialHelper.share).map(dd => {
                     if (dd.startsWith('getPageData-')) {
                         window.glitterInitialHelper.share[dd] = undefined;
                     }
@@ -1359,7 +1359,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                     BgWidget.fullDialog({
                                                                                         gvc: gvc,
                                                                                         title: gvc2 => {
-                                                                                            return html `<div
+                                                                                            return html ` <div
                                                           class="d-flex align-items-center"
                                                           style="gap:10px;"
                                                         >
@@ -1501,6 +1501,187 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                             html ` <div class="my-2"></div>`,
                                                             [
                                                                 html `${(() => {
+                                                                    const subVM = {
+                                                                        dataList: [],
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        containerId: Tool.randomString(6),
+                                                                        loading: true,
+                                                                    };
+                                                                    console.log(`d1---->`, d1);
+                                                                    return gvc.bindView(() => {
+                                                                        return {
+                                                                            bind: subVM.id,
+                                                                            view: () => {
+                                                                                if (subVM.loading) {
+                                                                                    return BgWidget.spinner();
+                                                                                }
+                                                                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                                    subVM.dataList = yield (() => __awaiter(this, void 0, void 0, function* () {
+                                                                                        try {
+                                                                                            switch (d1.select) {
+                                                                                                case 'product':
+                                                                                                    return yield BgProduct.getProductOpts(d1.value);
+                                                                                                case 'collection':
+                                                                                                    return d1.value;
+                                                                                                default:
+                                                                                                    return [];
+                                                                                            }
+                                                                                        }
+                                                                                        catch (e) {
+                                                                                            return [];
+                                                                                        }
+                                                                                    }))();
+                                                                                    resolve(html ` <div class="d-flex flex-column py-2">
+                                                      <div class="mx-n3  border-top"></div>
+                                                      <div
+                                                        class="d-flex align-items-center  pb-2 pt-3"
+                                                        style="gap: 10px; justify-content: space-between;"
+                                                      >
+                                                        <div class="flex-fill ">
+                                                          ${EditorElem.select({
+                                                                                        title: '',
+                                                                                        gvc: gvc,
+                                                                                        def: d1.select,
+                                                                                        array: [
+                                                                                            { value: 'collection', title: '商品系列' },
+                                                                                            { value: 'product', title: '特定商品' },
+                                                                                            { value: 'all', title: '所有商品' },
+                                                                                        ],
+                                                                                        callback: text => {
+                                                                                            d1.select = text;
+                                                                                            d1.value = [];
+                                                                                            gvc.notifyDataChange(subVM.id);
+                                                                                        },
+                                                                                    })}
+                                                        </div>
+                                                        <div
+                                                          class="${d1.select === 'all' ? `d-none` : ``}"
+                                                          style=""
+                                                        >
+                                                          ${BgWidget.save(gvc.event(() => {
+                                                                                        var _a, _b;
+                                                                                        if (d1.select === 'product') {
+                                                                                            d1.value = (_a = d1.value) !== null && _a !== void 0 ? _a : [];
+                                                                                            BgProduct.productsDialog({
+                                                                                                gvc: gvc,
+                                                                                                default: d1.value,
+                                                                                                callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                    d1.value = value;
+                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                }),
+                                                                                            });
+                                                                                        }
+                                                                                        else if (d1.select === 'collection') {
+                                                                                            d1.value = (_b = d1.value) !== null && _b !== void 0 ? _b : [];
+                                                                                            BgProduct.collectionsDialog({
+                                                                                                gvc: gvc,
+                                                                                                default: d1.value,
+                                                                                                callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                    d1.value = value;
+                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                }),
+                                                                                            });
+                                                                                        }
+                                                                                    }), (() => {
+                                                                                        switch (d1.select) {
+                                                                                            case 'product':
+                                                                                            case 'collection':
+                                                                                                return `選取`;
+                                                                                        }
+                                                                                        return ``;
+                                                                                    })())}
+                                                        </div>
+                                                      </div>
+                                                      <div class="d-flex flex-column gap-2" id="${subVM.containerId}">
+                                                        ${gvc.map(subVM.dataList.map((opt, index) => {
+                                                                                        switch (d1.select) {
+                                                                                            case 'collection':
+                                                                                                return html ` <div
+                                                                  class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                >
+                                                                  <span class="tx_normal">${index + 1} . ${opt}</span>
+                                                                </div>`;
+                                                                                            case 'product':
+                                                                                                return html ` <div
+                                                                  class="d-flex align-items-center form-check-label c_updown_label px-1"
+                                                                  style="justify-content: space-between"
+                                                                  data-index="${opt.key}"
+                                                                >
+                                                                  <div
+                                                                    class="d-flex align-items-center gap-3 cursor_move"
+                                                                    style="max-width: calc(100% - 50px);"
+                                                                  >
+                                                                    <i
+                                                                      class="fa-solid fa-grip-dots-vertical dragItem"
+                                                                    ></i>
+                                                                    ${BgWidget.validImageBox({
+                                                                                                    gvc,
+                                                                                                    image: opt.image,
+                                                                                                    width: 40,
+                                                                                                })}
+                                                                    <div
+                                                                      class="tx_normal ${opt.note ? 'mb-1' : ''}"
+                                                                      style="white-space:normal;"
+                                                                    >
+                                                                      ${opt.value}
+                                                                    </div>
+                                                                  </div>
+                                                                  <i
+                                                                    class="fa-regular fa-trash cursor_pointer"
+                                                                    onclick="${gvc.event(() => {
+                                                                                                    d1.value = d1.value.filter((id) => {
+                                                                                                        return id !== opt.key;
+                                                                                                    });
+                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                })}"
+                                                                  ></i>
+                                                                </div>`;
+                                                                                            case 'all':
+                                                                                                return ``;
+                                                                                        }
+                                                                                    }))}
+                                                      </div>
+                                                      <div class="mx-n3  border-top mt-3"></div>
+                                                    </div>`);
+                                                                                }));
+                                                                            },
+                                                                            onCreate: () => {
+                                                                                if (subVM.loading) {
+                                                                                    gvc.addMtScript([
+                                                                                        {
+                                                                                            src: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+                                                                                        },
+                                                                                    ], () => {
+                                                                                        const si = setInterval(() => {
+                                                                                            if (window.Sortable !== undefined) {
+                                                                                                subVM.loading = false;
+                                                                                                clearInterval(si);
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            }
+                                                                                        }, 300);
+                                                                                    }, () => { });
+                                                                                }
+                                                                                else {
+                                                                                    const el = document.querySelector(`#${subVM.containerId}`);
+                                                                                    window.Sortable.create(el, {
+                                                                                        animation: 150,
+                                                                                        handle: '.dragItem',
+                                                                                        onEnd: function () {
+                                                                                            const elements = el.querySelectorAll('[data-index]');
+                                                                                            const dataIndices = Array.from(elements).map(element => element.getAttribute('data-index'));
+                                                                                            const value = dataIndices.map(index => {
+                                                                                                if (index) {
+                                                                                                    return parseInt(index, 10);
+                                                                                                }
+                                                                                            });
+                                                                                            d1.value = value;
+                                                                                            gvc.notifyDataChange(subVM.id);
+                                                                                        },
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        };
+                                                                    });
                                                                     return gvc.bindView(() => {
                                                                         const subVM = {
                                                                             id: gvc.glitter.getUUID(),
@@ -1546,7 +1727,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                     </div>
                                                     ${dataList
                                                                                     .map((opt, index) => {
-                                                                                    return html `<div
+                                                                                    return html ` <div
                                                           class="d-flex align-items-center form-check-label c_updown_label px-1"
                                                           style="justify-content: space-between"
                                                           data-index="${opt.key}"
@@ -1674,7 +1855,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                     `;
                                                                             })
                                                                                 .join('') ||
-                                                                                html `<div
+                                                                                html ` <div
                                                   class="w-100 d-flex align-content-center justify-content-center"
                                                 >
                                                   尚未加入任何賣場商品
@@ -2166,10 +2347,7 @@ function loopFindProducts(config) {
     function loop(array, container_cf) {
         array.map((dd) => {
             if (dd.type === 'component' && dd.data.tag === 'SY00-normal-products') {
-                if (dd.data.refer_form_data.product_select.select !== 'product') {
-                    dd.data.refer_form_data.product_select.select = 'product';
-                    dd.data.refer_form_data.product_select.value = [];
-                }
+                console.log(`loopFindProducts`, dd.data);
                 product_select.push(dd.data.refer_form_data.product_select);
             }
             else if (dd.type === 'container') {

@@ -90,8 +90,10 @@ class Rebate {
             return undefined;
         }
         try {
-            const cbList = await database_1.default.query(`SELECT remain, created_at, deadline FROM \`${this.app}\`.t_rebate_point 
-                    WHERE user_id = ? AND remain > 0`, [user_id, nowTime]);
+            const cbList = await database_1.default.query(`
+          SELECT remain, created_at, deadline FROM \`${this.app}\`.t_rebate_point
+          WHERE user_id = ? AND remain > 0
+        `, [user_id, nowTime]);
             cbList.map((data) => {
                 const { remain, created_at, deadline } = data;
                 if ((0, moment_timezone_1.default)(created_at).isAfter(nowTime)) {
