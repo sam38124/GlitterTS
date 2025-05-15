@@ -5,7 +5,7 @@ interface OneUserRebate {
     recycle: number;
     pending: number;
 }
-type RebateType = 'voucher' | 'birth' | 'first_regiser' | 'manual';
+type RebateType = 'voucher' | 'birth' | 'first_regiser' | 'manual' | 'cancelOrder';
 export interface IRebateSearch {
     search: string;
     limit: number;
@@ -15,6 +15,13 @@ export interface IRebateSearch {
     email_or_phone?: string;
     type?: string;
 }
+export interface RebateRecord {
+    order_id: string;
+    use_rebate: number;
+    remain: number;
+    updated_at: string;
+    origin_deadline: string;
+}
 export interface RebateProof {
     type?: RebateType;
     voucher_id?: string;
@@ -23,6 +30,7 @@ export interface RebateProof {
     quantity?: number;
     setCreatedAt?: string;
     deadTime?: string;
+    record?: RebateRecord[];
 }
 export declare class Rebate {
     app: string;
@@ -70,7 +78,7 @@ export declare class Rebate {
     getOldestRebate(user_id: number | string): Promise<{
         data: any;
     } | undefined>;
-    updateOldestRebate(user_id: number | string, originMinus: number): Promise<boolean | undefined>;
+    updateOldestRebate(user_id: number | string, order_id: string | undefined, originMinus: number): Promise<boolean | undefined>;
     minusCheck(user_id: number | string, amount: number): Promise<boolean | undefined>;
     insertRebate(user_id: number | string, amount: number, note: string, proof?: RebateProof): Promise<{
         result: boolean;
@@ -96,5 +104,9 @@ export declare class Rebate {
         result: boolean;
         msg: string;
     } | undefined>;
+    searchRebate(json: {
+        user_id?: string;
+        order_id?: string;
+    }): Promise<any>;
 }
 export {};

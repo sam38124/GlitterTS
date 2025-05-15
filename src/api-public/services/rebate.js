@@ -235,9 +235,8 @@ class Rebate {
             const search = await database_1.default.query(searchSQL, [obj.email, obj.user_id]);
             if (search.length == 1) {
                 const data = (await database_1.default.query(rebateSQL, [search[0].userID])).map((x) => {
-                    x.created_at = (0, moment_timezone_1.default)(x.created_at).format('YYYY-MM-DD HH:mm:ss');
-                    x.updated_at = (0, moment_timezone_1.default)(x.updated_at).format('YYYY-MM-DD HH:mm:ss');
-                    x.deadline = x.deadline ? (0, moment_timezone_1.default)(x.deadline).format('YYYY-MM-DD HH:mm:ss') : null;
+                    var _a;
+                    x.deadline = (_a = x.deadline) !== null && _a !== void 0 ? _a : null;
                     return x;
                 });
                 return { result: true, data };
@@ -268,25 +267,31 @@ class Rebate {
             }
         }
     }
-    async updateOldestRebate(user_id, originMinus) {
+    async updateOldestRebate(user_id, order_id, originMinus) {
         user_id = parseInt(`${user_id}`, 10);
         const nowTime = Rebate.nowTime();
-        const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         try {
             let minus = -originMinus;
             do {
                 const oldest = await this.getOldestRebate(user_id);
                 if (oldest === null || oldest === void 0 ? void 0 : oldest.data) {
-                    const { id, remain } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
+                    const { id, remain, content, deadline } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
                     if (id && remain !== undefined) {
-                        if (remain - minus > 0) {
-                            await database_1.default.execute(updateSQL, [remain - minus, nowTime, id]);
-                            minus = 0;
-                        }
-                        else {
-                            await database_1.default.execute(updateSQL, [0, nowTime, id]);
-                            minus = minus - remain;
-                        }
+                        const calc_remain = remain - minus;
+                        const after_remain = remain - minus > 0 ? remain - minus : 0;
+                        const new_record = {
+                            order_id: order_id !== null && order_id !== void 0 ? order_id : '',
+                            use_rebate: remain - after_remain,
+                            remain: after_remain,
+                            origin_deadline: deadline,
+                            updated_at: new Date().toISOString(),
+                        };
+                        content.record = [...(content.record || []), new_record];
+                        await database_1.default.execute(`
+                UPDATE \`${this.app}\`.t_rebate_point 
+                SET remain = ?, content = ?, updated_at = ? WHERE id = ?;
+              `, [after_remain, JSON.stringify(content), nowTime, id]);
+                        minus = calc_remain > 0 ? 0 : -calc_remain;
                     }
                 }
                 else {
@@ -344,7 +349,7 @@ class Rebate {
                 await database_1.default.execute(insertSQL, [user_id, amount, amount, note, proof !== null && proof !== void 0 ? proof : {}, nowTime, nowTime, deadTime]);
             }
             else if (amount < 0) {
-                await this.updateOldestRebate(user_id, amount);
+                await this.updateOldestRebate(user_id, proof === null || proof === void 0 ? void 0 : proof.order_id, amount);
                 await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof !== null && proof !== void 0 ? proof : {}, nowTime, nowTime, null]);
             }
             return {
@@ -374,17 +379,30 @@ class Rebate {
             if (type === 'voucher' && search) {
                 const { voucher_id, order_id, sku, quantity } = search;
                 const data = await database_1.default.query(`${SQL} 
-                        AND JSON_EXTRACT(content, '$.voucher_id') = ?
-                        AND JSON_EXTRACT(content, '$.order_id') = ?
-                        AND JSON_EXTRACT(content, '$.sku') = ?
-                        AND JSON_EXTRACT(content, '$.quantity') = ?;`, [voucher_id, order_id, sku, quantity]);
+            AND JSON_EXTRACT(content, '$.voucher_id') = ?
+            AND JSON_EXTRACT(content, '$.order_id') = ?
+            AND JSON_EXTRACT(content, '$.sku') = ?
+            AND JSON_EXTRACT(content, '$.quantity') = ?;
+          `, [voucher_id, order_id, sku, quantity]);
                 if (data.length > 0)
                     return { result: false, msg: '此優惠券已使用過' };
             }
+            if (type === 'cancelOrder' && search) {
+                const { voucher_id, order_id, sku, quantity } = search;
+                const data = await database_1.default.query(`${SQL} 
+            AND JSON_EXTRACT(content, '$.voucher_id') = ?
+            AND JSON_EXTRACT(content, '$.order_id') = ?
+            AND JSON_EXTRACT(content, '$.sku') = ?
+            AND JSON_EXTRACT(content, '$.quantity') = ?;
+          `, [voucher_id, order_id, sku, quantity]);
+                if (data.length > 0)
+                    return { result: false, msg: '此訂單取消已回補過' };
+            }
             if (type === 'birth') {
                 const data = await database_1.default.query(`${SQL} 
-                            AND JSON_EXTRACT(content, '$.type') = 'birth'
-                            AND YEAR(created_at) = YEAR(CURDATE());`, []);
+            AND JSON_EXTRACT(content, '$.type') = 'birth' 
+            AND YEAR(created_at) = YEAR(CURDATE());
+          `, []);
                 if (data.length > 0)
                     return { result: false, msg: '生日購物金已發放過' };
             }
@@ -393,12 +411,34 @@ class Rebate {
                 if (data.length > 0)
                     return { result: false, msg: '首次註冊購物金已發放過' };
             }
-            return { result: true, msg: '此優惠券可使用' };
+            return { result: true, msg: '可以使用' };
         }
         catch (error) {
             console.error(error);
             if (error instanceof Error) {
                 throw exception_1.default.BadRequestError('Check Rebate Error: ', error.message, null);
+            }
+        }
+    }
+    async searchRebate(json) {
+        try {
+            const query = ['1=1'];
+            if (json.user_id) {
+                query.push(`user_id = ${database_1.default.escape(json.user_id)}`);
+            }
+            if (json.order_id) {
+                query.push(`content->>'$.order_id' = ${database_1.default.escape(json.order_id)}`);
+            }
+            const getData = await database_1.default.query(`
+          SELECT * FROM \`${this.app}\`.t_rebate_point 
+          WHERE ${query.map(str => `(${str})`).join(' AND ')};
+        `, []);
+            return getData;
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Search Rebate Error: ', error.message, null);
             }
         }
     }

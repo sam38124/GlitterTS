@@ -11,7 +11,7 @@ import { EcPay, PayNow } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from './user.js';
 import { Invoice } from './invoice.js';
-import { Rebate } from './rebate.js';
+import { Rebate, RebateProof, RebateRecord } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
@@ -2142,7 +2142,6 @@ export class Shopping {
           return_url,
           carData.customer_info.payment_select!
         );
-        console.log('Controller 收到 Payment Result:', paymentResult);
         return paymentResult;
       } catch (error) {
         console.error('Controller 捕獲到錯誤:', error);
@@ -2753,7 +2752,6 @@ export class Shopping {
         if (voucher.reBackType === 'shipment_free') {
           // 判斷使用的物流是否為優惠券所指定
           const isSelectShipment: () => boolean = () => {
-
             if (!voucher.selectShipment || voucher.selectShipment.type === 'all') {
               return true;
             }
@@ -2989,6 +2987,7 @@ export class Shopping {
     try {
       const update: any = {};
       const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+      const rebateClass = new Rebate(this.app);
       let origin: any;
 
       const whereClause = data.cart_token ? 'cart_token = ?' : data.id ? 'id = ?' : null;
@@ -3035,6 +3034,7 @@ export class Shopping {
         // 恢復取消訂單的庫存
         orderData.lineItems = resetLineItems(orderData.lineItems);
         origin.orderData.lineItems = resetLineItems(origin.orderData.lineItems);
+
         // 釋放優惠券
         await this.releaseVoucherHistory(orderData.orderID, orderData.orderStatus === '-1' ? 0 : 1);
 
@@ -3042,7 +3042,7 @@ export class Shopping {
         const prevStatus = origin.orderData.orderStatus;
         const prevProgress = origin.orderData.progress || 'wait';
 
-        //變成已取消加回庫存
+        // 變成已取消加回庫存
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
           await this.resetStore(origin.orderData.lineItems);
 
@@ -3066,7 +3066,42 @@ export class Shopping {
               );
             }
           }
-          //變成處理或已完成扣庫存
+
+          // 購物金取消訂單退回
+          const useRecord = await rebateClass.getRebateListByRow({
+            search: '',
+            limit: 99999,
+            page: 0,
+            email_or_phone: data.orderData.email,
+          });
+
+          if (Array.isArray(useRecord?.data)) {
+            const isbackRecord = useRecord.data.some((data: { content: RebateProof }) => {
+              return data.content.type === 'cancelOrder' && data.content.order_id === orderData.orderID;
+            });
+
+            if (!isbackRecord) {
+              const orderUseRebateRecord = useRecord.data.filter((data: any) => {
+                return data.content.record?.find((item: RebateRecord) => {
+                  return item.order_id === orderData.orderID;
+                });
+              });
+
+              orderUseRebateRecord.map(async (data: any) => {
+                if (data.content.record) {
+                  const findOrderRecord = data.content.record.find((r: RebateRecord) => {
+                    return r.order_id === orderData.orderID;
+                  });
+
+                  await rebateClass.insertRebate(data.user_id, findOrderRecord.use_rebate, '訂單取消，回補購物金', {
+                    type: 'cancelOrder',
+                    order_id: orderData.orderID,
+                    deadTime: Tool.formatDateTime(findOrderRecord.origin_deadline, true),
+                  });
+                }
+              });
+            }
+          }
         } else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
           await this.resetStore(origin.orderData.lineItems, 'minus');
         }
@@ -3116,9 +3151,7 @@ export class Shopping {
         {}
       );
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `,
         [updateData, origin.id]
       );
@@ -3203,8 +3236,8 @@ export class Shopping {
             status: 0,
           };
           await db.query(
-            `INSERT INTO \`${this.app}\`.t_triggers
-             SET ?;`,
+            `INSERT INTO \`${this.app}\`.t_triggers SET ?;
+            `,
             [json]
           );
         }
@@ -4081,9 +4114,9 @@ export class Shopping {
         // await this.releaseVoucherHistory(order_id, 0);
       }
 
-      //如果原先狀態為已付款，且更改的狀態不為已付款
+      // 如果原先狀態為已付款，且更改的狀態不為已付款
       if (original_status === 1 && status !== 1) {
-        //清除購買數量
+        // 清除購買數量
         for (const b of order_data['orderData'].lineItems) {
           await this.calcSoldOutStock(b.count * -1, b.id, b.spec);
         }

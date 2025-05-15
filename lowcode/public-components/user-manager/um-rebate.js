@@ -13,6 +13,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { UMVoucher } from './um-voucher.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Tool } from '../../modules/tool.js';
 const html = String.raw;
 export class UMRebate {
     static main(gvc, widget, subData) {
@@ -131,7 +132,7 @@ export class UMRebate {
                         }
                         function formatText(item) {
                             return [
-                                glitter.ut.dateFormat(new Date(item.created_time), 'yyyy/MM/dd hh:mm'),
+                                Tool.formatDateTime(item.created_time),
                                 (() => {
                                     if (item.money <= 0) {
                                         return '-';
@@ -140,7 +141,7 @@ export class UMRebate {
                                         return Language.text('no_expiry');
                                     }
                                     else {
-                                        return html `${glitter.ut.dateFormat(new Date(item.deadline), 'yyyy/MM/dd hh:mm')}
+                                        return html `${Tool.formatDateTime(item.deadline)}
                             ${threeDayLater(item.deadline) && item.remain && item.remain > 0
                                             ? html `<span class="badge bg-faded-danger text-danger ms-1"
                                   >${Language.text('about_to_expire')}</span
@@ -156,6 +157,9 @@ export class UMRebate {
                                         gvc.glitter.setUrlParameter('cart_token', item.orderID);
                                         changePage('order_detail', 'page', {});
                                     }), 'font-size: 16px;');
+                                    if (item.content.type === 'cancelOrder') {
+                                        return `${Language.text('order')}「${orderLink}」${Language.text('cancel_reback')}`;
+                                    }
                                     const moneyText = item.money > 0 ? Language.text('obtain') : Language.text('use');
                                     return `${Language.text('order')}「${orderLink}」${moneyText} ${vm.rebateConfig.title}`;
                                 })(),

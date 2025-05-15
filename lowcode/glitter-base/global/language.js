@@ -220,6 +220,7 @@ export class Language {
             { key: 'comment', tw: '評語', cn: '评语', en: 'Comment' },
             { key: 'write_comment', tw: '撰寫評論', cn: '撰写评论', en: 'Write Comment' },
             { key: 'rating', tw: '評分', cn: '评分', en: 'Rating' },
+            { key: 'cancel_reback', tw: '取消退回', cn: '取消退回', en: 'Cancel Return' },
             { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: 'Switch language' },
             { key: 'shopping_details', tw: '購物明細', cn: '购物明细', en: 'Shopping details' },
             { key: 'your_shopping_cart', tw: '您的購物車', cn: '您的购物车', en: 'Your shopping cart' },
