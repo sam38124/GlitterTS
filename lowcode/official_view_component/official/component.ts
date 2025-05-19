@@ -1078,6 +1078,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 subData.editor_updated_callback(oWidget);
                                                             }
                                                             glitter.share.refer_form=refer_form
+                                                            glitter.share.refer_form_=glitter.share.refer_form_ ?? {}
+                                                            glitter.share.refer_form_[oWidget.data.tag]=refer_form
                                                             glitter.share.refresh_global=(()=>{
                                                               refresh(widget,type)
                                                             })

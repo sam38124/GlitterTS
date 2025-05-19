@@ -1889,6 +1889,7 @@ class Shopping {
             return voucher.bind.length > 0;
         }
         function checkCartTotal(voucher) {
+            var _a;
             voucher.times = 0;
             voucher.bind_subtotal = 0;
             const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
@@ -1897,8 +1898,8 @@ class Shopping {
                 voucher.bind.map(item => {
                     voucher.bind_subtotal += item.count * item.sale_price;
                 });
-                if (cart.discount && voucher.includeDiscount === 'after') {
-                    voucher.bind_subtotal -= cart.discount;
+                if (voucher.includeDiscount === 'after') {
+                    voucher.bind_subtotal -= ((_a = cart.discount) !== null && _a !== void 0 ? _a : 0) + cart.use_rebate;
                 }
                 if (voucher.rule === 'min_price') {
                     cartValue = voucher.bind_subtotal;
@@ -1929,12 +1930,18 @@ class Shopping {
             }
             if (voucher.conditionType === 'item') {
                 if (voucher.rule === 'min_price') {
-                    voucher.bind = voucher.bind.filter(item => {
+                    const proportions = [];
+                    const subtotal = voucher.bind.reduce((sum, item) => sum + item.sale_price * item.count, 0);
+                    voucher.bind.map(item => {
+                        const useRebate = Math.floor(cart.use_rebate * tool_js_1.default.floatAdd((item.sale_price * item.count) / subtotal, 0));
+                        proportions.push(useRebate);
+                    });
+                    voucher.bind = voucher.bind.filter((item, index) => {
                         var _a;
                         item.times = 0;
                         let subtotal = item.count * item.sale_price;
-                        if (cart.discount && voucher.includeDiscount === 'after') {
-                            subtotal -= (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
+                        if (voucher.includeDiscount === 'after') {
+                            subtotal -= ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + proportions[index];
                         }
                         if (subtotal >= ruleValue) {
                             if (voucher.counting === 'each') {
@@ -2158,6 +2165,12 @@ class Shopping {
                 const prevProgress = origin.orderData.progress || 'wait';
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
                     await this.resetStore(origin.orderData.lineItems);
+                    const usedCancel = origin.orderData.editRecord.some((data) => data.record.includes('訂單已取消'));
+                    if (!usedCancel) {
+                        origin.orderData.lineItems.map(async (item) => {
+                            await this.calcSoldOutStock(item.count * -1, item.id, item.spec);
+                        });
+                    }
                     const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
                     for (const email of emailList) {
                         if (email) {

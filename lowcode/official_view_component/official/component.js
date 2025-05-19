@@ -901,6 +901,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                         return {
                                                                                                             bind: vm.id,
                                                                                                             view: () => __awaiter(this, void 0, void 0, function* () {
+                                                                                                                var _a;
                                                                                                                 let refer_form = getReferForm(widget, type);
                                                                                                                 function refresh(widget, device) {
                                                                                                                     if (widget.data.refer_app) {
@@ -972,6 +973,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         subData.editor_updated_callback(oWidget);
                                                                                                                 }
                                                                                                                 glitter.share.refer_form = refer_form;
+                                                                                                                glitter.share.refer_form_ = (_a = glitter.share.refer_form_) !== null && _a !== void 0 ? _a : {};
+                                                                                                                glitter.share.refer_form_[oWidget.data.tag] = refer_form;
                                                                                                                 glitter.share.refresh_global = (() => {
                                                                                                                     refresh(widget, type);
                                                                                                                 });

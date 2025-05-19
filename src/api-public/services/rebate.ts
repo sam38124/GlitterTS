@@ -246,7 +246,10 @@ export class Rebate {
     try {
       if (query.search || query.email_or_phone) {
         const users = (await db.query(getUsersSQL, [])).map((user: { userID: number }) => user.userID);
-        rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
+        if(users.length > 0){
+          rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
+        }
+
       }
 
       const rebateCountSQL = `SELECT count(r.id) as c FROM \`${this.app}\`.t_rebate_point as r
