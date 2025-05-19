@@ -828,14 +828,14 @@ class CheckoutEvent {
                     carData.shipment_fee = 0;
                 }
                 if (tempVoucher.reBackType == 'rebate') {
-                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'email_or_phone');
                     if (!customerData) {
                         await userClass.createUser(data.email, tool_js_1.default.randomString(8), {
                             email: data.email,
                             name: data.customer_info.name,
                             phone: data.customer_info.phone,
                         }, {}, true);
-                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'email_or_phone');
                     }
                 }
                 await Promise.all(saveStockArray.map(dd => dd()));
