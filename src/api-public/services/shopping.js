@@ -1893,12 +1893,6 @@ class Shopping {
             voucher.times = 0;
             voucher.bind_subtotal = 0;
             const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
-            const proportions = [];
-            const subtotal = voucher.bind.reduce((sum, item) => sum + item.sale_price * item.count, 0);
-            voucher.bind.map(item => {
-                const useRebate = Math.floor(cart.use_rebate * tool_js_1.default.floatAdd((item.sale_price * item.count) / subtotal, 0));
-                proportions.push(useRebate);
-            });
             if (voucher.conditionType === 'order') {
                 let cartValue = 0;
                 voucher.bind.map(item => {
@@ -1936,6 +1930,12 @@ class Shopping {
             }
             if (voucher.conditionType === 'item') {
                 if (voucher.rule === 'min_price') {
+                    const proportions = [];
+                    const subtotal = voucher.bind.reduce((sum, item) => sum + item.sale_price * item.count, 0);
+                    voucher.bind.map(item => {
+                        const useRebate = Math.floor(cart.use_rebate * tool_js_1.default.floatAdd((item.sale_price * item.count) / subtotal, 0));
+                        proportions.push(useRebate);
+                    });
                     voucher.bind = voucher.bind.filter((item, index) => {
                         var _a;
                         item.times = 0;
@@ -2082,9 +2082,7 @@ class Shopping {
         function countingBindDiscount(voucher) {
             voucher.bind.map(item => {
                 var _a;
-                const discountTotal = item.discount_price * item.count;
-                const reduceNum = (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
-                reduceDiscount[item.id] = discountTotal + reduceNum;
+                reduceDiscount[item.id] = ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + item.discount_price * item.count;
             });
         }
         function filterVoucherlist(vouchers) {
@@ -2167,6 +2165,12 @@ class Shopping {
                 const prevProgress = origin.orderData.progress || 'wait';
                 if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
                     await this.resetStore(origin.orderData.lineItems);
+                    const usedCancel = origin.orderData.editRecord.some((data) => data.record.includes('訂單已取消'));
+                    if (!usedCancel) {
+                        origin.orderData.lineItems.map(async (item) => {
+                            await this.calcSoldOutStock(item.count * -1, item.id, item.spec);
+                        });
+                    }
                     const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
                     for (const email of emailList) {
                         if (email) {

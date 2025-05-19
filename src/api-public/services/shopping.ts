@@ -3060,6 +3060,16 @@ export class Shopping {
         if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
           await this.resetStore(origin.orderData.lineItems);
 
+          // 已取消過的紀錄
+          const usedCancel = origin.orderData.editRecord.some((data: any) => data.record.includes('訂單已取消'));
+
+          // 扣除已售出數值
+          if (!usedCancel) {
+            origin.orderData.lineItems.map(async (item: any) => {
+              await this.calcSoldOutStock(item.count * -1, item.id, item.spec);
+            });
+          }
+
           const emailList = new Set(
             [origin.orderData.customer_info, origin.orderData.user_info].map(user => user?.email)
           );
