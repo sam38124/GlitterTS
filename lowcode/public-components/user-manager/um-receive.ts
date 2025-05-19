@@ -22,6 +22,7 @@ export class UMReceive {
       dataList: [] as any,
       dataKeys: [] as string[],
     };
+    const receive_list_max_length = 100;
 
     let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
     gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
@@ -33,6 +34,91 @@ export class UMReceive {
       view: async () => {
         if (vm.loading) {
           return UmClass.spinner();
+        }
+
+        function saveView() {
+          return html`<div class="d-flex justify-content-end">
+            <div
+              class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
+              onclick="${gvc.event(() => {
+                vm.userData.receive_list = vm.dataList
+                  .map((data: any) => {
+                    const temp = {} as any;
+                    vm.dataKeys.map(key => {
+                      temp[key] = data[key];
+                    });
+                    return temp;
+                  })
+                  .filter((data: any) => {
+                    return Object.values(data).some(Boolean);
+                  });
+                ApiUser.updateUserData({
+                  userData: vm.userData,
+                }).then(res => {
+                  dialog.dataLoading({ visible: false });
+                  if (!res.result && res.response.data.msg === 'email-verify-false') {
+                    dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
+                  } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
+                    dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
+                  } else if (!res.result && res.response.data.msg === 'phone-exists') {
+                    dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
+                  } else if (!res.result && res.response.data.msg === 'email-exists') {
+                    dialog.errorMessage({ text: Language.text('email_already_exists') });
+                  } else if (!res.result) {
+                    dialog.errorMessage({ text: Language.text('update_exception') });
+                  } else {
+                    dialog.successMessage({ text: Language.text('change_success') });
+                    gvc.recreateView();
+                  }
+                });
+              })}"
+            >
+              ${Language.text('confirm')}
+            </div>
+          </div>`;
+        }
+
+        function recipientView() {
+          return html` <div class="col-12" style="min-height: 500px;">
+            ${vm.dataList
+              .map((data: any, index: number) => {
+                const cloneForm = JSON.parse(JSON.stringify(vm.funnyForm));
+                return html`<div class="px-0 py-2 px-md-2 py-md-4 mb-3">
+                  <h5>${Language.text('recipient')} ${index + 1}</h5>
+                  ${FormWidget.editorView({
+                    gvc: gvc,
+                    array: cloneForm.map((dd: any, index: number) => {
+                      dd.col = '6';
+                      if (index === cloneForm.length - 1) {
+                        dd.col = '12';
+                      }
+                      return dd;
+                    }),
+                    refresh: () => {
+                      gvc.notifyDataChange(vm.id);
+                    },
+                    formData: data,
+                  })}
+                </div>`;
+              })
+              .join('')}
+          </div>`;
+        }
+
+        function plusButton() {
+          return html`<div
+            class="w-100 d-flex justify-content-center align-items-center gap-2"
+            style="color: #3366BB; cursor: pointer"
+            onclick="${gvc.event(() => {
+              vm.dataList.push({});
+              gvc.notifyDataChange(vm.id);
+            })}"
+          >
+            <div style="font-size: 16px; font-weight: 400; word-wrap: break-word">
+              ${Language.text('add_recipient')}
+            </div>
+            <i class="fa-solid fa-plus"></i>
+          </div>`;
         }
 
         return html`
@@ -66,69 +152,9 @@ export class UMReceive {
               </div>
               <div class="um-info-title fw-bold" style="font-size: 24px;">${Language.text('recipient_info')}</div>
             </div>
-            <div class="col-12" style="min-height: 500px;">
-              ${vm.dataList
-                .map((data: any, index: number) => {
-                  const cloneForm = JSON.parse(JSON.stringify(vm.funnyForm));
-                  return html`<div class="px-0 py-2 px-md-2 py-md-4 mb-3">
-                    <h5>收件人 ${index + 1}</h5>
-                    ${FormWidget.editorView({
-                      gvc: gvc,
-                      array: cloneForm.map((dd: any, index: number) => {
-                        dd.col = '6';
-                        if (index === cloneForm.length - 1) {
-                          dd.col = '12';
-                        }
-                        return dd;
-                      }),
-                      refresh: () => {
-                        gvc.notifyDataChange(vm.id);
-                      },
-                      formData: data,
-                    })}
-                  </div>`;
-                })
-                .join('')}
-              <div class="d-flex justify-content-end">
-                <div
-                  class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center fw-bold"
-                  onclick="${gvc.event(() => {
-                    vm.userData.receive_list = vm.dataList
-                      .map((data: any) => {
-                        const temp = {} as any;
-                        vm.dataKeys.map(key => {
-                          temp[key] = data[key];
-                        });
-                        return temp;
-                      })
-                      .filter((data: any) => {
-                        return Object.values(data).some(Boolean);
-                      });
-                    ApiUser.updateUserData({
-                      userData: vm.userData,
-                    }).then(res => {
-                      dialog.dataLoading({ visible: false });
-                      if (!res.result && res.response.data.msg === 'email-verify-false') {
-                        dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
-                      } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
-                        dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
-                      } else if (!res.result && res.response.data.msg === 'phone-exists') {
-                        dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
-                      } else if (!res.result && res.response.data.msg === 'email-exists') {
-                        dialog.errorMessage({ text: Language.text('email_already_exists') });
-                      } else if (!res.result) {
-                        dialog.errorMessage({ text: Language.text('update_exception') });
-                      } else {
-                        dialog.successMessage({ text: Language.text('change_success') });
-                        gvc.recreateView();
-                      }
-                    });
-                  })}"
-                >
-                  ${Language.text('confirm')}
-                </div>
-              </div>
-            </div>
+            ${vm.dataList.length > 0 ? [saveView(), recipientView()].join('') : ''}
+            <div class="w-100 my-3" style="background: white;height: 1px;"></div>
+            ${receive_list_max_length > vm.dataList.length ? plusButton() : ''}
           </div>
         `;
       },
@@ -140,10 +166,9 @@ export class UMReceive {
             dataArray => {
               // dataArray[0] => userData
               vm.userData = dataArray[0].response.userData;
-              vm.userData.receive_list=vm.userData.receive_list ?? []
-              if (vm.userData.receive_list) {
-                vm.dataList = [...vm.userData.receive_list, ...new Array(3 - vm.userData.receive_list.length).fill({})];
-              }
+              vm.userData.receive_list = Array.isArray(vm.userData.receive_list) ? vm.userData.receive_list : [];
+
+              vm.dataList = vm.userData.receive_list;
 
               // dataArray[1] => funnyForm
               vm.funnyForm = dataArray[1];

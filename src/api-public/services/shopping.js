@@ -2397,7 +2397,6 @@ class Shopping {
                 updateCalcData(intCount, location, item.id, item.spec);
             });
         });
-        console.log('--- resetStore ---');
         return await Promise.all([...calcMap.values()].map(async (dataArray) => {
             for (const data of dataArray) {
                 const { calc, stock_id, product_id, spec } = data;
@@ -2465,7 +2464,6 @@ class Shopping {
                     updateCalcData(delta * -1, location, newItem.id, newItem.spec);
                 });
             });
-            console.log('--- adjustStock ---');
             return await Promise.all([...calcMap.values()].map(async (dataArray) => {
                 for (const data of dataArray) {
                     const { calc, stock_id, product_id, spec } = data;
@@ -3224,9 +3222,6 @@ class Shopping {
                     insertObj.id = originalVariant.id;
                     sourceMap[originalVariant.id] = originalVariant.id;
                 }
-                console.log('--- variant.stockList ----');
-                console.log(variant.spec);
-                console.log(variant.stockList);
                 const insertData = await database_js_1.default.query(`REPLACE INTO \`${this.app}\`.t_variants SET ?
           `, [insertObj]);
                 return insertData;
@@ -3310,8 +3305,6 @@ class Shopping {
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
             });
-            console.log('--- f1 ---');
-            console.log(variant_s.stockList);
             if (pd_data.product_category === 'kitchen' && pd_data.specs && pd_data.specs.length) {
                 variant_s.spec.map((d1, index) => {
                     var _a;
