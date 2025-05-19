@@ -210,8 +210,6 @@ const glitter=(window as any).glitter;
       })){
        return  new Promise(async (resolve,reject)=>{
          (data.config as any)[0].is_customer_header=true;
-         (data.config as any)[0].data.menu_refer=glitter.share.menu_refer;
-
          await ApiUser.setPublicConfig({
            key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
            value: data.config,
@@ -220,17 +218,21 @@ const glitter=(window as any).glitter;
          resolve({
            result: true
          })
-       })
-        // return BaseApi.create({
-        //   "url": config.url + `/api/v1/template`,
-        //   "type": "PUT",
-        //   "timeout": 0,
-        //   "headers": {
-        //     "Content-Type": "application/json",
-        //     "Authorization": config.token
-        //   },
-        //   data: JSON.stringify(data)
-        // })
+       });
+      }else if(data.tag==='footer' && ['pages/','hidden/','shop/'].find((dd)=>{
+        return (window.parent as any).glitter.getUrlParameter('page').startsWith(dd)
+      })){
+        return  new Promise(async (resolve,reject)=>{
+          (data.config as any)[0].is_customer_footer=true;
+          await ApiUser.setPublicConfig({
+            key: 'c_footer_'+(window.parent as any).glitter.getUrlParameter('page'),
+            value: data.config,
+            user_id: 'manager',
+          })
+          resolve({
+            result: true
+          })
+        })
       }else{
         return BaseApi.create({
           "url": config.url + `/api/v1/template`,

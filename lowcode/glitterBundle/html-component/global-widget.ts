@@ -258,19 +258,16 @@ export class GlobalWidget {
           const is_sub_page = ['pages/', 'hidden/', 'shop/'].find(dd => {
             return (obj.gvc.glitter.getUrlParameter('page') || '').startsWith(dd);
           });
-          const is_shop= [ 'hidden/', 'shop/'].find(dd => {
-            return (obj.gvc.glitter.getUrlParameter('page') || '').startsWith(dd);
-          });
+
           if (!glitter.share.c_header_list) {
-            glitter.share.c_header_list = (
-              await ApiPageConfig.getPageTemplate({
-                template_from: 'all',
-                page: '0',
-                limit: '3000',
-                type: 'module',
-                tag: '標頭元件',
-              })
-            ).response.result.data;
+            glitter.share.c_header_list = glitter.share._global_component.filter((d1: any) => {
+              return d1.template_config.tag.find((dd:any)=>{return dd==='標頭元件'})
+            });
+          }
+          if (!glitter.share.c_footer_list) {
+            glitter.share.c_footer_list = glitter.share._global_component.filter((d1: any) => {
+              return d1.template_config.tag.find((dd:any)=>{return dd==='頁腳元件'})
+            });
           }
           if (
             is_sub_page &&
@@ -300,13 +297,77 @@ export class GlobalWidget {
                 ],
               })
             );
-
             if (glitter.share.header_refer === 'def') {
               (window.parent as any).document.querySelector('.' + outer_id).outerHTML = civ.join('');
               return;
             }
-
           }
+          if (
+            is_sub_page &&
+            glitter.share.c_footer_list.find((d1: any) => {
+              return d1.tag === obj.widget.data.tag && d1.appName === obj.widget.data.refer_app;
+            })
+          ) {
+            glitter.share.footer_refer = glitter.share.footer_refer || 'def';
+            civ.push(`<div class="mt-2 fs-6 mb-2" style="color: black;margin-bottom: 5px;" >標頭樣式參照</div>`);
+            civ.push(
+              GlobalWidget.select({
+                gvc: gvc,
+                callback: (text: any) => {
+                  glitter.share.footer_refer = text;
+                  glitter.share.selectEditorItem();
+                },
+                default: glitter.share.footer_refer,
+                options: [
+                  {
+                    key: 'custom',
+                    value: '自定義頁腳樣式',
+                  },
+                  {
+                    key: 'def',
+                    value: '全站預設樣式',
+                  },
+                ],
+              })
+            );
+            if (glitter.share.footer_refer === 'def') {
+              (window.parent as any).document.querySelector('.' + outer_id).outerHTML = civ.join('');
+              return;
+            }
+          }
+          // if (
+          //   is_sub_page &&
+          //   glitter.share.c_header_list.find((d1: any) => {
+          //     return d1.tag === obj.widget.data.tag && d1.appName === obj.widget.data.refer_app;
+          //   })
+          // ) {
+          //   glitter.share.header_refer = glitter.share.header_refer || 'def';
+          //   civ.push(`<div class="mt-2 fs-6 mb-2" style="color: black;margin-bottom: 5px;" >標頭樣式參照</div>`);
+          //   civ.push(
+          //     GlobalWidget.select({
+          //       gvc: gvc,
+          //       callback: (text: any) => {
+          //         glitter.share.header_refer = text;
+          //         glitter.share.selectEditorItem();
+          //       },
+          //       default: glitter.share.header_refer,
+          //       options: [
+          //         {
+          //           key: 'custom',
+          //           value: '自定義標頭樣式',
+          //         },
+          //         {
+          //           key: 'def',
+          //           value: '全站預設樣式',
+          //         },
+          //       ],
+          //     })
+          //   );
+          //   if (glitter.share.header_refer === 'def') {
+          //     (window.parent as any).document.querySelector('.' + outer_id).outerHTML = civ.join('');
+          //     return;
+          //   }
+          // }
           civ.push(
             (() => {
               GlobalWidget.glitter_view_type = ViewType.desktop;

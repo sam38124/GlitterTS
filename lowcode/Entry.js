@@ -547,7 +547,7 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
-        if (['hidden/', 'shop/'].find((dd) => {
+        if (['hidden/', 'shop/', 'pages/'].find((dd) => {
             return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd));
         })) {
             const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');

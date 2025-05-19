@@ -14,7 +14,7 @@ import { LanguageBackend } from './language-backend.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class MenusSetting {
-    static main(gvc, widget) {
+    static main(gvc, widget, def) {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {
@@ -22,7 +22,7 @@ export class MenusSetting {
             index: 0,
             dataList: undefined,
             query: '',
-            tab: 'menu',
+            tab: def || 'menu',
             select: { title: '', tag: '' }
         };
         const filterID = gvc.glitter.getUUID();
@@ -64,7 +64,7 @@ export class MenusSetting {
                                     menu_all.list = [
                                         {
                                             tag: gvc.glitter.getUUID(),
-                                            title: [tab, `${menu_all.list.length + 1}`].join(''),
+                                            title: title || [tab, `${(menu_all.list.length + 1)}`].join(''),
                                             tab: vm.tab === 'menu' ? 'menu-setting' : 'footer-setting'
                                         }
                                     ].concat(menu_all.list);
@@ -103,7 +103,7 @@ export class MenusSetting {
                             });
                         })))}
               </div>
-              ${BgWidget.tab([
+              ${def ? `` : BgWidget.tab([
                             { title: '主選單', key: 'menu' },
                             { title: '頁腳', key: 'footer' }
                         ], gvc, vm.tab, (text) => {

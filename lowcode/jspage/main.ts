@@ -266,75 +266,149 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                   ) {
                     content.config = content.language_data[glitter.getUrlParameter('language')].config;
                   };
-                  const header=(await ApiUser.getPublicConfig(
-                    'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
-                    'manager',
-                  )).response.value;
+                  //設定標頭配置檔案
+                  async function setHeaderConfig(){
+                     const header=(await ApiUser.getPublicConfig(
+                       'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
+                       'manager',
+                     )).response.value;
 
-                  if(!content.config.find((dd:any)=>{
-                    return dd.data.tag==='c_header'
-                  })){
-                    glitter.share.header_refer='def'
-                    content.config=[
-                      {
-                        "id": "sbscs0ses1sfs1sa",
-                        "js": "./official_view_component/official.js",
-                        "css": {"class": {}, "style": {}},
-                        "data": {
-                          "tag": "c_header",
-                          "_gap": "",
-                          "attr": [],
-                          "elem": "div",
+                     if(!content.config.find((dd:any)=>{
+                       return dd.data.tag==='c_header'
+                     })){
+                       glitter.share.header_refer='def'
+                       content.config=[
+                         {
+                           "id": "sbscs0ses1sfs1sa",
+                           "js": "./official_view_component/official.js",
+                           "css": {"class": {}, "style": {}},
+                           "data": {
+                             "tag": "c_header",
+                             "_gap": "",
+                             "attr": [],
+                             "elem": "div",
+                             "list": [],
+                             "inner": "",
+                             "_other": {},
+                             "_border": {},
+                             "_margin": {},
+                             "_radius": "",
+                             "_padding": {},
+                             "_reverse": "false",
+                             "carryData": {},
+                             "_max_width": "",
+                             "_background": "",
+                             "_style_refer": "global",
+                             "_hor_position": "center",
+                             "refer_form_data": {},
+                             "_background_setting": {"type": "none"}
+                           },
+                           "list": [],
+                           "type": "component",
+                           "class": "",
+                           "index": 0,
+                           "label": "標頭",
+                           "style": "",
+                           "global": [],
+                           "mobile": {"data": {}, "refer": "custom"},
+                           "toggle": true,
+                           "desktop": {"data": {}, "refer": "custom"},
+                           "stylist": [],
+                           "version": "v2",
+                           "visible": true,
+                           "dataType": "static",
+                           "deletable": "false",
+                           "style_from": "code",
+                           "classDataType": "static",
+                           "editor_bridge": {},
+                           "preloadEvenet": {},
+                           "container_fonts": 0,
+                           "mobile_editable": [],
+                           "desktop_editable": [],
+                           "refreshAllParameter": {},
+                           "refreshComponentParameter": {},
+                           "formData": {}
+                         }
+                       ].concat(content.config);
+                     }
+                     if(header && header.length){
+                       glitter.share.header_refer='custom'
+                     }else{
+                       glitter.share.header_refer='def'
+                     }
+                   }
+                  //設定頁腳配置檔案
+                  async function setFooterConfig(){
+                    const header=(await ApiUser.getPublicConfig(
+                      'c_footer_'+(window.parent as any).glitter.getUrlParameter('page'),
+                      'manager',
+                    )).response.value;
+                    if(!content.config.find((dd:any)=>{
+                      return dd.data.tag==='footer'
+                    })){
+                      glitter.share.footer_refer='def'
+                      content.config=content.config.concat([
+                        {
+                          "id": gvc.glitter.getUUID(),
+                          "js": "./official_view_component/official.js",
+                          "css": {"class": {}, "style": {}},
+                          "data": {
+                            "tag": "footer",
+                            "_gap": "",
+                            "attr": [],
+                            "elem": "div",
+                            "list": [],
+                            "inner": "",
+                            "_other": {},
+                            "_border": {},
+                            "_margin": {},
+                            "_radius": "",
+                            "_padding": {},
+                            "_reverse": "false",
+                            "carryData": {},
+                            "_max_width": "",
+                            "_background": "",
+                            "_style_refer": "global",
+                            "_hor_position": "center",
+                            "refer_form_data": {},
+                            "_background_setting": {"type": "none"}
+                          },
                           "list": [],
-                          "inner": "",
-                          "_other": {},
-                          "_border": {},
-                          "_margin": {},
-                          "_radius": "",
-                          "_padding": {},
-                          "_reverse": "false",
-                          "carryData": {},
-                          "_max_width": "",
-                          "_background": "",
-                          "_style_refer": "global",
-                          "_hor_position": "center",
-                          "refer_form_data": {},
-                          "_background_setting": {"type": "none"}
-                        },
-                        "list": [],
-                        "type": "component",
-                        "class": "",
-                        "index": 0,
-                        "label": "標頭1234",
-                        "style": "",
-                        "global": [],
-                        "mobile": {"data": {}, "refer": "custom"},
-                        "toggle": true,
-                        "desktop": {"data": {}, "refer": "custom"},
-                        "stylist": [],
-                        "version": "v2",
-                        "visible": true,
-                        "dataType": "static",
-                        "deletable": "false",
-                        "style_from": "code",
-                        "classDataType": "static",
-                        "editor_bridge": {},
-                        "preloadEvenet": {},
-                        "container_fonts": 0,
-                        "mobile_editable": [],
-                        "desktop_editable": [],
-                        "refreshAllParameter": {},
-                        "refreshComponentParameter": {},
-                        "formData": {}
-                      }
-                    ].concat(content.config);
+                          "type": "component",
+                          "class": "",
+                          "index": 0,
+                          "label": "頁腳",
+                          "style": "",
+                          "global": [],
+                          "mobile": {"data": {}, "refer": "custom"},
+                          "toggle": true,
+                          "desktop": {"data": {}, "refer": "custom"},
+                          "stylist": [],
+                          "version": "v2",
+                          "visible": true,
+                          "dataType": "static",
+                          "deletable": "false",
+                          "style_from": "code",
+                          "classDataType": "static",
+                          "editor_bridge": {},
+                          "preloadEvenet": {},
+                          "container_fonts": 0,
+                          "mobile_editable": [],
+                          "desktop_editable": [],
+                          "refreshAllParameter": {},
+                          "refreshComponentParameter": {},
+                          "formData": {}
+                        }
+                      ]);
+                    }
+                    if(header && header.length){
+                      glitter.share.footer_refer='custom'
+                    }else{
+                      glitter.share.footer_refer='def'
+                    }
                   }
-                  if(header && header.length){
-                    glitter.share.header_refer='custom'
-                  }else{
-                    glitter.share.header_refer='def'
-                  }
-
+                  await setHeaderConfig();
+                  await setFooterConfig();
                   d2.response.result[0].config = content.config;
                   const og_path=glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
                   (window as any).page_refer=og_path;
@@ -591,14 +665,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     });
 
                     console.log(`config-save==>`,config)
-                    //is_customer_header
-                    // await ApiUser.setPublicConfig({
-                    //   key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
-                    //   value: [ config.find((dd:any)=>{
-                    //     return dd.is_customer_header;
-                    //   })],
-                    //   user_id: 'manager',
-                    // });
 
                     Article.put(data.response.data[0]).then(response => {
                       resolve(response && response.result);
@@ -642,12 +708,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             return;
           }
         };
-        if(glitter.share.is_blog_editor() && glitter.share.header_refer==='def'){
-          await ApiUser.setPublicConfig({
-            key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
-            value: null,
-            user_id: 'manager',
-          });
+        if(glitter.share.is_blog_editor()  ){
+          if(glitter.share.header_refer==='def'){
+            await ApiUser.setPublicConfig({
+              key: 'c_header_'+(window.parent as any).glitter.getUrlParameter('page'),
+              value: null,
+              user_id: 'manager',
+            });
+          }
+          if(glitter.share.footer_refer==='def'){
+            await ApiUser.setPublicConfig({
+              key: 'c_footer_'+(window.parent as any).glitter.getUrlParameter('page'),
+              value: null,
+              user_id: 'manager',
+            });
+          }
           location.reload()
         }
         dialog.dataLoading({ visible: false });

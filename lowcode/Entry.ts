@@ -597,7 +597,7 @@ export class Entry {
   // 跳轉至一般頁面
   public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
     //紀錄初始載入頁面，後續會帶入query當中用與替換Header避免跳頁
-    if(['hidden/','shop/'].find((dd)=>{
+    if(['hidden/','shop/','pages/'].find((dd)=>{
       return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd))
     })){
       const og_path=glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');

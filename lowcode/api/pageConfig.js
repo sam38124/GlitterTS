@@ -171,9 +171,23 @@ export class ApiPageConfig {
         })) {
             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 data.config[0].is_customer_header = true;
-                data.config[0].data.menu_refer = glitter.share.menu_refer;
                 yield ApiUser.setPublicConfig({
                     key: 'c_header_' + window.parent.glitter.getUrlParameter('page'),
+                    value: data.config,
+                    user_id: 'manager',
+                });
+                resolve({
+                    result: true
+                });
+            }));
+        }
+        else if (data.tag === 'footer' && ['pages/', 'hidden/', 'shop/'].find((dd) => {
+            return window.parent.glitter.getUrlParameter('page').startsWith(dd);
+        })) {
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                data.config[0].is_customer_footer = true;
+                yield ApiUser.setPublicConfig({
+                    key: 'c_footer_' + window.parent.glitter.getUrlParameter('page'),
                     value: data.config,
                     user_id: 'manager',
                 });

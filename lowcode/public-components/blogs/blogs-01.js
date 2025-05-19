@@ -32,10 +32,14 @@ export class Blogs01 {
                     if (!initial) {
                         try {
                             initial = true;
-                            const [o_header] = yield Promise.all([
+                            const [o_header, o_footer] = yield Promise.all([
                                 new Promise((resolve, reject) => {
                                     window.glitterInitialHelper.getPageData('c_header', (res) => {
-                                        console.log(`res===>`, res);
+                                        resolve(res);
+                                    });
+                                }),
+                                new Promise((resolve, reject) => {
+                                    window.glitterInitialHelper.getPageData('footer', (res) => {
                                         resolve(res);
                                     });
                                 })
@@ -49,11 +53,22 @@ export class Blogs01 {
                                 onCreate: () => { },
                                 document: document,
                             }, {});
+                            let footerView = new gvc.glitter.htmlGenerate(o_footer.response.result[0].config, [], {}).render(gvc, {
+                                class: `w-100`,
+                                style: `position:relative;`,
+                                containerID: gvc.glitter.getUUID(),
+                                tag: gvc.glitter.getUUID(),
+                                jsFinish: () => { },
+                                onCreate: () => { },
+                                document: document,
+                            }, {});
                             console.log(`o_header===>`, o_header);
                             console.log(`subData===>`, subData);
                             subData.content.config = (_a = subData.content.config) !== null && _a !== void 0 ? _a : [];
                             try {
-                                subData.content.config = subData.content.config.filter((dd) => dd.data.tag !== 'c_header');
+                                subData.content.config = subData.content.config.filter((dd) => {
+                                    return dd.data.tag !== 'c_header' && dd.data.tag !== 'footer';
+                                });
                                 const view = (() => {
                                     if (subData.content.generator !== 'page_editor') {
                                         const dd = subData.content;
@@ -218,7 +233,8 @@ export class Blogs01 {
                                 })();
                                 document.querySelector(`.${bid}`).outerHTML = [
                                     ogHeaderView,
-                                    view
+                                    view,
+                                    footerView
                                 ].join('');
                             }
                             catch (e) {
