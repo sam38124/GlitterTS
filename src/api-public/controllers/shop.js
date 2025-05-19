@@ -67,6 +67,7 @@ router.get('/rebate', async (req, resp) => {
                         note: item.note,
                         created_time: item.created_at,
                         deadline: item.deadline,
+                        content: item.content,
                         userData: user.userData,
                     };
                 })

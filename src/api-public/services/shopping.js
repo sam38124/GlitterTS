@@ -1469,7 +1469,6 @@ class Shopping {
             const paymentService = new payment_service_js_1.PaymentService(allPaymentStrategies, appName, carData.customer_info.payment_select);
             try {
                 const paymentResult = await paymentService.processPayment(carData, return_url, carData.customer_info.payment_select);
-                console.log('Controller 收到 Payment Result:', paymentResult);
                 return paymentResult;
             }
             catch (error) {
@@ -2119,6 +2118,7 @@ class Shopping {
         try {
             const update = {};
             const storeConfig = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const rebateClass = new rebate_js_1.Rebate(this.app);
             let origin;
             const whereClause = data.cart_token ? 'cart_token = ?' : data.id ? 'id = ?' : null;
             const value = (_a = data.cart_token) !== null && _a !== void 0 ? _a : data.id;
@@ -2170,6 +2170,37 @@ class Shopping {
                             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
                         }
                     }
+                    const useRecord = await rebateClass.getRebateListByRow({
+                        search: '',
+                        limit: 99999,
+                        page: 0,
+                        email_or_phone: data.orderData.email,
+                    });
+                    if (Array.isArray(useRecord === null || useRecord === void 0 ? void 0 : useRecord.data)) {
+                        const isbackRecord = useRecord.data.some((data) => {
+                            return data.content.type === 'cancelOrder' && data.content.order_id === orderData.orderID;
+                        });
+                        if (!isbackRecord) {
+                            const orderUseRebateRecord = useRecord.data.filter((data) => {
+                                var _a;
+                                return (_a = data.content.record) === null || _a === void 0 ? void 0 : _a.find((item) => {
+                                    return item.order_id === orderData.orderID;
+                                });
+                            });
+                            orderUseRebateRecord.map(async (data) => {
+                                if (data.content.record) {
+                                    const findOrderRecord = data.content.record.find((r) => {
+                                        return r.order_id === orderData.orderID;
+                                    });
+                                    await rebateClass.insertRebate(data.user_id, findOrderRecord.use_rebate, '訂單取消，回補購物金', {
+                                        type: 'cancelOrder',
+                                        order_id: orderData.orderID,
+                                        deadTime: tool_js_1.default.formatDateTime(findOrderRecord.origin_deadline, true),
+                                    });
+                                }
+                            });
+                        }
+                    }
                 }
                 else if (prevStatus === '-1' && orderData.orderStatus !== '-1') {
                     await this.resetStore(origin.orderData.lineItems, 'minus');
@@ -2204,9 +2235,7 @@ class Shopping {
             update.orderData.lineItems = update.orderData.lineItems.filter((item) => item.count > 0);
             this.writeRecord(origin, update);
             const updateData = Object.entries(update).reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: typeof value === 'object' ? JSON.stringify(value) : value })), {});
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-         SET ?
-         WHERE id = ?;
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
         `, [updateData, origin.id]);
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
@@ -2264,8 +2293,8 @@ class Shopping {
                         }),
                         status: 0,
                     };
-                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers
-             SET ?;`, [json]);
+                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_triggers SET ?;
+            `, [json]);
                 }
             }
             return {

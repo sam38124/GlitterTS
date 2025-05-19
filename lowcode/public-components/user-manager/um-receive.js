@@ -139,7 +139,9 @@ export class UMReceive {
                     const classPrefix = 'cart-prefix';
                     CartModule.addStyle(gvc, classPrefix);
                     Promise.all([ApiUser.getUserData(GlobalUser.token, 'me'), this.funnyQuickFormFrame(classPrefix)]).then(dataArray => {
+                        var _a;
                         vm.userData = dataArray[0].response.userData;
+                        vm.userData.receive_list = (_a = vm.userData.receive_list) !== null && _a !== void 0 ? _a : [];
                         if (vm.userData.receive_list) {
                             vm.dataList = [...vm.userData.receive_list, ...new Array(3 - vm.userData.receive_list.length).fill({})];
                         }

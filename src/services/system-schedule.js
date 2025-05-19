@@ -10,7 +10,7 @@ const ssh_1 = require("../modules/ssh");
 class SystemSchedule {
     async checkMysqlStatus(sec) {
         const prepared_stmt_count = (await database_1.default.query(`show global status like 'prepared_stmt_count';`, []))[0]['Value'];
-        if (parseInt(prepared_stmt_count, 10) > 10000) {
+        if (parseInt(prepared_stmt_count, 10) > 200000) {
             const response = await new Promise((resolve, reject) => {
                 ssh_1.Ssh.exec([
                     `sudo docker restart $(sudo docker ps --filter "expose=3080" --format "{{.ID}}")`

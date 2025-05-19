@@ -8,8 +8,6 @@ import { GlobalWidget } from '../../glitterBundle/html-component/global-widget.j
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { RenderValue } from '../../glitterBundle/html-component/render-value.js';
 import { ApplicationConfig } from '../../application-config.js';
-import { ApiPageConfig } from '../../api/pageConfig.js';
-import { GlobalEditor } from '../../editor-components/global-editor.js';
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
   return {

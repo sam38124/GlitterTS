@@ -13,7 +13,7 @@ const danielPath = `/Users/daniellin/Desktop/GlitterEnv/staging.env`;
 const zackPath = `/Users/wangjianzhi/Desktop/CODENEX/staging.env`;
 if (fs_1.default.existsSync(path_1.default.resolve(wangPath))) {
     console.log('使用 Wang 路徑環境');
-    config_1.ConfigSetting.runSchedule = true;
+    config_1.ConfigSetting.runSchedule = false;
     config_1.ConfigSetting.setConfig(wangPath);
 }
 if (fs_1.default.existsSync(path_1.default.resolve(danielPath))) {

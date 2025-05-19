@@ -12,7 +12,7 @@ interface OneUserRebate {
   pending: number;
 }
 
-type RebateType = 'voucher' | 'birth' | 'first_regiser' | 'manual';
+type RebateType = 'voucher' | 'birth' | 'first_regiser' | 'manual' | 'cancelOrder';
 
 export interface IRebateSearch {
   search: string;
@@ -24,6 +24,14 @@ export interface IRebateSearch {
   type?: string;
 }
 
+export interface RebateRecord {
+  order_id: string;
+  use_rebate: number;
+  remain: number;
+  updated_at: string;
+  origin_deadline: string;
+}
+
 export interface RebateProof {
   type?: RebateType;
   voucher_id?: string;
@@ -32,6 +40,7 @@ export interface RebateProof {
   quantity?: number;
   setCreatedAt?: string;
   deadTime?: string;
+  record?: RebateRecord[];
 }
 
 export class Rebate {
@@ -149,8 +158,10 @@ export class Rebate {
 
     try {
       const cbList = await db.query(
-        `SELECT remain, created_at, deadline FROM \`${this.app}\`.t_rebate_point 
-                    WHERE user_id = ? AND remain > 0`,
+        `
+          SELECT remain, created_at, deadline FROM \`${this.app}\`.t_rebate_point
+          WHERE user_id = ? AND remain > 0
+        `,
         [user_id, nowTime]
       );
       cbList.map((data: { remain: number; created_at: string; deadline: string }) => {
@@ -302,9 +313,7 @@ export class Rebate {
       const search = await db.query(searchSQL, [obj.email, obj.user_id]);
       if (search.length == 1) {
         const data = (await db.query(rebateSQL, [search[0].userID])).map((x: any) => {
-          x.created_at = moment(x.created_at).format('YYYY-MM-DD HH:mm:ss');
-          x.updated_at = moment(x.updated_at).format('YYYY-MM-DD HH:mm:ss');
-          x.deadline = x.deadline ? moment(x.deadline).format('YYYY-MM-DD HH:mm:ss') : null;
+          x.deadline = x.deadline ?? null;
           return x;
         });
         return { result: true, data };
@@ -336,24 +345,37 @@ export class Rebate {
   }
 
   // 減少最舊一筆的餘額並更新
-  async updateOldestRebate(user_id: number | string, originMinus: number) {
+  async updateOldestRebate(user_id: number | string, order_id: string | undefined, originMinus: number) {
     user_id = parseInt(`${user_id}`, 10);
     const nowTime = Rebate.nowTime();
-    const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
     try {
       let minus = -originMinus;
       do {
         const oldest = await this.getOldestRebate(user_id);
         if (oldest?.data) {
-          const { id, remain } = oldest?.data;
+          const { id, remain, content, deadline } = oldest?.data;
           if (id && remain !== undefined) {
-            if (remain - minus > 0) {
-              await db.execute(updateSQL, [remain - minus, nowTime, id]);
-              minus = 0;
-            } else {
-              await db.execute(updateSQL, [0, nowTime, id]);
-              minus = minus - remain;
-            }
+            const calc_remain = remain - minus;
+            const after_remain = remain - minus > 0 ? remain - minus : 0;
+
+            const new_record: RebateRecord = {
+              order_id: order_id ?? '',
+              use_rebate: remain - after_remain,
+              remain: after_remain,
+              origin_deadline: deadline,
+              updated_at: new Date().toISOString(),
+            };
+
+            content.record = [...(content.record || []), new_record];
+
+            await db.execute(
+              `
+                UPDATE \`${this.app}\`.t_rebate_point 
+                SET remain = ?, content = ?, updated_at = ? WHERE id = ?;
+              `,
+              [after_remain, JSON.stringify(content), nowTime, id]
+            );
+            minus = calc_remain > 0 ? 0 : -calc_remain;
           }
         } else {
           return false;
@@ -417,7 +439,7 @@ export class Rebate {
         }
         await db.execute(insertSQL, [user_id, amount, amount, note, proof ?? {}, nowTime, nowTime, deadTime]);
       } else if (amount < 0) {
-        await this.updateOldestRebate(user_id, amount);
+        await this.updateOldestRebate(user_id, proof?.order_id, amount);
         await db.execute(insertSQL, [user_id, amount, 0, note, proof ?? {}, nowTime, nowTime, null]);
       }
 
@@ -461,20 +483,36 @@ export class Rebate {
         const { voucher_id, order_id, sku, quantity } = search;
         const data = await db.query(
           `${SQL} 
-                        AND JSON_EXTRACT(content, '$.voucher_id') = ?
-                        AND JSON_EXTRACT(content, '$.order_id') = ?
-                        AND JSON_EXTRACT(content, '$.sku') = ?
-                        AND JSON_EXTRACT(content, '$.quantity') = ?;`,
+            AND JSON_EXTRACT(content, '$.voucher_id') = ?
+            AND JSON_EXTRACT(content, '$.order_id') = ?
+            AND JSON_EXTRACT(content, '$.sku') = ?
+            AND JSON_EXTRACT(content, '$.quantity') = ?;
+          `,
           [voucher_id, order_id, sku, quantity]
         );
         if (data.length > 0) return { result: false, msg: '此優惠券已使用過' };
       }
 
+      if (type === 'cancelOrder' && search) {
+        const { voucher_id, order_id, sku, quantity } = search;
+        const data = await db.query(
+          `${SQL} 
+            AND JSON_EXTRACT(content, '$.voucher_id') = ?
+            AND JSON_EXTRACT(content, '$.order_id') = ?
+            AND JSON_EXTRACT(content, '$.sku') = ?
+            AND JSON_EXTRACT(content, '$.quantity') = ?;
+          `,
+          [voucher_id, order_id, sku, quantity]
+        );
+        if (data.length > 0) return { result: false, msg: '此訂單取消已回補過' };
+      }
+
       if (type === 'birth') {
         const data = await db.query(
           `${SQL} 
-                            AND JSON_EXTRACT(content, '$.type') = 'birth'
-                            AND YEAR(created_at) = YEAR(CURDATE());`,
+            AND JSON_EXTRACT(content, '$.type') = 'birth' 
+            AND YEAR(created_at) = YEAR(CURDATE());
+          `,
           []
         );
         if (data.length > 0) return { result: false, msg: '生日購物金已發放過' };
@@ -485,11 +523,40 @@ export class Rebate {
         if (data.length > 0) return { result: false, msg: '首次註冊購物金已發放過' };
       }
 
-      return { result: true, msg: '此優惠券可使用' };
+      return { result: true, msg: '可以使用' };
     } catch (error) {
       console.error(error);
       if (error instanceof Error) {
         throw exception.BadRequestError('Check Rebate Error: ', error.message, null);
+      }
+    }
+  }
+
+  async searchRebate(json: { user_id?: string; order_id?: string }) {
+    try {
+      const query = ['1=1'];
+
+      if (json.user_id) {
+        query.push(`user_id = ${db.escape(json.user_id)}`);
+      }
+
+      if (json.order_id) {
+        query.push(`content->>'$.order_id' = ${db.escape(json.order_id)}`);
+      }
+
+      const getData = await db.query(
+        `
+          SELECT * FROM \`${this.app}\`.t_rebate_point 
+          WHERE ${query.map(str => `(${str})`).join(' AND ')};
+        `,
+        []
+      );
+
+      return getData;
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error) {
+        throw exception.BadRequestError('Search Rebate Error: ', error.message, null);
       }
     }
   }

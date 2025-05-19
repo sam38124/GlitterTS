@@ -94,16 +94,16 @@ export class ProductSelect {
       containerId: Tool.randomString(6),
       loading: true,
     };
-    const is_page =
-      (window.parent as any).glitter.getUrlParameter('page').startsWith('shop') ||
-      (window.parent as any).glitter.getUrlParameter('page').startsWith('hidden');
-    //隱形賣場和一頁商店僅能單選
-    if (is_page) {
-      if (bundle.formData[bundle.key].select !== 'product') {
-        bundle.formData[bundle.key].select = 'product';
-        bundle.formData[bundle.key].value = [];
-      }
-    }
+    // const is_page =
+    //   (window.parent as any).glitter.getUrlParameter('page').startsWith('shop') ||
+    //   (window.parent as any).glitter.getUrlParameter('page').startsWith('hidden');
+    // //隱形賣場和一頁商店僅能單選
+    // if (is_page) {
+    //   if (bundle.formData[bundle.key].select !== 'product') {
+    //     bundle.formData[bundle.key].select = 'product';
+    //     bundle.formData[bundle.key].value = [];
+    //   }
+    // }
     return gvc.bindView(() => {
       return {
         bind: subVM.id,
@@ -138,13 +138,11 @@ export class ProductSelect {
                       title: bundle.title,
                       gvc: gvc,
                       def: bundle.formData[bundle.key].select,
-                      array: is_page
-                        ? [{ value: 'product', title: '特定商品' }]
-                        : [
-                            { value: 'collection', title: '商品系列' },
-                            { value: 'product', title: '特定商品' },
-                            { value: 'all', title: '所有商品' },
-                          ],
+                      array: [
+                        { value: 'collection', title: '商品系列' },
+                        { value: 'product', title: '特定商品' },
+                        { value: 'all', title: '所有商品' },
+                      ],
                       callback: text => {
                         bundle.formData[bundle.key].select = text;
                         bundle.formData[bundle.key].value = [];
@@ -242,7 +240,7 @@ export class ProductSelect {
                     })
                   )}
                 </div>
-                <div class="mx-n3  border-top" ></div>
+                <div class="mx-n3  border-top mt-2" ></div>
               </div>`
             );
           });

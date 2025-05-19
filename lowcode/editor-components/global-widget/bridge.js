@@ -1,6 +1,36 @@
 import { ToolSetting } from '../../jspage/function-page/tool-setting.js';
+const html = String.raw;
 export class Bridge {
+    static grayButton(text, event, obj) {
+        var _a;
+        return html ` <button class="btn btn-gray ${(obj === null || obj === void 0 ? void 0 : obj.class) || ''}" type="button" onclick="${event}">
+      <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
+      ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
+    </button>`;
+    }
+    static select(obj) {
+        var _a;
+        return html ` ${obj.title ? html ` <div class="tx_normal fw-normal mb-2">${obj.title}</div>` : ``}
+      <select
+        class="c_select c_select_w_100"
+        style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+        onchange="${obj.gvc.event(e => {
+            obj.callback(e.value);
+        })}"
+        ${obj.readonly ? 'disabled' : ''}
+      >
+        ${obj.gvc.map(obj.options.map(opt => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                ${opt.value}
+              </option>`))}
+        ${obj.options.find((opt) => {
+            return obj.default === opt.key;
+        })
+            ? ``
+            : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
+      </select>`;
+    }
     static main(obj) {
+        console.log(`refer_form_data=>`, obj.widget);
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const is_sub_page = ['pages/', 'hidden/', 'shop/'].find((dd) => {

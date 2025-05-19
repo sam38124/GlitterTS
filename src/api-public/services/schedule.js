@@ -432,9 +432,7 @@ class Schedule {
     main() {
         const scheduleList = config_1.ConfigSetting.is_local
             ?
-                [
-                    { second: 60 * 5, status: true, func: 'visitLogs', desc: '更新每天造訪人數' }
-                ]
+                []
             :
                 [
                     { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
