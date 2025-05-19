@@ -204,6 +204,7 @@ export class LineMessage {
                         },
                     ],
                 };
+
                 const urlConfig: Config = {
                     method: 'post',
                     url: 'https://api.line.me/v2/bot/message/push',
@@ -213,6 +214,7 @@ export class LineMessage {
                     },
                     data: JSON.stringify(postData),
                 };
+              console.log("Config -- " , urlConfig);
 
                 return new Promise<boolean>((resolve, reject) => {
                     axios

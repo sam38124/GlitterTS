@@ -158,6 +158,7 @@ class LineMessage {
                     },
                     data: JSON.stringify(postData),
                 };
+                console.log("Config -- ", urlConfig);
                 return new Promise((resolve, reject) => {
                     axios_1.default
                         .request(urlConfig)

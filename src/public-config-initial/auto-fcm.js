@@ -56,6 +56,10 @@ class AutoFcm {
     static async orderChangeInfo(obj) {
         const userData = await new user_js_1.User(obj.app).getUserData(obj.phone_email, 'email_or_phone');
         if (userData) {
+            const data = (await new user_js_1.User(obj.app).getConfigV2({
+                key: 'auto_fcm',
+                user_id: 'manager',
+            }));
             const orderChangeInfo = (await new user_js_1.User(obj.app).getConfigV2({
                 key: 'auto_fcm',
                 user_id: 'manager',

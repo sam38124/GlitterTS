@@ -2161,13 +2161,7 @@ class Shopping {
                     const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
                     for (const email of emailList) {
                         if (email) {
-                            await auto_fcm_js_1.AutoFcm.orderChangeInfo({
-                                app: this.app,
-                                tag: 'order-cancel-success',
-                                order_id: orderData.orderID,
-                                phone_email: email,
-                            });
-                            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, email, orderData.language);
+                            await this.sendNotifications(orderData, 'order-cancel-success');
                         }
                     }
                     const useRecord = await rebateClass.getRebateListByRow({
@@ -2411,6 +2405,7 @@ class Shopping {
             shipment: 'shipment',
             arrival: 'shipment-arrival',
             in_stock: 'in-stock',
+            "order-cancel-success": 'order-cancel-success',
         };
         if (lineID) {
             const line = new line_message_1.LineMessage(this.app);

@@ -3051,19 +3051,8 @@ export class Shopping {
           );
           for (const email of emailList) {
             if (email) {
-              await AutoFcm.orderChangeInfo({
-                app: this.app,
-                tag: 'order-cancel-success',
-                order_id: orderData.orderID,
-                phone_email: email,
-              });
-              await AutoSendEmail.customerOrder(
-                this.app,
-                'auto-email-order-cancel-success',
-                orderData.orderID,
-                email,
-                orderData.language
-              );
+
+              await this.sendNotifications(orderData, 'order-cancel-success');
             }
           }
 
@@ -3380,14 +3369,16 @@ export class Shopping {
   /**
    * 寄送同時寄送購買人和寄件人
    * */
-  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival' | 'in_stock') {
+  private async sendNotifications(orderData: any, type: 'shipment' | 'arrival' | 'in_stock' | 'order-cancel-success') {
     const { lineID } = orderData.customer_info;
     const messages = [];
     const typeMap = {
       shipment: 'shipment',
       arrival: 'shipment-arrival',
       in_stock: 'in-stock',
+      "order-cancel-success": 'order-cancel-success',
     };
+
 
     if (lineID) {
       const line = new LineMessage(this.app);

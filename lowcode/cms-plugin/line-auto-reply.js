@@ -115,6 +115,7 @@ export class AutoReply {
                                 'auto-line-shipment-arrival',
                                 'auto-line-payment-successful',
                                 'auto-line-order-create',
+                                'auto-line-order-cancel-success',
                                 'line-proof-purchase',
                                 'auto-line-birthday',
                             ];

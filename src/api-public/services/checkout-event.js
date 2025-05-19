@@ -154,6 +154,10 @@ class CheckoutEvent {
             };
             checkPoint('check user auth');
             const userData = await getUserDataAsync(type, this.token, data);
+            if (data.customer_info) {
+                const newCustomerInfo = await userClass.getUserData(data.email || data.customer_info.email, 'email_or_phone');
+                data.customer_info = Object.assign(Object.assign({}, data.customer_info), newCustomerInfo.userData);
+            }
             data.email = ((_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.email) || ((_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.phone) || '';
             if (!data.email || data.email === 'no-email') {
                 data.email =
@@ -828,14 +832,14 @@ class CheckoutEvent {
                     carData.shipment_fee = 0;
                 }
                 if (tempVoucher.reBackType == 'rebate') {
-                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'email_or_phone');
                     if (!customerData) {
                         await userClass.createUser(data.email, tool_js_1.default.randomString(8), {
                             email: data.email,
                             name: data.customer_info.name,
                             phone: data.customer_info.phone,
                         }, {}, true);
-                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'email_or_phone');
                     }
                 }
                 await Promise.all(saveStockArray.map(dd => dd()));
@@ -1036,8 +1040,10 @@ class CheckoutEvent {
                             await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.info('訂單簡訊寄送成功');
                         }
+                        console.log("carData.customer_info -- ", carData.customer_info);
                         if (carData.customer_info.lineID) {
                             let line = new line_message_js_1.LineMessage(this.app);
+                            console.log("here -- OK");
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.info('訂單line訊息寄送成功');
                         }

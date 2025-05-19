@@ -275,6 +275,13 @@ export class CheckoutEvent {
 
       // 取得顧客資料
       const userData = await getUserDataAsync(type, this.token, data);
+      if(data.customer_info){
+        const newCustomerInfo = await userClass.getUserData(data.email || data.customer_info.email, 'email_or_phone');
+        data.customer_info = {
+          ...data.customer_info,
+          ...newCustomerInfo.userData
+        }
+      }
 
       // 取得使用者 Email 或電話
       data.email = userData?.userData?.email || userData?.userData?.phone || '';
@@ -1380,9 +1387,10 @@ export class CheckoutEvent {
               await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
               console.info('訂單簡訊寄送成功');
             }
-
+            console.log("carData.customer_info -- " , carData.customer_info);
             if (carData.customer_info.lineID) {
               let line = new LineMessage(this.app);
+              console.log("here -- OK");
               await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
               console.info('訂單line訊息寄送成功');
             }

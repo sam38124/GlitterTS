@@ -191,6 +191,22 @@ export class AutoSendEmail {
         content: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
         toggle: true,
       },
+      {
+        tag: 'auto-line-order-cancel-success',
+        tag_name: '取消訂單成功',
+        name: '@{{app_name}}',
+        title: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
+        content: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
+        toggle: true,
+      },
+      {
+        tag: 'auto-sns-order-cancel-success',
+        tag_name: '取消訂單成功',
+        name: '@{{app_name}}',
+        title: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
+        content: '[@{{app_name}}] 您已成功取消訂單 #@{{訂單號碼}}',
+        toggle: true,
+      },
 
       {
         tag: 'auto-email-order-cancel-false',

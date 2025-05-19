@@ -69,13 +69,19 @@ export class AutoFcm {
     const userData = await new User(obj.app).getUserData(obj.phone_email, 'email_or_phone');
     if (userData) {
       //
+      const data = (
+        await new User(obj.app).getConfigV2({
+          key: 'auto_fcm',
+          user_id: 'manager',
+        })
+      )
       const orderChangeInfo = (
         await new User(obj.app).getConfigV2({
           key: 'auto_fcm',
           user_id: 'manager',
         })
       )[obj.tag];
-      //
+
       const appData = await new User(obj.app).getConfigV2({
         key: 'store-information',
         user_id: 'manager',
