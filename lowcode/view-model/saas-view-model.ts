@@ -742,14 +742,17 @@ export class SaasViewModel {
                                           //dd.theme_config.name || dd.appName
                                           return new Promise<string>(async (resolve, reject) => {
                                             try {
+                                              console.log(`dd.appName===>`,dd.appName)
+                                              const shop_info=(
+                                                await ApiUser.getPublicConfig(
+                                                  'store-information',
+                                                  'manager',
+                                                  dd.appName
+                                                )
+                                              );
+                                              
                                               resolve(
-                                                ((
-                                                  await ApiUser.getPublicConfig(
-                                                    'store-information',
-                                                    'manager',
-                                                    dd.appName
-                                                  )
-                                                ).response.value.shop_name ||
+                                                (shop_info.response.value.shop_name ||
                                                   dd.theme_config.name ||
                                                   dd.appName) as string
                                               );

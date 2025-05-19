@@ -1117,7 +1117,7 @@ export class CheckoutEvent {
           carData.shipment_fee = 0;
         }
         if (tempVoucher.reBackType == 'rebate') {
-          let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
+          let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'email_or_phone');
           if (!customerData) {
             await userClass.createUser(
               data.email!,
@@ -1130,7 +1130,7 @@ export class CheckoutEvent {
               {},
               true
             );
-            customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
+            customerData = await userClass.getUserData(data.email! || data.user_info.email, 'email_or_phone');
           }
         }
 

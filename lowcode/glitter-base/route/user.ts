@@ -676,9 +676,10 @@ export class ApiUser {
   public static getPublicConfig(key: string, user_id: string, appName: string = getConfig().config.appName) {
     return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
       (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
+      const tag=[appName,key,user_id].join('')
       const config = (window as any).glitter.share._public_config;
-      if (config[key + user_id]) {
-        resolve(config[key + user_id]);
+      if (config[tag]) {
+        resolve(config[tag]);
         return;
       }
 
@@ -688,7 +689,7 @@ export class ApiUser {
           key.indexOf('shipment_config_') === 0 &&
           (window.parent as any).glitter.getUrlParameter('function') !== 'backend-manger'
         ) {
-          config[key + user_id] = res;
+          config[tag] = res;
         }
         switch (key) {
           case 'app-header-config':
@@ -699,7 +700,7 @@ export class ApiUser {
           case 'promo-label':
             //前台才有暫存功能
             if ((window.parent as any).glitter.getUrlParameter('function') !== 'backend-manger') {
-              config[key + user_id] = res;
+              config[tag] = res;
             }
             break;
           case 'image-manager':
@@ -709,18 +710,18 @@ export class ApiUser {
             break;
         }
         if (key.indexOf('alt_') === 0) {
-          config[key + user_id] = res;
+          config[tag] = res;
         }
         resolve(res);
       }
 
       const find_ = this.getting_config.find(dd => {
-        return dd.key === key;
+        return dd.key === tag;
       });
       if (find_) {
         find_.array.push(callback);
       } else {
-        this.getting_config.push({ key: key, array: [callback] });
+        this.getting_config.push({ key: tag, array: [callback] });
         BaseApi.create({
           url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
           type: 'GET',
@@ -731,7 +732,7 @@ export class ApiUser {
           },
         }).then(res => {
           this.getting_config = this.getting_config.filter(d1 => {
-            if (d1.key === key) {
+            if (d1.key === tag) {
               d1.array.map(dd => {
                 return dd(res);
               });
