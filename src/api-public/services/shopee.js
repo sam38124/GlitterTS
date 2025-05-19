@@ -123,6 +123,7 @@ class Shopee {
         };
         try {
             const response = await (0, axios_1.default)(config);
+            console.log("response -- ", response);
             const data = await database_js_1.default.execute(`select *
          from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
          where \`app_name\` = '${this.app}'

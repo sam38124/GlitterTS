@@ -1,3 +1,4 @@
+/// <reference types="cookie-parser" />
 import express from 'express';
 export declare class SeoConfig {
     static editorSeo: string;

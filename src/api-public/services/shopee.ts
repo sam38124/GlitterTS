@@ -151,7 +151,7 @@ export class Shopee {
 
     try {
       const response = await axios(config);
-
+      console.log("response -- " , response);
       interface ShopeeAuthToken {
         error: string;
         message: string;

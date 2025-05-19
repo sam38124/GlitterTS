@@ -16,13 +16,7 @@ export type FileItem = {
   id: string;
 };
 
-type KeyType =
-  | 'file'
-  | 'folder'
-  | 'folderView'
-  | 'folderEdit'
-  | 'folderADD'
-  | 'folderViewToEdit';
+type KeyType = 'file' | 'folder' | 'folderView' | 'folderEdit' | 'folderADD' | 'folderViewToEdit';
 
 const html = String.raw;
 const css = String.raw;
@@ -50,13 +44,13 @@ export class imageLibrary {
     const gvc = cf.gvc;
     const vm: {
       id: string;
-      footer_id: string
+      footer_id: string;
       link: FileItem[];
       loading: boolean;
       selected: boolean;
       query: string;
       orderString: string;
-      type: KeyType
+      type: KeyType;
       tag?: string;
       newFolder: FileItem;
     } = {
@@ -80,12 +74,9 @@ export class imageLibrary {
     };
     const ids = {
       classPrefix: 'image-library-dialog',
+      selectBarID: gvc.glitter.getUUID(),
     };
 
-    gvc.addStyle(css`
-      .${ids.classPrefix} {
-      }
-    `);
 
     if (cf.key == 'folderEdit') {
       vm.tag = cf.tag;
@@ -119,7 +110,7 @@ export class imageLibrary {
       if (dd.selected) {
         count++;
       }
-      return dd.items.filter((d: any) => {
+      return dd.filter((d: any) => {
         return d.selected;
       }).length;
     }
@@ -256,23 +247,7 @@ export class imageLibrary {
                             const imageUrl = originImageURL ?? noImageURL;
 
                             function itemClick() {
-                              if (vm.type == 'folder') {
-                                //編輯資料夾內容
-                                vm.type = 'folder';
-                                that.selectImageLibrary(
-                                  gvc,
-                                  selectData => {
-                                    vm.link = selectData;
-                                    gvc.notifyDataChange(vm.id);
-                                  },
-                                  `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
-                                  {
-                                    key: 'folderEdit',
-                                    mul: true,
-                                    tag: fileItem.title,
-                                  }
-                                );
-                              } else if (vm.type == 'folderView') {
+                              if (vm.type == 'folderView') {
                                 function updateLinkList(replaceId: string, newItem?: FileItem) {
                                   const replaceItemIndex = vm.link.findIndex(i => i.id === replaceId);
                                   console.log(replaceItemIndex);
@@ -327,7 +302,7 @@ export class imageLibrary {
                                     array = [];
                                     vm.type = 'folderView';
                                     vm.tag = fileItem.title;
-                                    
+
                                     gvc.notifyDataChange(vm.id);
                                     return;
                                   }
@@ -524,10 +499,11 @@ export class imageLibrary {
             bind: vm.id,
             view: async () => {
               const dialog = new ShareDialog(cf.gvc.glitter);
-              gvc.notifyDataChange(vm.footer_id)
+              gvc.notifyDataChange(vm.footer_id);
+
               function drawBreadcrumb() {
                 return html`
-                  <div class="d-flex" style="margin: 20px 0">
+                  <div class="d-flex" style="margin-bottom:12px;">
                     <div class="breadcrumb-item">
                       <div
                         class="cursor_pointer"
@@ -583,6 +559,8 @@ export class imageLibrary {
                           ? '700'
                           : '500'};cursor: pointer;"
                         onclick="${gvc.event(e => {
+                          if (vm.type == data.key) return;
+                          else vm.link.forEach(item => (item.selected = false));
                           vm.type = data.key as KeyType;
                           vm.query = '';
                           gvc.notifyDataChange(vm.id);
@@ -594,27 +572,45 @@ export class imageLibrary {
                   })
                   .join('');
               }
-              if (vm.type == 'folderViewToEdit'){
-                vm.type = 'folderView';
-                await that.selectImageLibrary(
-                  gvc,
-                  selectData => {
-                    vm.link = selectData;
-                    gvc.notifyDataChange(vm.id);
+
+              function drawSelectBar(selectCount: number) {
+                return gvc.bindView({
+                  bind: ids.selectBarID,
+                  view: () => {
+                    return html`
+                      <div
+                        class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}"
+                      >
+                        已選取${selectCount}項
+                      </div>
+                      <div class="ms-auto ${gClass('search-raw')}">上傳時間舊>新</div>
+                    `;
                   },
-                  `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
-                  {
-                    key: 'folderEdit',
-                    mul: true,
-                    tag: vm.tag,
-                  }
-                );
+                  divCreate: {
+                    class: `w-100 ${gClass('select-bar')} `,
+                  },
+                });
               }
+
+              // if (vm.type == 'folderViewToEdit') {
+              //   vm.type = 'folderView';
+              //   await that.selectImageLibrary(
+              //     gvc,
+              //     selectData => {
+              //       vm.link = selectData;
+              //       gvc.notifyDataChange(vm.id);
+              //     },
+              //     `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
+              //     {
+              //       key: 'folderEdit',
+              //       mul: true,
+              //       tag: vm.tag,
+              //     }
+              //   );
+              // }
               // 空白資料夾新增的頁面
               if (vm.type == 'folderADD') {
                 function pushFolder(folder: FileItem, imageArray: FileItem[]) {
-                  console.log('folder -- ', folder);
-                  console.log('imageArray -- ', imageArray);
                   imageArray.forEach(image => {
                     image.selected = false;
                   });
@@ -693,6 +689,9 @@ export class imageLibrary {
               if (vm.type == 'folderView') {
                 changeWindowsName(vm.tag ?? 'folder');
                 changeCancelBTNName('返回');
+                const group = vm.link.filter(item2 => {
+                  return item2.tag && item2.tag.includes(vm.tag ?? '');
+                });
                 return html`
                   ${drawBreadcrumb()}
                   <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
@@ -714,13 +713,11 @@ export class imageLibrary {
                       options: FilterOptions.imageLibraryOrderBy,
                     })}
                   </div>
+                  ${drawSelectBar(getSelectCount(group))}
                   ${gvc.bindView({
                     bind: `folderItemGroup`,
                     view: () => {
                       if (vm.tag) {
-                        let group = vm.link.filter(item2 => {
-                          return item2.tag && item2.tag.includes(vm.tag ?? '');
-                        });
                         return renderItems(group);
                       }
                       return ``;
@@ -732,7 +729,7 @@ export class imageLibrary {
               //資料夾的內容編輯
               if (vm.type == 'folderEdit') {
                 return html`
-                  <div class="d-flex flex-column ${gClass('album-title')}" >
+                  <div class="d-flex flex-column ${gClass('album-title')}">
                     相簿名稱
                     <input
                       class="w-100"
@@ -764,30 +761,8 @@ export class imageLibrary {
                     })}
                   </div>
                   <div class="d-flex w-100 justify-content-end" style="gap:12px;margin-top: 18px;">
-                    <div
-                      style="margin-right: auto; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word"
-                    >
-                      已選取${getSelectCount({
-                        items: vm.link,
-                      })}項
-                    </div>
-                    ${BgWidget.grayButton(
-                      '刪除',
-                      gvc.event(() => {
-                        let selectedData = vm.link.filter(item => (item as any).selected);
-                        selectedData.forEach(item => {
-                          (item as any).selected = false;
-                          item.tag = item.tag.filter(tag => {
-                            return tag !== vm.tag;
-                          });
-                        });
-
-                        let folder = vm.link.find(dd => {
-                          return dd.title == vm.tag && dd.type == 'folder';
-                        });
-                        gvc.notifyDataChange(vm.id);
-                      })
-                    )}
+                    ${drawSelectBar(getSelectCount(vm.link))}
+                    
                     ${BgWidget.grayButton(
                       '新增圖片',
                       gvc.event(() => {
@@ -880,7 +855,7 @@ export class imageLibrary {
                       })
                     )}
                   </div>
-                  <div >
+                  <div>
                     ${gvc.bindView({
                       bind: `folderItemGroup`,
                       view: () => {
@@ -907,10 +882,9 @@ export class imageLibrary {
                     flex-direction: column;
                     height: auto; /* 設定一個固定的高度 (或用 auto 讓內容決定) */
                     flex-shrink: 0;
-                    padding: 15px;
                     box-sizing: border-box; /* padding 不影響宣告的高度 */
                     width: 100%;
-                    gap: 20px;
+                    gap: 12px;
                     position: sticky;
                     background: #fff;
                     left: 0;
@@ -922,9 +896,7 @@ export class imageLibrary {
                     flex-grow: 1; /* 重要：讓此區塊佔滿所有剩餘的垂直空間 */
                     overflow-y: auto; /* 關鍵：當內容垂直溢出時，只在此區塊顯示垂直滾動條 */
                     width: 100%;
-                    padding: 15px;
                     box-sizing: border-box;
-                    gap: 20px;
                   }
 
                   .${ids.classPrefix}-content {
@@ -934,14 +906,20 @@ export class imageLibrary {
                   }
 
                   .${ids.classPrefix}-select-bar {
-                    height: 40px;
-                    padding: 12px 18px;
-                    background: #f7f7f7;
                     border-radius: 10px;
                     justify-content: flex-end;
                     align-items: center;
                     gap: 8px;
                     display: ${cf.mul ? `inline-flex` : `none`};
+                    margin-top: 18px;
+                    margin-bottom: 8px;
+                  }
+                  .${ids.classPrefix}-select-bar-text{
+                    flex: 1 1 0;
+                    color: #393939;
+                    font-size: 14px;
+                    font-weight: 700;
+                    word-wrap: break-word
                   }
 
                   .${ids.classPrefix}-new-album-title-bar {
@@ -949,7 +927,6 @@ export class imageLibrary {
                     font-style: normal;
                     font-weight: 400;
                     gap: 8px;
-                    padding-top: 12px;
                   }
 
                   .${ids.classPrefix}-new-album-title-bar input {
@@ -985,7 +962,6 @@ export class imageLibrary {
                     font-style: normal;
                     font-weight: 400;
                     gap: 8px;
-                    padding-top: 12px;
                   }
 
                   .${ids.classPrefix}-album-title input {
@@ -993,6 +969,13 @@ export class imageLibrary {
                     padding: 9px 18px;
                     border-radius: 10px;
                     border: 1px solid #ddd;
+                  }
+
+                  .${ids.classPrefix}-search-raw {
+                    color: #393939;
+                    text-align: right;
+                    font-size: 14px;
+                    font-weight: 400;
                   }
                 `);
                 return html`
@@ -1022,21 +1005,7 @@ export class imageLibrary {
                       </div>
                     </div>
                     <div class="scrollable-bottom-section d-flex flex-column">
-                      <div
-                        class="w-100 ${gClass('select-bar')} ${getSelectCount({
-                          items: vm.link,
-                        }) > 0 && vm.type == 'file'
-                          ? ``
-                          : `d-none`}"
-                      >
-                        <div
-                          style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word"
-                        >
-                          已選取${getSelectCount({
-                            items: vm.link,
-                          })}項
-                        </div>
-                      </div>
+                      ${drawSelectBar(getSelectCount(vm.link))}
                       <div
                         style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex"
                       >
@@ -1159,7 +1128,7 @@ export class imageLibrary {
             },
             divCreate: {
               class: `w-100 h-100`,
-              style: ``,
+              style: `padding: 8px;`,
             },
           };
         });
@@ -1177,9 +1146,8 @@ export class imageLibrary {
         //   | 'folderEdit'
         //   | 'folderADD'
         //   | 'folderViewToEdit';
-        const footerType = vm.type
+        const footerType = vm.type;
         const dialog = new ShareDialog(cf.gvc.glitter);
-
 
         function clearNoNeedData(items: FileItem[]) {
           items.map(dd => {
@@ -1255,6 +1223,7 @@ export class imageLibrary {
             },
           ];
         }
+
         function getDefaultButtons(gvc: GVC, save: Function, dialog: ShareDialog): BtnDef[] {
           const finishLabel = cf.key === 'album' ? '建立' : '完成';
           const cancelLabel = cf.key === 'album' ? '返回' : '取消';
@@ -1269,7 +1238,11 @@ export class imageLibrary {
                   closeFolderView();
                   vm.type = 'folder';
                   gvc.notifyDataChange(vm.id);
-                } else {
+                } else if (vm.type === 'folderEdit') {
+                  closeFolderView();
+                  vm.type = 'folderView';
+                  gvc.notifyDataChange(vm.id);
+                }else {
                   gvc.closeDialog();
                 }
               },
@@ -1278,7 +1251,8 @@ export class imageLibrary {
               type: 'edit',
               label: '編輯',
               onClick: () => {
-                vm.type = 'folderViewToEdit';
+                vm.type = 'folderEdit';
+                cf.key = "album";
                 gvc.notifyDataChange(vm.id);
               },
             },
@@ -1338,15 +1312,19 @@ export class imageLibrary {
             },
           ];
         }
+
         const defs = vm.type === 'folderEdit' ? getFolderEditButtons(gvc, save) : getDefaultButtons(gvc, save, dialog);
         return gvc.bindView({
-          bind:vm.footer_id,
-          view:()=>{
-
+          bind: vm.footer_id,
+          view: () => {
             return defs
               .map(d => {
                 const widget =
-                 ( d.type === 'cancel' || d.type === 'edit') ? BgWidget.cancel : d.type === 'danger' ? BgWidget.danger : BgWidget.save;
+                  d.type === 'cancel' || d.type === 'edit'
+                    ? BgWidget.cancel
+                    : d.type === 'danger'
+                      ? BgWidget.danger
+                      : BgWidget.save;
                 if (d.type == 'edit') {
                   if (vm.type == 'folderView') {
                     return widget(gvc.event(d.onClick), d.label);
@@ -1357,12 +1335,12 @@ export class imageLibrary {
                 }
               })
               .join('');
-          },divCreate:{
-            class:'w-100 d-flex align-items-center justify-content-end',
-            style:'gap:14px'
-          }
-        })
-
+          },
+          divCreate: {
+            class: 'w-100 d-flex align-items-center justify-content-end',
+            style: 'gap:14px',
+          },
+        });
       },
       closeCallback: () => {
         if (cf.cancelEvent) {
@@ -1692,9 +1670,10 @@ export class imageLibrary {
                   const dialog = new ShareDialog(gvc.glitter);
 
                   function deleteImage() {
+                    const text = (item.type == 'folder')?`此操作不可復原。確定要刪除相簿${item.title}嗎？`:'刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？' ;
                     dialog.checkYesOrNotWithCustomWidth({
                       width: '432',
-                      text: '刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？',
+                      text: text,
                       icon: '<i class="fa-solid fa-info"></i>',
                       callback: response => {
                         if (response) {

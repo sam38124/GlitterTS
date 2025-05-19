@@ -320,7 +320,7 @@ export class MarketShopee {
                     授權蝦皮
                   </button>
                   <button
-                    class="shopee-btn mt-3"
+                    class="shopee-btn mt-3 d-none"
                     onclick="${gvc.event(() => {
                             localStorage.setItem('shopee', window.parent.location.href);
                             ApiShopee.generateOrderAuth(window.parent.location.href);
@@ -340,24 +340,6 @@ export class MarketShopee {
                                     const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                                     const endTime = Math.floor(new Date(endDate).getTime() / 1000);
                                     ApiShopee.getItemList(startTime, endTime, (response) => {
-                                        gvcDialog.closeDialog();
-                                        gvc.notifyDataChange(blockID);
-                                    });
-                                    loading = true;
-                                });
-                            },
-                        }),
-                        BgWidget.mbContainer(18),
-                        showShopeeBlock({
-                            btnText: '匯入訂單',
-                            subTitle: '如要同步蝦皮訂單，請先匯入定單。',
-                            title: '匯入蝦皮訂單',
-                            url: '',
-                            click: (blockID) => {
-                                drawDialog((startDate, endDate, gvcDialog) => {
-                                    const startTime = Math.floor(new Date(startDate).getTime() / 1000);
-                                    const endTime = Math.floor(new Date(endDate).getTime() / 1000);
-                                    ApiShopee.getOrderList(startTime, endTime, (response) => {
                                         gvcDialog.closeDialog();
                                         gvc.notifyDataChange(blockID);
                                     });
