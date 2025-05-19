@@ -126,7 +126,7 @@ export class CartModule {
       }
 
       // 是否有單一物流結果
-      const hasFullCart = vm.shippings.some(ship => ship.cartLength === cart.line_items.length);
+      // const hasFullCart = vm.shippings.some(ship => ship.cartLength === cart.line_items.length);
 
       // 遍歷購物車商品，並加入所有物流群組
       for (const item of cart.line_items) {
@@ -163,17 +163,10 @@ export class CartModule {
               continue;
             }
 
-            if (hasFullCart) {
-              const filterGroup = vm.logisticsGroup.filter(group => productLogi.group.includes(group.key));
+            const filterGroup = vm.logisticsGroup.filter(group => productLogi.group.includes(group.key));
 
-              for (const group of filterGroup) {
-                if (group && group.list.includes(data.logistic)) {
-                  data.cart.push(lineItem);
-                }
-              }
-            } else {
-              const findGroup = vm.logisticsGroup.find(group => productLogi.group.includes(group.key));
-              if (findGroup && findGroup.list.includes(data.logistic)) {
+            for (const group of filterGroup) {
+              if (group && group.list.includes(data.logistic)) {
                 data.cart.push(lineItem);
               }
             }

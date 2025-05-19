@@ -82,7 +82,6 @@ export class CartModule {
                         }
                     }
                 }
-                const hasFullCart = vm.shippings.some(ship => ship.cartLength === cart.line_items.length);
                 for (const item of cart.line_items) {
                     const product = products.find((p) => `${p.id}` === `${item.id}`);
                     if (product) {
@@ -113,17 +112,9 @@ export class CartModule {
                                 data.cart.push(lineItem);
                                 continue;
                             }
-                            if (hasFullCart) {
-                                const filterGroup = vm.logisticsGroup.filter(group => productLogi.group.includes(group.key));
-                                for (const group of filterGroup) {
-                                    if (group && group.list.includes(data.logistic)) {
-                                        data.cart.push(lineItem);
-                                    }
-                                }
-                            }
-                            else {
-                                const findGroup = vm.logisticsGroup.find(group => productLogi.group.includes(group.key));
-                                if (findGroup && findGroup.list.includes(data.logistic)) {
+                            const filterGroup = vm.logisticsGroup.filter(group => productLogi.group.includes(group.key));
+                            for (const group of filterGroup) {
+                                if (group && group.list.includes(data.logistic)) {
                                     data.cart.push(lineItem);
                                 }
                             }
