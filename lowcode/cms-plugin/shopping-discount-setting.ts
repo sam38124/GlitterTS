@@ -1050,7 +1050,7 @@ export class ShoppingDiscountSetting {
                         voucherData.reBackType === 'shipment_free' ? selectShipment() : '',
                       ]
                         .filter(Boolean)
-                        .map(str => html`<div>${str}</div>`)
+                        .map(str => html` <div>${str}</div>`)
                         .join(BgWidget.horizontalLine())
                     ),
                     ...(['shipment_free', 'add_on_items', 'giveaway'].includes(voucherData.reBackType)
@@ -1840,7 +1840,7 @@ export class ShoppingDiscountSetting {
 
                             function rebateEndDay() {
                               return [
-                                html`<div class="tx_700">購物金有效天數</div>`,
+                                html` <div class="tx_700">購物金有效天數</div>`,
                                 BgWidget.multiCheckboxContainer(
                                   gvc,
                                   [
@@ -1883,7 +1883,7 @@ export class ShoppingDiscountSetting {
                                   },
                                   { single: true }
                                 ),
-                              ].join(html`<div class="my-2"></div>`);
+                              ].join(html` <div class="my-2"></div>`);
                             }
 
                             return [
@@ -2053,7 +2053,7 @@ export class ShoppingDiscountSetting {
 
     const cloneForKey = <T>(key: T): T => JSON.parse(JSON.stringify(key));
 
-    const setTitle = (title: string) => html`<div class="tx_700">${title}</div>`;
+    const setTitle = (title: string) => html` <div class="tx_700">${title}</div>`;
 
     const voucherSettingCard = (array: string[][]) =>
       BgWidget.mainCard(
@@ -2102,7 +2102,7 @@ export class ShoppingDiscountSetting {
 
         // 活動啟用
         function status() {
-          return html`<div class="d-flex gap-1">
+          return html` <div class="d-flex gap-1">
             <div class="tx_normal">活動啟用</div>
             ${BgWidget.switchTextButton(gvc, voucherData.status === 1, {}, bool => {
               voucherData.status = bool ? 1 : 0;
@@ -2530,7 +2530,7 @@ export class ShoppingDiscountSetting {
 
         // 優惠套用至
         function setVoucherFor() {
-          return EditorElem.radio({
+          let view=[EditorElem.radio({
             gvc: gvc,
             title: '',
             def: voucherData.for ?? 'all',
@@ -2541,7 +2541,14 @@ export class ShoppingDiscountSetting {
               gvc.notifyDataChange(pageVM.viewID);
             },
             oneLine: true,
-          });
+          })]
+         if( ['add_on_items','giveaway','shipment_free'].includes(voucherData.reBackType)){
+           view.push(`<div class="mx-n2">${selectProduct()}</div>`)
+         }
+          // [
+          //   selectProduct()
+          // ]
+          return view.join('');
         }
 
         // 活動商品
@@ -2549,7 +2556,6 @@ export class ShoppingDiscountSetting {
           if (voucherData.trigger === 'distribution') {
             return '';
           }
-
           switch (voucherData.for) {
             case 'manager_tag':
               return gvc.bindView(() => {
@@ -2685,52 +2691,57 @@ export class ShoppingDiscountSetting {
                 return {
                   bind: subVM.id,
                   view: () => {
-                    if (subVM.loading) {
-                      return BgWidget.spinner();
-                    }
-                    return html`
-                      <div class="d-flex flex-column p-2" style="gap: 18px;">
-                        <div
-                          class="d-flex align-items-center gray-bottom-line-18"
-                          style="gap: 24px; justify-content: space-between;"
-                        >
-                          <div class="form-check-label c_updown_label">
-                            <div class="tx_normal">商品列表</div>
+                    try {
+                      if (subVM.loading) {
+                        return BgWidget.spinner();
+                      }
+                      return html`
+                        <div class="d-flex flex-column p-2" style="gap: 18px;">
+                          <div
+                            class="d-flex align-items-center gray-bottom-line-18"
+                            style="gap: 24px; justify-content: space-between;"
+                          >
+                            <div class="form-check-label c_updown_label">
+                              <div class="tx_normal">商品列表</div>
+                            </div>
+                            ${BgWidget.grayButton(
+                              '選擇商品',
+                              gvc.event(() => {
+                                BgProduct.productsDialog({
+                                  gvc: gvc,
+                                  default: voucherData.forKey ?? [],
+                                  callback: async value => {
+                                    voucherData.forKey = value;
+                                    defKeys.product = value;
+                                    subVM.dataList = await BgProduct.getProductOpts(voucherData.forKey);
+                                    subVM.loading = true;
+                                    gvc.notifyDataChange(subVM.id);
+                                  },
+                                });
+                              }),
+                              { textStyle: 'font-weight: 400;' }
+                            )}
                           </div>
-                          ${BgWidget.grayButton(
-                            '選擇商品',
-                            gvc.event(() => {
-                              BgProduct.productsDialog({
-                                gvc: gvc,
-                                default: voucherData.forKey ?? [],
-                                callback: async value => {
-                                  voucherData.forKey = value;
-                                  defKeys.product = value;
-                                  subVM.dataList = await BgProduct.getProductOpts(voucherData.forKey);
-                                  subVM.loading = true;
-                                  gvc.notifyDataChange(subVM.id);
-                                },
-                              });
-                            }),
-                            { textStyle: 'font-weight: 400;' }
-                          )}
+                          ${subVM.dataList
+                            .map((opt: OptionsItem, index) => {
+                              return html` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                <span class="tx_normal">${index + 1}.</span>
+                                ${BgWidget.validImageBox({
+                                  gvc: gvc,
+                                  image: opt.image,
+                                  width: 40,
+                                })}
+                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                              </div>`;
+                            })
+                            .join(``)}
                         </div>
-                        ${subVM.dataList
-                          .map((opt: OptionsItem, index) => {
-                            return html` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                              <span class="tx_normal">${index + 1}.</span>
-                              ${BgWidget.validImageBox({
-                                gvc: gvc,
-                                image: opt.image,
-                                width: 40,
-                              })}
-                              <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                              ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                            </div>`;
-                          })
-                          .join(``)}
-                      </div>
-                    `;
+                      `;
+                    } catch (e) {
+                      console.error(e);
+                      return `${e}`;
+                    }
                   },
                   onCreate: () => {
                     if (subVM.loading) {
@@ -2741,11 +2752,12 @@ export class ShoppingDiscountSetting {
                           gvc.notifyDataChange(subVM.id);
                         }, 200);
                       } else {
-                        new Promise<OptionsItem[]>(resolve => {
-                          resolve(BgProduct.getProductOpts(voucherData.forKey));
+                        new Promise<OptionsItem[]>(async resolve => {
+                          resolve(await BgProduct.getProductOpts(voucherData.forKey));
                         }).then(data => {
                           subVM.dataList = data;
                           subVM.loading = false;
+
                           gvc.notifyDataChange(subVM.id);
                         });
                       }
@@ -3349,10 +3361,9 @@ export class ShoppingDiscountSetting {
           rebate: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
           discount: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
           shipment_free: { title: '活動商品', html: '' },
-          add_on_items: { title: '加購品項', html: addProductView() },
-          giveaway: { title: '贈品品項', html: addProductView() },
+          add_on_items: { title: '加購品項', html: [addProductView()].join('') },
+          giveaway: { title: '贈品品項', html:  [addProductView()].join('') },
         };
-
         // 優惠券設定 Layout Data
         const viewList: { title: string; html: string | string[] }[][] = [
           [
@@ -3429,7 +3440,7 @@ export class ShoppingDiscountSetting {
                     const getSummary = this.summaryTextList(voucherData)
                       .map(text => {
                         const className = text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6';
-                        return html`<div class="${className}">${text}</div>`;
+                        return html` <div class="${className}">${text}</div>`;
                       })
                       .join('');
 
@@ -3437,7 +3448,7 @@ export class ShoppingDiscountSetting {
                       [
                         setTitle('摘要'),
                         BgWidget.mbContainer(18),
-                        html`<div style="display: flex; gap: 12px; flex-direction: column;">${getSummary}</div>`,
+                        html` <div style="display: flex; gap: 12px; flex-direction: column;">${getSummary}</div>`,
                       ].join('')
                     );
                   },

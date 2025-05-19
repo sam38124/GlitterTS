@@ -104,7 +104,6 @@ export class UMReceive {
                       .filter((data: any) => {
                         return Object.values(data).some(Boolean);
                       });
-
                     ApiUser.updateUserData({
                       userData: vm.userData,
                     }).then(res => {
@@ -141,7 +140,7 @@ export class UMReceive {
             dataArray => {
               // dataArray[0] => userData
               vm.userData = dataArray[0].response.userData;
-
+              vm.userData.receive_list=vm.userData.receive_list ?? []
               if (vm.userData.receive_list) {
                 vm.dataList = [...vm.userData.receive_list, ...new Array(3 - vm.userData.receive_list.length).fill({})];
               }

@@ -366,7 +366,7 @@ export class AccountInfo {
         };
       }),
       ` <div style="height:${glitter.share.bottom_inset || 0}px;"></div>`,
-    ];
+    ].join('');
   }
 }
 
