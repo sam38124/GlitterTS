@@ -1113,11 +1113,9 @@ export class CheckoutEvent {
         carData.customer_info = data.customer_info;
         carData.total = data.total ?? 0;
         carData.rebate = tempVoucher.rebate_total;
-
         if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
           carData.shipment_fee = 0;
         }
-
         if (tempVoucher.reBackType == 'rebate') {
           let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
           if (!customerData) {
