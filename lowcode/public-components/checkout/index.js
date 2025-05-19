@@ -2222,7 +2222,7 @@ export class CheckoutIndex {
                                                       class="d-flex justify-content-between align-items-center p-1 w-100 gap-2"
                                                     >
                                                       <div class="d-flex flex-column">
-                                                        <h5>收件人 ${index + 1}</h5>
+                                                        <h5>${Language.text('recipient')} ${index + 1}</h5>
                                                         ${['name', 'email', 'phone']
                                                                 .filter(key => data[key])
                                                                 .map(key => {
@@ -3182,9 +3182,7 @@ export class CheckoutIndex {
         }
         let pass = true;
         if (subData.shipment === 'none') {
-            dialog.errorMessage({
-                text: Language.text('select_shipping_method'),
-            });
+            dialog.errorMessage({ text: Language.text('select_shipping_method') });
             return false;
         }
         if (ShipmentConfig.supermarketList.includes(subData['shipment'])) {

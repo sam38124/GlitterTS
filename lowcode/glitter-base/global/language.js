@@ -238,6 +238,14 @@ export class Language {
             { key: 'discount', tw: '折抵', cn: '折抵', en: 'Discount' },
             { key: 'remaining_balance', tw: '您目前剩餘', cn: '您目前剩余', en: 'Your remaining balance' },
             { key: 'point', tw: '點', cn: '点', en: '' },
+            { key: 'recipient', tw: '收件人', cn: '收件人', en: 'Recipient' },
+            { key: 'add_recipient', tw: '新增收件人', cn: '新增收件人', en: 'Add Recipient' },
+            {
+                key: 'recipient_limit',
+                tw: '最多限制儲存 _max_ 名收件人',
+                cn: '最多限制保存 _max_ 名收件人',
+                en: 'You can save up to _max_ recipients',
+            },
             {
                 key: 'max_discount_order',
                 tw: '此份訂單最多可折抵',
