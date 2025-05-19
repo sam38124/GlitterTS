@@ -5076,19 +5076,12 @@ export class ShoppingOrderManager {
             if (checkOrderEmpty(passData)) {
               ApiShop.toManualCheckout(passData).then(() => {
                 dialog.dataLoading({ visible: false });
-                (window.parent as any).glitter.innerDialog(
-                  () => {
-                    return dialog.successMessage({
-                      text: html`訂單新增成功！<br />已將訂單明細發送至顧客信箱`,
-                    });
-                  },
-                  'orderFinish',
-                  {
-                    dismiss: () => {
-                      vm.type = 'list';
-                    },
-                  }
-                );
+                dialog.successMessage({
+                  text: `訂單新增成功<br />已將訂單明細發送至顧客信箱`,
+                });
+                setTimeout(() => {
+                  vm.type = 'list';
+                }, 1200);
               });
             } else {
               dialog.dataLoading({ visible: false });

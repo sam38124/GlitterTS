@@ -556,7 +556,7 @@ export class CheckoutEvent {
                   return 0;
                 })();
 
-                console.log(`shipmentValue=>`,shipmentValue)
+                console.log(`shipmentValue=>`, shipmentValue);
                 item.shipment_obj = {
                   type: variant.shipment_type,
                   value: shipmentValue,
@@ -601,7 +601,7 @@ export class CheckoutEvent {
                 }
               }
 
-              if (!['preview', 'manual', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
+              if (!['preview', 'manual-preview'].includes(type) && variant.show_understocking !== 'false') {
                 const remainingStock = Math.max(variant.stock - item.count, 0);
                 variant.stock = remainingStock;
 
@@ -1133,6 +1133,8 @@ export class CheckoutEvent {
             customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
           }
         }
+
+        await Promise.all(saveStockArray.map(dd => dd()));
 
         // 手動訂單新增
         await OrderEvent.insertOrder({
