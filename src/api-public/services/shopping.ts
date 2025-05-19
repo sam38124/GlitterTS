@@ -2737,8 +2737,8 @@ export class Shopping {
         voucher.bind.map(item => {
           voucher.bind_subtotal += item.count * item.sale_price;
         });
-        if (cart.discount && voucher.includeDiscount === 'after') {
-          voucher.bind_subtotal -= cart.discount;
+        if (voucher.includeDiscount === 'after') {
+          voucher.bind_subtotal -= (cart.discount ?? 0) + cart.use_rebate;
         }
         if (voucher.rule === 'min_price') {
           cartValue = voucher.bind_subtotal;
@@ -2761,6 +2761,7 @@ export class Shopping {
           // 回傳免運費判斷
           return cart.shipment_fee > 0 && isSelectShipment() && cartValue >= ruleValue;
         }
+
         if (cartValue >= ruleValue) {
           if (voucher.counting === 'each') {
             voucher.times = Math.floor(cartValue / ruleValue);
@@ -2776,12 +2777,24 @@ export class Shopping {
       // 計算單位為商品的優惠觸發
       if (voucher.conditionType === 'item') {
         if (voucher.rule === 'min_price') {
-          voucher.bind = voucher.bind.filter(item => {
+          // 分配使用購物金在每個商品的價值金額
+          const proportions: number[] = [];
+          const subtotal = voucher.bind.reduce((sum, item) => sum + item.sale_price * item.count, 0);
+
+          voucher.bind.map(item => {
+            const useRebate = Math.floor(cart.use_rebate * Tool.floatAdd((item.sale_price * item.count) / subtotal, 0));
+            proportions.push(useRebate);
+          });
+
+          // 篩選優惠觸發前後與觸發次數
+          voucher.bind = voucher.bind.filter((item, index) => {
             item.times = 0;
             let subtotal = item.count * item.sale_price;
-            if (cart.discount && voucher.includeDiscount === 'after') {
-              subtotal -= reduceDiscount[item.id] ?? 0;
+
+            if (voucher.includeDiscount === 'after') {
+              subtotal -= (reduceDiscount[item.id] ?? 0) + proportions[index];
             }
+
             if (subtotal >= ruleValue) {
               if (voucher.counting === 'each') {
                 item.times = Math.floor(subtotal / ruleValue);
@@ -2804,6 +2817,7 @@ export class Shopping {
                 item.times = 1;
               }
             }
+
             return item.times > 0;
           });
         }

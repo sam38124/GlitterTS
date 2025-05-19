@@ -1889,16 +1889,23 @@ class Shopping {
             return voucher.bind.length > 0;
         }
         function checkCartTotal(voucher) {
+            var _a;
             voucher.times = 0;
             voucher.bind_subtotal = 0;
             const ruleValue = parseInt(`${voucher.ruleValue}`, 10);
+            const proportions = [];
+            const subtotal = voucher.bind.reduce((sum, item) => sum + item.sale_price * item.count, 0);
+            voucher.bind.map(item => {
+                const useRebate = Math.floor(cart.use_rebate * tool_js_1.default.floatAdd((item.sale_price * item.count) / subtotal, 0));
+                proportions.push(useRebate);
+            });
             if (voucher.conditionType === 'order') {
                 let cartValue = 0;
                 voucher.bind.map(item => {
                     voucher.bind_subtotal += item.count * item.sale_price;
                 });
-                if (cart.discount && voucher.includeDiscount === 'after') {
-                    voucher.bind_subtotal -= cart.discount;
+                if (voucher.includeDiscount === 'after') {
+                    voucher.bind_subtotal -= ((_a = cart.discount) !== null && _a !== void 0 ? _a : 0) + cart.use_rebate;
                 }
                 if (voucher.rule === 'min_price') {
                     cartValue = voucher.bind_subtotal;
@@ -1929,12 +1936,12 @@ class Shopping {
             }
             if (voucher.conditionType === 'item') {
                 if (voucher.rule === 'min_price') {
-                    voucher.bind = voucher.bind.filter(item => {
+                    voucher.bind = voucher.bind.filter((item, index) => {
                         var _a;
                         item.times = 0;
                         let subtotal = item.count * item.sale_price;
-                        if (cart.discount && voucher.includeDiscount === 'after') {
-                            subtotal -= (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
+                        if (voucher.includeDiscount === 'after') {
+                            subtotal -= ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + proportions[index];
                         }
                         if (subtotal >= ruleValue) {
                             if (voucher.counting === 'each') {
@@ -2075,7 +2082,9 @@ class Shopping {
         function countingBindDiscount(voucher) {
             voucher.bind.map(item => {
                 var _a;
-                reduceDiscount[item.id] = ((_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0) + item.discount_price * item.count;
+                const discountTotal = item.discount_price * item.count;
+                const reduceNum = (_a = reduceDiscount[item.id]) !== null && _a !== void 0 ? _a : 0;
+                reduceDiscount[item.id] = discountTotal + reduceNum;
             });
         }
         function filterVoucherlist(vouchers) {
