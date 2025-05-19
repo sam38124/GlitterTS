@@ -3106,7 +3106,7 @@ export class Shopping {
           await this.resetStore(origin.orderData.lineItems, 'minus');
         }
 
-        //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
+        // 當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
         if (update.orderData.user_info.shipment_number && !update.orderData.user_info.shipment_date) {
           update.orderData.user_info.shipment_date = new Date().toISOString();
         } else if (!update.orderData.user_info.shipment_number) {
@@ -3114,7 +3114,7 @@ export class Shopping {
         }
 
         // 當訂單出貨狀態變更，觸發通知事件
-        const updateProgress = update.orderData.progress;
+        const updateProgress = update.orderData.progress || 'wait';
 
         if (
           updateProgress === 'wait' &&
@@ -4446,9 +4446,7 @@ export class Shopping {
         }
 
         const insertData = await db.query(
-          `replace
-          INTO \`${this.app}\`.t_variants
-           SET ?
+          `REPLACE INTO \`${this.app}\`.t_variants SET ?
           `,
           [insertObj]
         );
@@ -4483,9 +4481,8 @@ export class Shopping {
       });
 
       await db.query(
-        `UPDATE \`${this.app}\`.t_manager_post
-         SET ?
-         WHERE id = ?`,
+        `UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?
+        `,
         [{ content: JSON.stringify(content) }, content.id]
       );
     } catch (error) {
@@ -4555,7 +4552,8 @@ export class Shopping {
       const variant_s: any = pd_data.variants.find((dd: any) => {
         return dd.spec.join('-') === spec.join('-');
       });
-      //如果是餐飲組合扣除庫存方式不同
+
+      // 如果是餐飲組合扣除庫存方式不同
       if (pd_data.product_category === 'kitchen' && pd_data.specs && pd_data.specs.length) {
         variant_s.spec.map((d1: any, index: number) => {
           const count_s = `${
@@ -4571,10 +4569,12 @@ export class Shopping {
         });
       } else {
         const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+
         if (Object.keys(variant_s.stockList).length === 0) {
-          //適應舊版庫存更新
+          // 適應舊版庫存更新
           variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
         }
+
         if (variant_s.stockList[stock_id]) {
           variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
           variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;

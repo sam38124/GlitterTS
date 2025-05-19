@@ -2211,7 +2211,7 @@ class Shopping {
                 else if (!update.orderData.user_info.shipment_number) {
                     delete update.orderData.user_info.shipment_date;
                 }
-                const updateProgress = update.orderData.progress;
+                const updateProgress = update.orderData.progress || 'wait';
                 if (updateProgress === 'wait' &&
                     update.orderData.user_info.shipment_number &&
                     update.orderData.user_info.shipment_number !== origin.orderData.user_info.shipment_number) {
@@ -2397,6 +2397,7 @@ class Shopping {
                 updateCalcData(intCount, location, item.id, item.spec);
             });
         });
+        console.log('--- resetStore ---');
         return await Promise.all([...calcMap.values()].map(async (dataArray) => {
             for (const data of dataArray) {
                 const { calc, stock_id, product_id, spec } = data;
@@ -2464,6 +2465,7 @@ class Shopping {
                     updateCalcData(delta * -1, location, newItem.id, newItem.spec);
                 });
             });
+            console.log('--- adjustStock ---');
             return await Promise.all([...calcMap.values()].map(async (dataArray) => {
                 for (const data of dataArray) {
                     const { calc, stock_id, product_id, spec } = data;
@@ -3222,9 +3224,10 @@ class Shopping {
                     insertObj.id = originalVariant.id;
                     sourceMap[originalVariant.id] = originalVariant.id;
                 }
-                const insertData = await database_js_1.default.query(`replace
-          INTO \`${this.app}\`.t_variants
-           SET ?
+                console.log('--- variant.stockList ----');
+                console.log(variant.spec);
+                console.log(variant.stockList);
+                const insertData = await database_js_1.default.query(`REPLACE INTO \`${this.app}\`.t_variants SET ?
           `, [insertObj]);
                 return insertData;
             });
@@ -3250,9 +3253,8 @@ class Shopping {
                 user_id: 'manager',
                 value: exhibitionConfig,
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
-         SET ?
-         WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?
+        `, [{ content: JSON.stringify(content) }, content.id]);
         }
         catch (error) {
             console.error(error);
@@ -3308,6 +3310,8 @@ class Shopping {
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
             });
+            console.log('--- f1 ---');
+            console.log(variant_s.stockList);
             if (pd_data.product_category === 'kitchen' && pd_data.specs && pd_data.specs.length) {
                 variant_s.spec.map((d1, index) => {
                     var _a;

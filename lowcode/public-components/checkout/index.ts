@@ -1786,7 +1786,6 @@ export class CheckoutIndex {
                                                 return '';
                                               }
                                             };
-
                                             return html` <div class="d-flex flex-column gap-1">
                                               <select
                                                 class="w-100 ${gClass('select')}"
