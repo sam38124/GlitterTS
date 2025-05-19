@@ -154,12 +154,11 @@ export class CheckoutIndex {
                             })());
                         }
                         function resetShipmentSelected() {
-                            const findGroup = vm.logisticsGroup.find(item => item.key === localStorage.getItem('logistics-group'));
-                            if (findGroup) {
-                                const list = findGroup.list;
-                                const def = localStorage.getItem('shipment-select');
-                                if (!def || !list.includes(def)) {
-                                    localStorage.setItem('shipment-select', list[0]);
+                            const findGroup = vm.logisticsGroup.flatMap(item => item.list);
+                            if (Array.isArray(findGroup) && findGroup.length > 0) {
+                                const defaultShipment = localStorage.getItem('shipment-select');
+                                if (!defaultShipment || !findGroup.includes(defaultShipment)) {
+                                    localStorage.setItem('shipment-select', findGroup[0]);
                                 }
                             }
                         }
@@ -1637,7 +1636,7 @@ export class CheckoutIndex {
                                                     return html ` <option
                                                           value="${dd.value}"
                                                           ${vm.cartData.user_info.shipment === dd.value
-                                                        ? `selected`
+                                                        ? 'selected'
                                                         : ''}
                                                         >
                                                           ${Language.text(`ship_${dd.value}`) ||
