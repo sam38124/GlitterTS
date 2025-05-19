@@ -703,7 +703,9 @@ export class SaasViewModel {
                                                             view: () => {
                                                                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                                     try {
-                                                                        resolve(((yield ApiUser.getPublicConfig('store-information', 'manager', dd.appName)).response.value.shop_name ||
+                                                                        console.log(`dd.appName===>`, dd.appName);
+                                                                        const shop_info = (yield ApiUser.getPublicConfig('store-information', 'manager', dd.appName));
+                                                                        resolve((shop_info.response.value.shop_name ||
                                                                             dd.theme_config.name ||
                                                                             dd.appName));
                                                                     }
