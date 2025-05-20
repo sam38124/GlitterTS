@@ -1973,12 +1973,14 @@ class Shopping {
             return false;
         }
         function compare(voucher) {
-            return voucher.bind
+            const reduce_sum = voucher.bind
                 .map(item => {
                 const val = parseFloat(voucher.value);
                 return voucher.method === 'percent' ? (item.sale_price * val) / 100 : val;
             })
-                .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+                .reduce((sum, value) => sum + value, 0);
+            const use_rebate_count = voucher.includeDiscount === 'after' ? cart.use_rebate : 0;
+            return reduce_sum - use_rebate_count;
         }
         function manualSorted(a, b) {
             const aIndex = sortedVoucher.array.indexOf(a.id);
@@ -2091,7 +2093,10 @@ class Shopping {
                 return [checkSource, checkTarget, setBindProduct].every(fn => fn(voucher));
             })
                 .sort((a, b) => {
-                return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
+                if (sortedVoucher.toggle) {
+                    return manualSorted(a, b);
+                }
+                return compare(b) > compare(a) ? 1 : -1;
             })
                 .filter(voucher => {
                 return [checkCartTotal, checkOverlay, checkCondition].every(fn => fn(voucher));
