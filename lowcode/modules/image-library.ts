@@ -9,7 +9,7 @@ import { Tool } from './tool.js';
 export type FileItem = {
   selected?: boolean;
   title: string;
-  data: any;
+  data: FileItem[];
   items?: FileItem[];
   type: 'file' | 'folder';
   tag: string[];
@@ -118,8 +118,19 @@ export class imageLibrary {
     function getPublicConfig(callback: () => void) {
       ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
         if (data.response.value) {
-          vm.link = data.response.value;
 
+          const tagDiv = window.parent.document.querySelector('.tag-title');
+
+          vm.link = data.response.value;
+          if (tagDiv) {
+            const tag = tagDiv.getAttribute('data-tag');
+            if (tag) {
+              console.log("vm.link.filter(item => item.tag.includes(tag)) -- " , vm.link.filter(item => item.tag.includes(tag)));
+              vm.link.filter(item => item.tag.includes(tag)).forEach(item => {
+                item.selected = true;
+              })
+            }
+          }
           function loop(array: FileItem[]) {
             array.map(dd => {
               if (dd.type === 'folder') {
@@ -315,7 +326,7 @@ export class imageLibrary {
                                     });
                                   }
                                   (fileItem as any).selected = !defaultSelect;
-                                  gvc.notifyDataChange(vm.id);
+                                  gvc.notifyDataChange([viewID , ids.selectBarID]);
                                   event.stopPropagation();
                                 })}"
                                 ${!gvc.glitter.isTouchDevice()
@@ -491,6 +502,7 @@ export class imageLibrary {
         }
 
         getPublicConfig(() => {
+          const tagDiv = document.querySelector('.tag-title');
           gvc.notifyDataChange(vm.id);
         });
 
@@ -510,6 +522,7 @@ export class imageLibrary {
                         onclick="${gvc.event(() => {
                           closeFolderView();
                           vm.type = 'file';
+                          cf.key = 'file';
                           gvc.notifyDataChange(vm.id);
                         })}"
                       >
@@ -572,83 +585,43 @@ export class imageLibrary {
                   })
                   .join('');
               }
+              function pushFolder(folder: FileItem, imageArray: FileItem[]) {
+                imageArray.forEach(image => {
+                  image.selected = false;
+                });
+                folder.data.push(
+                  ...imageArray.filter(image => !folder.data.some(existingImage => existingImage.id === image.id))
+                );
+                return folder.data;
+              }
+              function pushDataToFolder(selectData: FileItem[]) {
+                selectData.map(data => {
+                  let matchingElement = vm.link.find(item2 => item2.id === data.id);
+                  if (matchingElement) {
+                    if (!matchingElement.tag) {
+                      matchingElement.tag = [];
+                    }
 
-              function drawSelectBar(selectCount: number) {
-                return gvc.bindView({
-                  bind: ids.selectBarID,
-                  view: () => {
-                    return html`
-                      <div
-                        class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}"
-                      >
-                        已選取${selectCount}項
-                      </div>
-                      <div class="ms-auto ${gClass('search-raw')}">上傳時間舊>新</div>
-                    `;
-                  },
-                  divCreate: {
-                    class: `w-100 ${gClass('select-bar')} `,
-                  },
+                    if (!matchingElement.tag.includes(vm.tag as string)) {
+                      matchingElement!.tag.push(vm.tag as string);
+                    }
+                  }
+                  (data as any).selected = false;
                 });
               }
+              function drawAlbumInsertImage(callback: (selectData:FileItem[]) => void){
 
-              // if (vm.type == 'folderViewToEdit') {
-              //   vm.type = 'folderView';
-              //   await that.selectImageLibrary(
-              //     gvc,
-              //     selectData => {
-              //       vm.link = selectData;
-              //       gvc.notifyDataChange(vm.id);
-              //     },
-              //     `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
-              //     {
-              //       key: 'folderEdit',
-              //       mul: true,
-              //       tag: vm.tag,
-              //     }
-              //   );
-              // }
-              // 空白資料夾新增的頁面
-              if (vm.type == 'folderADD') {
-                function pushFolder(folder: FileItem, imageArray: FileItem[]) {
-                  imageArray.forEach(image => {
-                    image.selected = false;
-                  });
-                  return folder.data.push(...imageArray);
-                }
-
-                vm.newFolder = {
-                  selected: false,
-                  title: '',
-                  data: [],
-                  items: [],
-                  type: 'folder',
-                  tag: [],
-                  id: gvc.glitter.getUUID(),
-                };
                 return html`
-                  <div class="d-flex flex-column ${gClass('new-album-title-bar')}">
-                    相簿名稱
-                    <input
-                      class="w-100"
-                      value="${vm.tag ?? ''}"
-                      placeholder="請輸入相簿名稱"
-                      onchange="${gvc.event(e => {
-                        vm.tag = e.value;
-                      })}"
-                    />
-                  </div>
                   <div class="w-100 ${gClass('new-album-add-block')}">
                     <div
                       class="btn1"
                       onclick="${gvc.event(() => {
-                        this.selectImageLibrary(
+                        that.selectImageLibrary(
                           gvc,
                           selectData => {
-                            pushFolder(vm.newFolder, selectData);
-                            gvc.notifyDataChange('folderItemGroup');
+                            callback(selectData)
                           },
-                          `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
+                          `<div class="d-flex flex-column tag-title" data-tag="${vm.tag}"  style="border-radius: 10px 10px 0 0;background: #F2F2F2;">${vm.tag}</div>`,
                           {
                             key: 'album',
                             mul: true,
@@ -664,9 +637,10 @@ export class imageLibrary {
                         cf.plus(
                           gvc,
                           fileArray => {
-                            pushFolder(vm.newFolder, fileArray);
+                            vm.link.push(...fileArray);
+                            callback(fileArray)
                             save(() => {
-                              gvc.notifyDataChange('folderItemGroup');
+                             gvc.notifyDataChange(vm.id);
                             });
                           },
                           'file'
@@ -676,6 +650,53 @@ export class imageLibrary {
                       上傳新圖片
                     </div>
                   </div>
+
+                `
+              }
+
+              function drawSelectBar(data: FileItem[]) {
+
+                return gvc.bindView({
+                  bind: ids.selectBarID,
+                  view: () => {
+                    const selectCount = getSelectCount(data);
+                    return html`
+                      <div
+                        class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}"
+                      >
+                        已選取${selectCount}項
+                      </div>
+                      <div class="ms-auto ${gClass('search-raw')}">上傳時間舊>新</div>
+                    `;
+                  },
+                  divCreate: {
+                    class: `w-100 ${gClass('select-bar')} `,
+                  },
+                });
+              }
+              // 空白資料夾新增的頁面
+              if (vm.type == 'folderADD') {
+                const copyLink = structuredClone(vm.link)
+                return html`
+                  <div class="d-flex flex-column ${gClass('new-album-title-bar')}">
+                    相簿名稱
+                    <input
+                      class="w-100"
+                      value="${vm.tag ?? ''}"
+                      placeholder="請輸入相簿名稱"
+                      onchange="${gvc.event(e => {
+                        vm.tag = e.value;
+                      })}"
+                    />
+                  </div>
+                  ${drawAlbumInsertImage((selectData:FileItem[])=>{
+                    pushFolder(vm.newFolder, selectData);
+                    // vm.newFolder.data = [];
+                    vm.link.push(vm.newFolder);
+                    
+                    gvc.notifyDataChange('folderItemGroup');  
+                    
+                  })}
                   ${gvc.bindView({
                     bind: `folderItemGroup`,
                     view: () => {
@@ -713,7 +734,7 @@ export class imageLibrary {
                       options: FilterOptions.imageLibraryOrderBy,
                     })}
                   </div>
-                  ${drawSelectBar(getSelectCount(group))}
+                  ${drawSelectBar(group)}
                   ${gvc.bindView({
                     bind: `folderItemGroup`,
                     view: () => {
@@ -741,119 +762,15 @@ export class imageLibrary {
                       })}"
                     />
                   </div>
-                  <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
-                    ${BgWidget.searchFilter(
-                      gvc.event(e => {
-                        vm.query = e.value;
-                        gvc.notifyDataChange(vm.id);
-                      }),
-                      vm.query || '',
-                      '搜尋圖片'
-                    )}
-                    ${BgWidget.updownFilter({
-                      gvc,
-                      callback: (value: any) => {
-                        vm.orderString = value;
-                        gvc.notifyDataChange(vm.id);
-                      },
-                      default: vm.orderString || 'default',
-                      options: FilterOptions.imageLibraryOrderBy,
-                    })}
-                  </div>
-                  <div class="d-flex w-100 justify-content-end" style="gap:12px;margin-top: 18px;">
-                    ${drawSelectBar(getSelectCount(vm.link))}
+                  ${drawAlbumInsertImage((selectData:FileItem[])=>{
+                    pushDataToFolder(selectData);
+                    save(()=>{
+                      gvc.notifyDataChange('folderItemGroup');
+                    })
                     
-                    ${BgWidget.grayButton(
-                      '新增圖片',
-                      gvc.event(() => {
-                        const thatGVC = gvc;
-                        gvc.glitter.innerDialog((gvc: GVC) => {
-                          return html`
-                            <div style="width: 445px;height: 255px;border-radius: 10px;background: #FFF;">
-                              <div
-                                class="d-flex"
-                                style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;"
-                              >
-                                新增圖片
-                                <span
-                                  class="d-flex align-items-center justify-content-center"
-                                  style="margin-left: auto;cursor: pointer;"
-                                  onclick="${gvc.event(() => {
-                                    gvc.glitter.closeDiaLog('add');
-                                  })}"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 14 14"
-                                    fill="none"
-                                  >
-                                    <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round" />
-                                    <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round" />
-                                  </svg>
-                                </span>
-                              </div>
-                              <div class="d-flex justify-content-center" style="padding-top:61px;gap:14px;">
-                                <div
-                                  style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
-                                  onclick="${gvc.event(() => {
-                                    this.selectImageLibrary(
-                                      gvc,
-                                      selectData => {
-                                        selectData.map(data => {
-                                          let matchingElement = vm.link.find(item2 => item2.id === data.id);
-                                          if (matchingElement) {
-                                            if (!matchingElement.tag) {
-                                              matchingElement.tag = [];
-                                            }
-
-                                            if (!matchingElement.tag.includes(vm.tag as string)) {
-                                              matchingElement!.tag.push(vm.tag as string);
-                                            }
-                                          }
-                                          (data as any).selected = false;
-                                        });
-
-                                        gvc.glitter.closeDiaLog('add');
-                                        thatGVC.notifyDataChange(vm.id);
-                                      },
-                                      `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`,
-                                      {
-                                        key: 'album',
-                                        mul: true,
-                                      }
-                                    );
-                                  })}"
-                                >
-                                  從圖庫中選擇
-                                </div>
-                                <div
-                                  style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
-                                  onclick="${gvc.event(() => {
-                                    cf.plus(
-                                      gvc,
-                                      fileArray => {
-                                        fileArray.forEach(item => {
-                                          item.tag = [];
-                                          item.tag.push(vm.tag as string);
-                                          vm.link.push(item);
-                                        });
-                                        gvc.glitter.closeDiaLog('add');
-                                        thatGVC.notifyDataChange(vm.id);
-                                      },
-                                      'file'
-                                    );
-                                  })}"
-                                >
-                                  上傳新圖片
-                                </div>
-                              </div>
-                            </div>
-                          `;
-                        }, 'add');
-                      })
-                    )}
+                  })}
+                  <div class="d-flex w-100 justify-content-end" style="gap:12px;margin-top: 18px;">
+                    ${drawSelectBar(vm.link)}
                   </div>
                   <div>
                     ${gvc.bindView({
@@ -926,7 +843,7 @@ export class imageLibrary {
                     font-size: 16px;
                     font-style: normal;
                     font-weight: 400;
-                    gap: 8px;
+                    gap: 12px;
                   }
 
                   .${ids.classPrefix}-new-album-title-bar input {
@@ -937,7 +854,7 @@ export class imageLibrary {
                   }
 
                   .${ids.classPrefix}-new-album-add-block {
-                    margin-top: 18px;
+                    margin-top: 12px;
                     padding: 39px 0;
                     display: flex;
                     justify-content: center;
@@ -945,7 +862,7 @@ export class imageLibrary {
                     border-radius: 10px;
                     border: 1px solid #ddd;
                     background: #fff;
-                    gap: 14px;
+                    gap: 12px;
                   }
 
                   .${ids.classPrefix}-new-album-add-block .btn1 {
@@ -983,7 +900,7 @@ export class imageLibrary {
                     class="w-100 d-inline-flex flex-column justify-content-start align-items-start ${gClass('content')}"
                   >
                     <div class="fixed-top-section">
-                      <div class=" ${cf.key == 'album' ? `d-none` : `d-flex`}" style="gap:14px;">${pageBTN()}</div>
+                      <div class=" ${(cf.key != 'album') ? `d-flex` : `d-none`}" style="gap:14px;">${pageBTN()}</div>
                       <div class="d-flex w-100" style="gap:14px;">
                         ${BgWidget.searchFilter(
                           gvc.event(e => {
@@ -1003,9 +920,9 @@ export class imageLibrary {
                           options: FilterOptions.imageLibraryOrderBy,
                         })}
                       </div>
+                      ${drawSelectBar(vm.link)}
                     </div>
                     <div class="scrollable-bottom-section d-flex flex-column">
-                      ${drawSelectBar(getSelectCount(vm.link))}
                       <div
                         style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex"
                       >
@@ -1066,6 +983,15 @@ export class imageLibrary {
                                     } else {
                                       vm.tag = '';
                                       vm.type = 'folderADD';
+                                      vm.newFolder = {
+                                        selected: false,
+                                        title: '',
+                                        data: [],
+                                        items: [],
+                                        type: 'folder',
+                                        tag: [],
+                                        id: gvc.glitter.getUUID(),
+                                      };
                                       gvc.notifyDataChange(vm.id);
                                     }
                                   })}"
@@ -1077,9 +1003,9 @@ export class imageLibrary {
                           }
                           return html`
                             <div
-                              class="w-100 ${cf.key == 'album'
-                                ? `d-none`
-                                : `d-flex`} align-items-center justify-content-center"
+                              class="w-100 ${(vm.type == 'file' || vm.type == 'folder')
+                                ? `d-flex`
+                                : `d-none`} align-items-center justify-content-center"
                               style="padding: 39px 0;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                             >
                               <div
@@ -1099,6 +1025,15 @@ export class imageLibrary {
                                   } else {
                                     vm.tag = '';
                                     vm.type = 'folderADD';
+                                    vm.newFolder = {
+                                      selected: false,
+                                      title: '',
+                                      data: [],
+                                      items: [],
+                                      type: 'folder',
+                                      tag: [],
+                                      id: gvc.glitter.getUUID(),
+                                    };
                                     gvc.notifyDataChange(vm.id);
                                   }
                                 })}"
@@ -1233,6 +1168,7 @@ export class imageLibrary {
               type: 'cancel',
               label: cancelLabel,
               onClick: () => {
+                cf.key = 'file';
                 if (cf.cancelEvent) cf.cancelEvent();
                 if (vm.type === 'folderView' || vm.type === 'folderADD') {
                   closeFolderView();
