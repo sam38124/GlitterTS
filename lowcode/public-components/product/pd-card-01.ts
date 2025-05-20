@@ -1,7 +1,4 @@
 import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
@@ -13,7 +10,6 @@ export class ProductCard01 {
 
   static main(gvc: GVC, widget: any, subData: any) {
     const glitter = gvc.glitter;
-    const wishId = glitter.getUUID();
     const prod = typeof subData.content !== 'object' ? subData : subData.content;
     const titleFontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
     let label: any = {};
@@ -172,15 +168,15 @@ export class ProductCard01 {
     return html` <div
       class="card mb-7 card-border"
       onclick="${gvc.event(() => {
-        if(PdClass.isShoppingPage()){
+        if (PdClass.isShoppingPage()) {
           PdClass.addCartAction({
             gvc: gvc,
             titleFontColor: titleFontColor,
             prod: prod,
             vm: vm,
-          })
-        }else{
-          PdClass.changePage(prod, gvc)
+          });
+        } else {
+          PdClass.changePage(prod, gvc);
         }
       })}"
     >
@@ -240,6 +236,7 @@ export class ProductCard01 {
 
             return html`<div
               class="w-100 h-100 p-3 add-cart-text"
+              style="${isSoldOut ? 'background-color: #aeaeae' : ''}"
               onclick="${gvc.event((_, event) => {
                 event.stopPropagation();
 

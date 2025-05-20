@@ -1742,7 +1742,7 @@ export class ShoppingDiscountSetting {
           </div>`;
                 }
                 function title() {
-                    return html ` <div class="tx_normal">活動標題 ${BgWidget.requiredStar()}</div>
+                    return html ` <div class="tx_normal">活動標題${BgWidget.requiredStar()}</div>
             ${BgWidget.mbContainer(8)}
             ${BgWidget.editeInput({
                         gvc: gvc,
@@ -2116,7 +2116,8 @@ export class ShoppingDiscountSetting {
                 }
                 function setVoucherFor() {
                     var _b;
-                    let view = [EditorElem.radio({
+                    let view = [
+                        EditorElem.radio({
                             gvc: gvc,
                             title: '',
                             def: (_b = voucherData.for) !== null && _b !== void 0 ? _b : 'all',
@@ -2127,7 +2128,8 @@ export class ShoppingDiscountSetting {
                                 gvc.notifyDataChange(pageVM.viewID);
                             },
                             oneLine: true,
-                        })];
+                        }),
+                    ];
                     if (['add_on_items', 'giveaway', 'shipment_free'].includes(voucherData.reBackType)) {
                         view.push(`<div class="mx-n2">${selectProduct()}</div>`);
                     }

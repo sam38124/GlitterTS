@@ -2112,7 +2112,7 @@ export class ShoppingDiscountSetting {
 
         // 活動標題
         function title() {
-          return html` <div class="tx_normal">活動標題 ${BgWidget.requiredStar()}</div>
+          return html` <div class="tx_normal">活動標題${BgWidget.requiredStar()}</div>
             ${BgWidget.mbContainer(8)}
             ${BgWidget.editeInput({
               gvc: gvc,
@@ -2530,21 +2530,23 @@ export class ShoppingDiscountSetting {
 
         // 優惠套用至
         function setVoucherFor() {
-          let view=[EditorElem.radio({
-            gvc: gvc,
-            title: '',
-            def: voucherData.for ?? 'all',
-            array: ShoppingDiscountSetting.productForList,
-            callback: text => {
-              voucherData.forKey = defKeys[text as VoucherForType];
-              voucherData.for = text as VoucherForType;
-              gvc.notifyDataChange(pageVM.viewID);
-            },
-            oneLine: true,
-          })]
-         if( ['add_on_items','giveaway','shipment_free'].includes(voucherData.reBackType)){
-           view.push(`<div class="mx-n2">${selectProduct()}</div>`)
-         }
+          let view = [
+            EditorElem.radio({
+              gvc: gvc,
+              title: '',
+              def: voucherData.for ?? 'all',
+              array: ShoppingDiscountSetting.productForList,
+              callback: text => {
+                voucherData.forKey = defKeys[text as VoucherForType];
+                voucherData.for = text as VoucherForType;
+                gvc.notifyDataChange(pageVM.viewID);
+              },
+              oneLine: true,
+            }),
+          ];
+          if (['add_on_items', 'giveaway', 'shipment_free'].includes(voucherData.reBackType)) {
+            view.push(`<div class="mx-n2">${selectProduct()}</div>`);
+          }
           // [
           //   selectProduct()
           // ]
@@ -3362,7 +3364,7 @@ export class ShoppingDiscountSetting {
           discount: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
           shipment_free: { title: '活動商品', html: '' },
           add_on_items: { title: '加購品項', html: [addProductView()].join('') },
-          giveaway: { title: '贈品品項', html:  [addProductView()].join('') },
+          giveaway: { title: '贈品品項', html: [addProductView()].join('') },
         };
         // 優惠券設定 Layout Data
         const viewList: { title: string; html: string | string[] }[][] = [
