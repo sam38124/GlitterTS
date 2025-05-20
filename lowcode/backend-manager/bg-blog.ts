@@ -1699,7 +1699,6 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                             containerId: Tool.randomString(6),
                                             loading: true,
                                           };
-                                          console.log(`d1---->`, d1);
                                           return gvc.bindView(() => {
                                             return {
                                               bind: subVM.id,
@@ -1707,7 +1706,6 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                 if (subVM.loading) {
                                                   return BgWidget.spinner();
                                                 }
-                                                // d1=d1.
                                                 return new Promise(async resolve => {
                                                   subVM.dataList = await (async () => {
                                                     try {
@@ -1747,10 +1745,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                             },
                                                           })}
                                                         </div>
-                                                        <div
-                                                          class="${d1.select === 'all' ? `d-none` : ``}"
-                                                          style=""
-                                                        >
+                                                        <div class="${d1.select === 'all' ? `d-none` : ``}">
                                                           ${BgWidget.save(
                                                             gvc.event(() => {
                                                               if (d1.select === 'product') {
@@ -2609,11 +2604,6 @@ function loopFindProducts(config: any) {
   function loop(array: any, container_cf: any) {
     array.map((dd: any) => {
       if (dd.type === 'component' && dd.data.tag === 'SY00-normal-products') {
-        // if (dd.data.refer_form_data.product_select.select !== 'product') {
-        //   dd.data.refer_form_data.product_select.select = 'product';
-        //   dd.data.refer_form_data.product_select.value = [];
-        // }
-        console.log(`loopFindProducts`, dd.data);
         product_select.push(dd.data.refer_form_data.product_select);
       } else if (dd.type === 'container') {
         loop(dd.data.setting, dd);

@@ -2954,13 +2954,13 @@ export class Shopping {
     function filterVoucherlist(vouchers: VoucherData[]) {
       return vouchers
         .filter(voucher => {
-          return [checkSource, checkTarget, setBindProduct, checkCartTotal].every(fn => fn(voucher));
+          return [checkSource, checkTarget, setBindProduct].every(fn => fn(voucher));
         })
         .sort((a, b) => {
           return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
         })
         .filter(voucher => {
-          return [checkOverlay, checkCondition].every(fn => fn(voucher));
+          return [checkCartTotal, checkOverlay, checkCondition].every(fn => fn(voucher));
         })
         .map(voucher => {
           countingBindDiscount(voucher);
@@ -3075,7 +3075,6 @@ export class Shopping {
           );
           for (const email of emailList) {
             if (email) {
-
               await this.sendNotifications(orderData, 'order-cancel-success');
             }
           }
@@ -3400,9 +3399,8 @@ export class Shopping {
       shipment: 'shipment',
       arrival: 'shipment-arrival',
       in_stock: 'in-stock',
-      "order-cancel-success": 'order-cancel-success',
+      'order-cancel-success': 'order-cancel-success',
     };
-
 
     if (lineID) {
       const line = new LineMessage(this.app);

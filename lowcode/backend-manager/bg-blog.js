@@ -1507,7 +1507,6 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                         containerId: Tool.randomString(6),
                                                                         loading: true,
                                                                     };
-                                                                    console.log(`d1---->`, d1);
                                                                     return gvc.bindView(() => {
                                                                         return {
                                                                             bind: subVM.id,
@@ -1554,10 +1553,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         },
                                                                                     })}
                                                         </div>
-                                                        <div
-                                                          class="${d1.select === 'all' ? `d-none` : ``}"
-                                                          style=""
-                                                        >
+                                                        <div class="${d1.select === 'all' ? `d-none` : ``}">
                                                           ${BgWidget.save(gvc.event(() => {
                                                                                         var _a, _b;
                                                                                         if (d1.select === 'product') {
@@ -2347,7 +2343,6 @@ function loopFindProducts(config) {
     function loop(array, container_cf) {
         array.map((dd) => {
             if (dd.type === 'component' && dd.data.tag === 'SY00-normal-products') {
-                console.log(`loopFindProducts`, dd.data);
                 product_select.push(dd.data.refer_form_data.product_select);
             }
             else if (dd.type === 'container') {

@@ -901,7 +901,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                         return {
                                                                                                             bind: vm.id,
                                                                                                             view: () => __awaiter(this, void 0, void 0, function* () {
-                                                                                                                var _a;
                                                                                                                 let refer_form = getReferForm(widget, type);
                                                                                                                 function refresh(widget, device) {
                                                                                                                     if (widget.data.refer_app) {
@@ -973,11 +972,22 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         subData.editor_updated_callback(oWidget);
                                                                                                                 }
                                                                                                                 glitter.share.refer_form = refer_form;
-                                                                                                                glitter.share.refer_form_ = (_a = glitter.share.refer_form_) !== null && _a !== void 0 ? _a : {};
-                                                                                                                glitter.share.refer_form_[oWidget.data.tag] = refer_form;
                                                                                                                 glitter.share.refresh_global = (() => {
                                                                                                                     refresh(widget, type);
                                                                                                                 });
+                                                                                                                function defineGettable(key) {
+                                                                                                                    Object.defineProperty(refer_form, key, {
+                                                                                                                        get: function () {
+                                                                                                                            return oWidget.data.refer_form_data[key];
+                                                                                                                        },
+                                                                                                                        set(v) {
+                                                                                                                            if (v !== undefined) {
+                                                                                                                                oWidget.data.refer_form_data[key] = v;
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                        configurable: true,
+                                                                                                                    });
+                                                                                                                }
                                                                                                                 function getItemsVisibility(dd) {
                                                                                                                     const descriptor = Object.getOwnPropertyDescriptor(refer_form, dd.key);
                                                                                                                     const custom = !oWidget[`${type}_editable`] ||
@@ -990,17 +1000,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         delete refer_form[dd.key];
                                                                                                                     }
                                                                                                                     if (!custom) {
-                                                                                                                        Object.defineProperty(refer_form, dd.key, {
-                                                                                                                            get: function () {
-                                                                                                                                return oWidget.data.refer_form_data[dd.key];
-                                                                                                                            },
-                                                                                                                            set(v) {
-                                                                                                                                if (v !== undefined) {
-                                                                                                                                    oWidget.data.refer_form_data[dd.key] = v;
-                                                                                                                                }
-                                                                                                                            },
-                                                                                                                            configurable: true,
-                                                                                                                        });
+                                                                                                                        defineGettable(dd.key);
                                                                                                                     }
                                                                                                                     return !glitter.share.only_show_cuatomize || custom;
                                                                                                                 }
@@ -1096,6 +1096,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     })();
                                                                                                                     return true;
                                                                                                                 });
+                                                                                                                defineGettable('menu_refer');
                                                                                                                 try {
                                                                                                                     let global_setting_view = [
                                                                                                                         `<div class="mx-3 guide-user-editor-6 "
@@ -1202,6 +1203,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                             },
                                                                                                                                             formData: refer_form,
                                                                                                                                             widget: pageData.config,
+                                                                                                                                            oWidget: oWidget
                                                                                                                                         }),
                                                                                                                                     ].join('');
                                                                                                                                 }
@@ -1311,7 +1313,7 @@ font-weight: 700;"
                                                                                                                                                                         refresh(widget, type);
                                                                                                                                                                     },
                                                                                                                                                                     formData: refer_form,
-                                                                                                                                                                    widget: pageData.config,
+                                                                                                                                                                    widget: pageData.config
                                                                                                                                                                 })}</div>`);
                                                                                                                                                             break;
                                                                                                                                                         case 'fonts':

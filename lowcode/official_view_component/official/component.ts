@@ -1078,11 +1078,24 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 subData.editor_updated_callback(oWidget);
                                                             }
                                                             glitter.share.refer_form=refer_form
-                                                            glitter.share.refer_form_=glitter.share.refer_form_ ?? {}
-                                                            glitter.share.refer_form_[oWidget.data.tag]=refer_form
                                                             glitter.share.refresh_global=(()=>{
                                                               refresh(widget,type)
                                                             })
+                                                            //定義Form的Getter 和 Setter
+                                                            function defineGettable(key:string){
+                                                              Object.defineProperty(refer_form, key, {
+                                                                get: function () {
+                                                                  return oWidget.data.refer_form_data[key];
+                                                                },
+
+                                                                set(v) {
+                                                                  if (v !== undefined) {
+                                                                    oWidget.data.refer_form_data[key] = v;
+                                                                  }
+                                                                },
+                                                                configurable: true,
+                                                              });
+                                                            }
                                                             //設定顯示編輯與否
                                                             function getItemsVisibility(dd: any) {
                                                               const descriptor = Object.getOwnPropertyDescriptor(
@@ -1104,18 +1117,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                               }
                                                               //判斷為勾選自訂義則參照主表單
                                                               if (!custom) {
-                                                                Object.defineProperty(refer_form, dd.key, {
-                                                                  get: function () {
-                                                                    return oWidget.data.refer_form_data[dd.key];
-                                                                  },
-
-                                                                  set(v) {
-                                                                    if (v !== undefined) {
-                                                                      oWidget.data.refer_form_data[dd.key] = v;
-                                                                    }
-                                                                  },
-                                                                  configurable: true,
-                                                                });
+                                                                defineGettable(dd.key)
                                                               }
                                                               return !glitter.share.only_show_cuatomize || custom;
                                                             }
@@ -1216,6 +1218,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                               })();
                                                               return true;
                                                             });
+                                                            
+                                                            defineGettable('menu_refer')
                                                             try {
                                                               let global_setting_view = [
                                                                 `<div class="mx-3 guide-user-editor-6 "
@@ -1377,6 +1381,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                          },
                                                                          formData: refer_form,
                                                                          widget: pageData.config,
+                                                                         oWidget:oWidget
                                                                        })
                                                                        ,
                                                                      ].join('');
@@ -1508,7 +1513,7 @@ font-weight: 700;"
                                                                                               refresh(widget, type);
                                                                                             },
                                                                                             formData: refer_form,
-                                                                                            widget: pageData.config,
+                                                                                            widget: pageData.config
                                                                                           }
                                                                                         )}</div>`
                                                                                       );

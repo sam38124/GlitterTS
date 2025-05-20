@@ -237,71 +237,146 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             content.config = content.language_data[glitter.getUrlParameter('language')].config;
                                         }
                                         ;
-                                        const header = (yield ApiUser.getPublicConfig('c_header_' + window.parent.glitter.getUrlParameter('page'), 'manager')).response.value;
-                                        if (!content.config.find((dd) => {
-                                            return dd.data.tag === 'c_header';
-                                        })) {
-                                            glitter.share.header_refer = 'def';
-                                            content.config = [
-                                                {
-                                                    "id": "sbscs0ses1sfs1sa",
-                                                    "js": "./official_view_component/official.js",
-                                                    "css": { "class": {}, "style": {} },
-                                                    "data": {
-                                                        "tag": "c_header",
-                                                        "_gap": "",
-                                                        "attr": [],
-                                                        "elem": "div",
-                                                        "list": [],
-                                                        "inner": "",
-                                                        "_other": {},
-                                                        "_border": {},
-                                                        "_margin": {},
-                                                        "_radius": "",
-                                                        "_padding": {},
-                                                        "_reverse": "false",
-                                                        "carryData": {},
-                                                        "_max_width": "",
-                                                        "_background": "",
-                                                        "_style_refer": "global",
-                                                        "_hor_position": "center",
-                                                        "refer_form_data": {},
-                                                        "_background_setting": { "type": "none" }
-                                                    },
-                                                    "list": [],
-                                                    "type": "component",
-                                                    "class": "",
-                                                    "index": 0,
-                                                    "label": "標頭1234",
-                                                    "style": "",
-                                                    "global": [],
-                                                    "mobile": { "data": {}, "refer": "custom" },
-                                                    "toggle": true,
-                                                    "desktop": { "data": {}, "refer": "custom" },
-                                                    "stylist": [],
-                                                    "version": "v2",
-                                                    "visible": true,
-                                                    "dataType": "static",
-                                                    "deletable": "false",
-                                                    "style_from": "code",
-                                                    "classDataType": "static",
-                                                    "editor_bridge": {},
-                                                    "preloadEvenet": {},
-                                                    "container_fonts": 0,
-                                                    "mobile_editable": [],
-                                                    "desktop_editable": [],
-                                                    "refreshAllParameter": {},
-                                                    "refreshComponentParameter": {},
-                                                    "formData": {}
+                                        function setHeaderConfig() {
+                                            return __awaiter(this, void 0, void 0, function* () {
+                                                const header = (yield ApiUser.getPublicConfig('c_header_' + window.parent.glitter.getUrlParameter('page'), 'manager')).response.value;
+                                                if (!content.config.find((dd) => {
+                                                    return dd.data.tag === 'c_header';
+                                                })) {
+                                                    glitter.share.header_refer = 'def';
+                                                    content.config = [
+                                                        {
+                                                            "id": "sbscs0ses1sfs1sa",
+                                                            "js": "./official_view_component/official.js",
+                                                            "css": { "class": {}, "style": {} },
+                                                            "data": {
+                                                                "tag": "c_header",
+                                                                "_gap": "",
+                                                                "attr": [],
+                                                                "elem": "div",
+                                                                "list": [],
+                                                                "inner": "",
+                                                                "_other": {},
+                                                                "_border": {},
+                                                                "_margin": {},
+                                                                "_radius": "",
+                                                                "_padding": {},
+                                                                "_reverse": "false",
+                                                                "carryData": {},
+                                                                "_max_width": "",
+                                                                "_background": "",
+                                                                "_style_refer": "global",
+                                                                "_hor_position": "center",
+                                                                "refer_form_data": {},
+                                                                "_background_setting": { "type": "none" }
+                                                            },
+                                                            "list": [],
+                                                            "type": "component",
+                                                            "class": "",
+                                                            "index": 0,
+                                                            "label": "標頭",
+                                                            "style": "",
+                                                            "global": [],
+                                                            "mobile": { "data": {}, "refer": "custom" },
+                                                            "toggle": true,
+                                                            "desktop": { "data": {}, "refer": "custom" },
+                                                            "stylist": [],
+                                                            "version": "v2",
+                                                            "visible": true,
+                                                            "dataType": "static",
+                                                            "deletable": "false",
+                                                            "style_from": "code",
+                                                            "classDataType": "static",
+                                                            "editor_bridge": {},
+                                                            "preloadEvenet": {},
+                                                            "container_fonts": 0,
+                                                            "mobile_editable": [],
+                                                            "desktop_editable": [],
+                                                            "refreshAllParameter": {},
+                                                            "refreshComponentParameter": {},
+                                                            "formData": {}
+                                                        }
+                                                    ].concat(content.config);
                                                 }
-                                            ].concat(content.config);
+                                                if (header && header.length) {
+                                                    glitter.share.header_refer = 'custom';
+                                                }
+                                                else {
+                                                    glitter.share.header_refer = 'def';
+                                                }
+                                            });
                                         }
-                                        if (header && header.length) {
-                                            glitter.share.header_refer = 'custom';
+                                        function setFooterConfig() {
+                                            return __awaiter(this, void 0, void 0, function* () {
+                                                const header = (yield ApiUser.getPublicConfig('c_footer_' + window.parent.glitter.getUrlParameter('page'), 'manager')).response.value;
+                                                if (!content.config.find((dd) => {
+                                                    return dd.data.tag === 'footer';
+                                                })) {
+                                                    glitter.share.footer_refer = 'def';
+                                                    content.config = content.config.concat([
+                                                        {
+                                                            "id": gvc.glitter.getUUID(),
+                                                            "js": "./official_view_component/official.js",
+                                                            "css": { "class": {}, "style": {} },
+                                                            "data": {
+                                                                "tag": "footer",
+                                                                "_gap": "",
+                                                                "attr": [],
+                                                                "elem": "div",
+                                                                "list": [],
+                                                                "inner": "",
+                                                                "_other": {},
+                                                                "_border": {},
+                                                                "_margin": {},
+                                                                "_radius": "",
+                                                                "_padding": {},
+                                                                "_reverse": "false",
+                                                                "carryData": {},
+                                                                "_max_width": "",
+                                                                "_background": "",
+                                                                "_style_refer": "global",
+                                                                "_hor_position": "center",
+                                                                "refer_form_data": {},
+                                                                "_background_setting": { "type": "none" }
+                                                            },
+                                                            "list": [],
+                                                            "type": "component",
+                                                            "class": "",
+                                                            "index": 0,
+                                                            "label": "頁腳",
+                                                            "style": "",
+                                                            "global": [],
+                                                            "mobile": { "data": {}, "refer": "custom" },
+                                                            "toggle": true,
+                                                            "desktop": { "data": {}, "refer": "custom" },
+                                                            "stylist": [],
+                                                            "version": "v2",
+                                                            "visible": true,
+                                                            "dataType": "static",
+                                                            "deletable": "false",
+                                                            "style_from": "code",
+                                                            "classDataType": "static",
+                                                            "editor_bridge": {},
+                                                            "preloadEvenet": {},
+                                                            "container_fonts": 0,
+                                                            "mobile_editable": [],
+                                                            "desktop_editable": [],
+                                                            "refreshAllParameter": {},
+                                                            "refreshComponentParameter": {},
+                                                            "formData": {}
+                                                        }
+                                                    ]);
+                                                }
+                                                if (header && header.length) {
+                                                    glitter.share.footer_refer = 'custom';
+                                                }
+                                                else {
+                                                    glitter.share.footer_refer = 'def';
+                                                }
+                                            });
                                         }
-                                        else {
-                                            glitter.share.header_refer = 'def';
-                                        }
+                                        yield setHeaderConfig();
+                                        yield setFooterConfig();
                                         d2.response.result[0].config = content.config;
                                         const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');
                                         window.page_refer = og_path;
@@ -575,12 +650,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     }
                     ;
-                    if (glitter.share.is_blog_editor() && glitter.share.header_refer === 'def') {
-                        yield ApiUser.setPublicConfig({
-                            key: 'c_header_' + window.parent.glitter.getUrlParameter('page'),
-                            value: null,
-                            user_id: 'manager',
-                        });
+                    if (glitter.share.is_blog_editor()) {
+                        if (glitter.share.header_refer === 'def') {
+                            yield ApiUser.setPublicConfig({
+                                key: 'c_header_' + window.parent.glitter.getUrlParameter('page'),
+                                value: null,
+                                user_id: 'manager',
+                            });
+                        }
+                        if (glitter.share.footer_refer === 'def') {
+                            yield ApiUser.setPublicConfig({
+                                key: 'c_footer_' + window.parent.glitter.getUrlParameter('page'),
+                                value: null,
+                                user_id: 'manager',
+                            });
+                        }
                         location.reload();
                     }
                     dialog.dataLoading({ visible: false });

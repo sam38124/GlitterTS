@@ -230,7 +230,7 @@ export class Footer01 {
                                 },
                                 onCreate: () => {
                                     if (loading) {
-                                        ApiUser.getPublicConfig('footer-setting', 'manager').then((data) => {
+                                        ApiUser.getPublicConfig(widget.formData.menu_refer || 'footer-setting', 'manager').then((data) => {
                                             if (data.result && data.response.value) {
                                                 footer.list = data.response.value[Language.getLanguage()];
                                             }

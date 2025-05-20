@@ -29,10 +29,14 @@ export class Blogs01 {
             try {
               initial = true;
 
-              const [o_header] = await Promise.all([
+              const [o_header,o_footer] = await Promise.all([
                 new Promise<any>((resolve, reject)=>{
                   (window as any).glitterInitialHelper.getPageData('c_header',(res:any)=>{
-                    console.log(`res===>`,res)
+                    resolve(res)
+                  })
+                }),
+                new Promise<any>((resolve, reject)=>{
+                  (window as any).glitterInitialHelper.getPageData('footer',(res:any)=>{
                     resolve(res)
                   })
                 })
@@ -51,12 +55,28 @@ export class Blogs01 {
                 },
                 {}
               );
+              //取得FooterView
+              let footerView = new gvc.glitter.htmlGenerate(o_footer.response.result[0].config, [], {}).render(
+                gvc,
+                {
+                  class: `w-100`,
+                  style: `position:relative;`,
+                  containerID: gvc.glitter.getUUID(),
+                  tag: gvc.glitter.getUUID(),
+                  jsFinish: () => {},
+                  onCreate: () => {},
+                  document: document,
+                },
+                {}
+              );
 
               console.log(`o_header===>`,o_header)
               console.log(`subData===>`,subData)
               subData.content.config=subData.content.config??[]
               try {
-                subData.content.config=subData.content.config.filter((dd:any)=>   dd.data.tag!=='c_header')
+                subData.content.config=subData.content.config.filter((dd:any)=>   {
+                  return dd.data.tag!=='c_header' && dd.data.tag!=='footer'
+                })
                 //pages的自訂View
                 const view = (() => {
                   if (subData.content.generator !== 'page_editor') {
@@ -240,7 +260,8 @@ export class Blogs01 {
                 // }
                 document.querySelector(`.${bid}`)!.outerHTML = [
                   ogHeaderView,
-                  view
+                  view,
+                  footerView
                 ].join('');
               }catch (e) {
 

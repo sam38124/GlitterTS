@@ -380,11 +380,7 @@ export class BgProduct {
                     )}
                     ${BgWidget.save(
                       gvc.event(() => {
-                        obj.callback(
-                          obj.default.filter(item => {
-                            return vm.options.find((opt: OptionsItem) => opt.key === item);
-                          })
-                        );
+                        obj.callback(obj.default);
                         gvc.closeDialog();
                       }),
                       '確認'

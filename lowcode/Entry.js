@@ -146,7 +146,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_21.7.2';
+            glitter.share.editerVersion = 'V_21.7.7';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {
@@ -547,7 +547,7 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
-        if (['hidden/', 'shop/'].find((dd) => {
+        if (['hidden/', 'shop/', 'pages/'].find((dd) => {
             return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd));
         })) {
             const og_path = glitter.getUrlParameter('page_refer') || glitter.getUrlParameter('page');

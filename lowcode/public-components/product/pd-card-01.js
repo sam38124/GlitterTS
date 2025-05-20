@@ -6,7 +6,6 @@ export class ProductCard01 {
     static main(gvc, widget, subData) {
         var _a, _b;
         const glitter = gvc.glitter;
-        const wishId = glitter.getUUID();
         const prod = typeof subData.content !== 'object' ? subData : subData.content;
         const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         let label = {};
@@ -222,6 +221,7 @@ export class ProductCard01 {
             const isSoldOut = isAllUnderstocking && stockTotal === 0;
             return html `<div
               class="w-100 h-100 p-3 add-cart-text"
+              style="${isSoldOut ? 'background-color: #aeaeae' : ''}"
               onclick="${gvc.event((_, event) => {
                 event.stopPropagation();
                 if (!isSoldOut) {

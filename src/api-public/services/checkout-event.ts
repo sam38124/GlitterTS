@@ -276,7 +276,9 @@ export class CheckoutEvent {
       // 取得顧客資料
       const userData = await getUserDataAsync(type, this.token, data);
       if(data.customer_info){
-        const newCustomerInfo = await userClass.getUserData(data.email || data.customer_info.email, 'email_or_phone');
+        const newCustomerInfo = (await userClass.getUserData(data.email || data.customer_info.email, 'email_or_phone')) ?? {
+          userData:{}
+        };
         data.customer_info = {
           ...data.customer_info,
           ...newCustomerInfo.userData

@@ -276,7 +276,6 @@ export class SeoConfig {
       }
     }
     cf.data.page_config.seo.image = cf.data.page_config.seo.image || article.data[0].content.preview_image;
-    console.log(`cf.data.page_config.seo==>`, article.data[0].content);
     return cf.data.page_config.seo;
   }
 
