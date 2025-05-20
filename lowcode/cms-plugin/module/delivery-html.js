@@ -1,8 +1,18 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
+import { OrderExcel } from './order-excel.js';
 const html = String.raw;
 export class DeliveryHTML {
     static print(ogvc, dataArray, type) {
@@ -61,6 +71,26 @@ export class DeliveryHTML {
                     },
                     onCreate: () => {
                         if (loading) {
+                            function processInChunks(dataArray) {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    const chunkSize = 20;
+                                    for (let i = 0; i < dataArray.length; i += chunkSize) {
+                                        const chunk = dataArray.slice(i, i + chunkSize);
+                                        yield Promise.all(chunk.map((data) => __awaiter(this, void 0, void 0, function* () {
+                                            const d = yield OrderExcel.getCustomizeMap(data);
+                                            const temp = {};
+                                            const receiveKeys = [...d.keys()].filter(key => key.includes('收件人資訊'));
+                                            for (const key of receiveKeys) {
+                                                const value = d.get(key);
+                                                if (value && value !== '-') {
+                                                    temp[key.split('-')[1].trim()] = value;
+                                                }
+                                            }
+                                            data.custom_receive_info = temp;
+                                        })));
+                                    }
+                                });
+                            }
                             Promise.all([
                                 fetch(new URL('../../assets/json/twzipcode.json', import.meta.url).href)
                                     .then(response => response.text())
@@ -70,11 +100,12 @@ export class DeliveryHTML {
                                 }),
                                 ShipmentConfig.shipmentMethod({ type: 'all' }),
                                 PaymentConfig.getSupportPayment(true),
-                            ]).then(dataArray => {
-                                vm.twZipcode = dataArray[0];
-                                vm.store = dataArray[1];
-                                vm.shippingMethod = dataArray[2];
-                                vm.paymentMethod = dataArray[3];
+                                processInChunks(dataArray),
+                            ]).then(results => {
+                                vm.twZipcode = results[0];
+                                vm.store = results[1];
+                                vm.shippingMethod = results[2];
+                                vm.paymentMethod = results[3];
                                 loading = false;
                                 gvc.notifyDataChange(id);
                             });
@@ -322,6 +353,16 @@ export class DeliveryHTML {
         const shippingAddr = ['UNIMARTC2C', 'UNIMARTFREEZE', 'FAMIC2C', 'FAMIC2CFREEZE', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.user_info.shipment)
             ? `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`
             : [orderData.user_info.city, orderData.user_info.area, orderData.user_info.address].filter(Boolean).join('');
+        const receive_temp = [];
+        const receive_keys = Object.keys(data.custom_receive_info);
+        for (let i = 0; i < receive_keys.length; i += 2) {
+            const key1 = receive_keys[i];
+            const key2 = receive_keys[i + 1];
+            receive_temp.push(key2 ? [key1, key2] : [key1]);
+        }
+        function printReceiveTd(key) {
+            return key && data.custom_receive_info[key] ? html `<td>${key}：${data.custom_receive_info[key]}</td>` : '';
+        }
         return html `<div class="details">
       <table>
         <tr>
@@ -344,6 +385,16 @@ export class DeliveryHTML {
           <td>付款狀態：${paymentStatus(data)}</td>
           <td>收件人信箱：${orderData.user_info.email}</td>
         </tr>
+        ${receive_temp
+            .map(keys => {
+            const appendTd = keys.map(key => printReceiveTd(key)).join('');
+            return appendTd
+                ? html `<tr>
+                  ${appendTd}
+                </tr>`
+                : '';
+        })
+            .join('')}
       </table>
     </div>`;
     }

@@ -5,6 +5,7 @@ import { ApiUser } from '../../glitter-base/route/user.js';
 import { CartData, OrderData } from './data.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
+import { OrderExcel } from './order-excel.js';
 
 const html = String.raw;
 
@@ -15,9 +16,13 @@ type InfoObject = {
   subtitle: string;
 };
 
+interface DeliveryCartData extends CartData {
+  custom_receive_info: any;
+}
+
 export class DeliveryHTML {
   // 列印事件
-  static print(ogvc: GVC, dataArray: CartData[], type: PrintType) {
+  static print(ogvc: GVC, dataArray: DeliveryCartData[], type: PrintType) {
     const prefix = Tool.randomString(3);
     const containerID = Tool.randomString(3);
 
@@ -78,6 +83,31 @@ export class DeliveryHTML {
           },
           onCreate: () => {
             if (loading) {
+              async function processInChunks(dataArray: DeliveryCartData[]) {
+                const chunkSize = 20;
+
+                for (let i = 0; i < dataArray.length; i += chunkSize) {
+                  const chunk = dataArray.slice(i, i + chunkSize);
+
+                  await Promise.all(
+                    chunk.map(async data => {
+                      const d = await OrderExcel.getCustomizeMap(data);
+                      const temp: Record<string, any> = {};
+                      const receiveKeys = [...d.keys()].filter(key => key.includes('收件人資訊'));
+
+                      for (const key of receiveKeys) {
+                        const value = d.get(key);
+                        if (value && value !== '-') {
+                          temp[key.split('-')[1].trim()] = value;
+                        }
+                      }
+
+                      data.custom_receive_info = temp;
+                    })
+                  );
+                }
+              }
+
               Promise.all([
                 // 讀取台灣郵遞區號
                 fetch(new URL('../../assets/json/twzipcode.json', import.meta.url).href)
@@ -94,11 +124,14 @@ export class DeliveryHTML {
 
                 // 所有付款方式
                 PaymentConfig.getSupportPayment(true),
-              ]).then(dataArray => {
-                vm.twZipcode = dataArray[0];
-                vm.store = dataArray[1];
-                vm.shippingMethod = dataArray[2];
-                vm.paymentMethod = dataArray[3];
+
+                // 補上客製化收件人資料
+                processInChunks(dataArray),
+              ]).then(results => {
+                vm.twZipcode = results[0];
+                vm.store = results[1];
+                vm.shippingMethod = results[2];
+                vm.paymentMethod = results[3];
 
                 loading = false;
                 gvc.notifyDataChange(id);
@@ -357,10 +390,10 @@ export class DeliveryHTML {
   }
 
   // 出貨明細 - 配送資訊
-  static shipmentDetail(vm: any, glitter: any, data: CartData) {
+  static shipmentDetail(vm: any, glitter: any, data: DeliveryCartData) {
     const orderData = data.orderData;
 
-    function paymentStatus(cart: CartData) {
+    function paymentStatus(cart: DeliveryCartData) {
       const statusMessages: Record<string, string> = {
         '0': cart.orderData.proof_purchase ? '待核款' : '未付款',
         '1': '已付款',
@@ -378,6 +411,18 @@ export class DeliveryHTML {
     )
       ? `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`
       : [orderData.user_info.city, orderData.user_info.area, orderData.user_info.address].filter(Boolean).join('');
+
+    const receive_temp: string[][] = [];
+    const receive_keys = Object.keys(data.custom_receive_info);
+    for (let i = 0; i < receive_keys.length; i += 2) {
+      const key1 = receive_keys[i];
+      const key2 = receive_keys[i + 1];
+      receive_temp.push(key2 ? [key1, key2] : [key1]);
+    }
+
+    function printReceiveTd(key: string) {
+      return key && data.custom_receive_info[key] ? html`<td>${key}：${data.custom_receive_info[key]}</td>` : '';
+    }
 
     return html`<div class="details">
       <table>
@@ -401,6 +446,16 @@ export class DeliveryHTML {
           <td>付款狀態：${paymentStatus(data)}</td>
           <td>收件人信箱：${orderData.user_info.email}</td>
         </tr>
+        ${receive_temp
+          .map(keys => {
+            const appendTd = keys.map(key => printReceiveTd(key)).join('');
+            return appendTd
+              ? html`<tr>
+                  ${appendTd}
+                </tr>`
+              : '';
+          })
+          .join('')}
       </table>
     </div>`;
   }
@@ -482,7 +537,7 @@ export class DeliveryHTML {
   }
 
   // 取得出貨明細頁面
-  static getShipmentPage(vm: any, gvc: GVC, data: CartData) {
+  static getShipmentPage(vm: any, gvc: GVC, data: DeliveryCartData) {
     const glitter = gvc.glitter;
     const orderData = data.orderData;
 
@@ -496,7 +551,7 @@ export class DeliveryHTML {
   }
 
   // 列印出貨明細
-  static shipmentHTML(vm: any, gvc: GVC, dataArray: CartData[]) {
+  static shipmentHTML(vm: any, gvc: GVC, dataArray: DeliveryCartData[]) {
     return dataArray
       .map(data => {
         try {
@@ -511,7 +566,7 @@ export class DeliveryHTML {
   }
 
   // 列印揀貨單
-  static pickHTML(vm: any, glitter: any, dataArray: CartData[]) {
+  static pickHTML(vm: any, glitter: any, dataArray: DeliveryCartData[]) {
     const formulaLineItems = () => {
       const mergedItems = dataArray
         .flatMap(data => data.orderData.lineItems)
@@ -568,7 +623,7 @@ export class DeliveryHTML {
   }
 
   // 列印地址貼條
-  static addressHTML(vm: any, dataArray: CartData[]) {
+  static addressHTML(vm: any, dataArray: DeliveryCartData[]) {
     const dataMap = dataArray.map(order => {
       const orderData = order.orderData;
 
@@ -619,8 +674,8 @@ export class DeliveryHTML {
   }
 
   // 列印出貨明細 + 地址貼條
-  static shipAddrHTML(vm: any, gvc: GVC, dataArray: CartData[]) {
-    const section = (data: CartData) => {
+  static shipAddrHTML(vm: any, gvc: GVC, dataArray: DeliveryCartData[]) {
+    const section = (data: DeliveryCartData) => {
       const orderData = data.orderData;
 
       // 取得台灣郵遞區號
