@@ -65,7 +65,7 @@ export class AutoReply {
                                                 return BgWidget.switchTextButton(gvc, dd.toggle, {
                                                     left: dd.toggle ? '啟用' : '關閉',
                                                 }, () => {
-                                                    ApiUser.getPublicConfig(dd.tag, 'manager').then((res) => {
+                                                    ApiUser.getPublicConfig(dd.tag, 'manager').then(res => {
                                                         dd.toggle = !dd.toggle;
                                                         res.response.value = res.response.value || {};
                                                         res.response.value.updated_time = new Date();
@@ -100,11 +100,11 @@ export class AutoReply {
                         });
                     }
                     return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title('自動寄送簡訊')}
-                                <div class="flex-fill"></div>
-                            </div>
-                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
+            <div class="title-container">
+              ${BgWidget.title('自動寄送簡訊')}
+              <div class="flex-fill"></div>
+            </div>
+            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
                         gvc: gvc,
                         getData: (vmk) => __awaiter(this, void 0, void 0, function* () {
                             const appData = yield ApiUser.getPublicConfig('store-information', 'manager');
@@ -118,6 +118,7 @@ export class AutoReply {
                                 'sns-proof-purchase',
                                 'auto-sns-birthday',
                                 'auto-phone-verify',
+                                'auto-sns-order-cancel-success',
                             ];
                             let index = 0;
                             for (const b of vm.dataList) {
@@ -138,8 +139,8 @@ export class AutoReply {
                         },
                         filter: [],
                     })))}
-                            ${BgWidget.mbContainer(240)}
-                        `);
+            ${BgWidget.mbContainer(240)}
+          `);
                 },
             };
         });
@@ -152,8 +153,8 @@ export class AutoReply {
         const that = this;
         let pointCount = 1;
         return html ` ${BgWidget.container([
-            html `<div class="title-container">
-                    ${BgWidget.goBack(gvc.event(() => {
+            html ` <div class="title-container">
+          ${BgWidget.goBack(gvc.event(() => {
                 back();
             }))}${BgWidget.title((() => {
                 const vm = {
@@ -167,8 +168,8 @@ export class AutoReply {
                     divCreate: {},
                     onCreate: () => {
                         if (vm.loading) {
-                            new Promise((resolve) => {
-                                AutoReply.getDefCompare(tag).then((dd) => resolve(dd));
+                            new Promise(resolve => {
+                                AutoReply.getDefCompare(tag).then(dd => resolve(dd));
                             }).then((res) => {
                                 if (res && res.tag_name) {
                                     vm.name = res.tag_name;
@@ -180,7 +181,7 @@ export class AutoReply {
                     },
                 });
             })())}
-                </div>`,
+        </div>`,
             BgWidget.mbContainer(24),
             BgWidget.alertInfo('可使用模板字串，簡訊將在寄送時自動填入相關數值', ['商家名稱：@{{app_name}}', '訂單號碼：@{{訂單號碼}}', '會員姓名：@{{user_name}}'], {
                 class: 'mb-3',
@@ -188,7 +189,7 @@ export class AutoReply {
             }),
             BgWidget.mainCard(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
-                AutoReply.getDefCompare(tag).then((dd) => {
+                AutoReply.getDefCompare(tag).then(dd => {
                     vm.data = dd;
                     vm.loading = false;
                     gvc.notifyDataChange(id);
@@ -201,19 +202,19 @@ export class AutoReply {
                                 gvc: gvc,
                                 title: '寄件者名稱',
                                 default: vm.data.name || '',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.name = text;
                                 },
                                 placeHolder: '請輸入寄件者名稱',
                             }),
                             html `
-                                        <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                                ${EditorElem.h3('簡訊內文')}
-                                                ${document.body.clientWidth > 768
+                    <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
+                      <div class="d-flex align-items-center gap-2">
+                        ${EditorElem.h3('簡訊內文')}
+                        ${document.body.clientWidth > 768
                                 ? BgWidget.grayNote(`預計每則簡訊花費${pointCount * this.ticket}點`, 'margin-top: 0.25em;')
                                 : html ` <div style="margin-top: 0.25em;">
-                                                          ${BgWidget.iconButton({
+                              ${BgWidget.iconButton({
                                     icon: 'info',
                                     event: gvc.event(() => {
                                         BgWidget.jumpAlert({
@@ -225,17 +226,17 @@ export class AutoReply {
                                         });
                                     }),
                                 })}
-                                                      </div>`}
-                                            </div>
-                                            <div>${BgWidget.aiChatButton({ gvc, select: 'writer' })}</div>
-                                        </div>
-                                    `,
+                            </div>`}
+                      </div>
+                      <div>${BgWidget.aiChatButton({ gvc, select: 'writer' })}</div>
+                    </div>
+                  `,
                             EditorElem.editeText({
                                 gvc: gvc,
                                 title: '',
                                 default: vm.data.content || '',
                                 placeHolder: '',
-                                callback: (text) => {
+                                callback: text => {
                                     vm.data.content = text;
                                     let totalSize = 0;
                                     for (let i = 0; i < text.length; i++) {
@@ -262,13 +263,13 @@ export class AutoReply {
             })),
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
-                    ${BgWidget.cancel(gvc.event(() => {
+          ${BgWidget.cancel(gvc.event(() => {
                 back();
             }))}
-                    ${BgWidget.save(gvc.event(() => {
+          ${BgWidget.save(gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
                 dialog.checkYesOrNot({
-                    callback: (select) => {
+                    callback: select => {
                         if (select) {
                             dialog.dataLoading({ visible: true, text: '儲存中' });
                             vm.data.updated_time = new Date();
@@ -287,7 +288,7 @@ export class AutoReply {
                     text: `確認無誤後將儲存`,
                 });
             }))}
-                </div>`,
+        </div>`,
         ].join(''))}`;
     }
     static getDefCompare(tag) {
@@ -384,7 +385,7 @@ export class AutoReply {
                 b.toggle = (_a = keyData.response.value.toggle) !== null && _a !== void 0 ? _a : true;
                 b.content = keyData.response.value.content || b.content;
                 b.name = keyData.response.value.name || b.name;
-                b.updated_time = new Date(keyData.response.value.updated_time);
+                b.updated_time = keyData.response.value.updated_time && new Date(keyData.response.value.updated_time);
             }
             return b;
         });

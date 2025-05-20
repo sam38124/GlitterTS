@@ -132,7 +132,7 @@ export class AutoReply {
                         'auto-email-order-create',
                         'auto-email-payment-successful',
                         'proof-purchase',
-                        // 'auto-email-order-cancel-success',
+                        'auto-email-order-cancel-success',
                         // 'auto-email-order-cancel-false',
                         'auto-email-birthday',
                         'auto-email-welcome',
@@ -464,7 +464,7 @@ export class AutoReply {
       return {
         ...b,
         ...keyData.response.value,
-        updated_time: new Date(keyData.response.value.updated_time),
+        updated_time: keyData.response.value.updated_time && new Date(keyData.response.value.updated_time),
       };
     }
     return b;

@@ -223,7 +223,7 @@ export class SaasViewModel {
       gvc: gvc,
       title: '帳號設定',
       innerHTML: (gvc: GVC) => {
-        return html` <div class="mt-n2">
+        return html` <div class="">
           ${[
             BgWidget.editeInput({
               gvc: gvc,
@@ -588,7 +588,7 @@ export class SaasViewModel {
       gvc: gvc,
       title: '填寫基本資料',
       innerHTML: (gvc: GVC) => {
-        return html` <div class="mt-n2">
+        return html` <div class="">
           ${[
             BgWidget.editeInput({
               gvc: gvc,

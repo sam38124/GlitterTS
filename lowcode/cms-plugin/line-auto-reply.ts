@@ -53,6 +53,9 @@ export class AutoReply {
 
                     function getDatalist() {
                         return vm.dataList.map((dd: any) => {
+                          if (dd.updated_time === 'Invalid Date') {
+                            dd.updated_time = '';
+                          }
                             return [
                                 {
                                     key: '發送時間',
@@ -138,6 +141,7 @@ export class AutoReply {
                                                 'auto-line-order-cancel-success',
                                                 'line-proof-purchase',
                                                 'auto-line-birthday',
+                                              'auto-line-order-cancel-success'
                                             ];
                                             let index = 0;
                                             for (const b of vm.dataList) {
@@ -391,7 +395,7 @@ export class AutoReply {
             b.toggle = keyData.response.value.toggle ?? true;
             b.content = keyData.response.value.content || b.content;
             b.name = keyData.response.value.name || b.name;
-            b.updated_time = new Date(keyData.response.value.updated_time);
+          b.updated_time = keyData.response.value.updated_time && new Date(keyData.response.value.updated_time);
         }
         return b;
     }

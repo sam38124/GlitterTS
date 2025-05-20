@@ -118,6 +118,7 @@ export class AutoReply {
                                 'auto-email-order-create',
                                 'auto-email-payment-successful',
                                 'proof-purchase',
+                                'auto-email-order-cancel-success',
                                 'auto-email-birthday',
                                 'auto-email-welcome',
                                 'auto-email-verify',
@@ -412,7 +413,7 @@ export class AutoReply {
                 return dd.tag === tag;
             });
             if (keyData.response.value) {
-                return Object.assign(Object.assign(Object.assign({}, b), keyData.response.value), { updated_time: new Date(keyData.response.value.updated_time) });
+                return Object.assign(Object.assign(Object.assign({}, b), keyData.response.value), { updated_time: keyData.response.value.updated_time && new Date(keyData.response.value.updated_time) });
             }
             return b;
         });

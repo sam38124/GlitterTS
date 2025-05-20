@@ -2364,7 +2364,7 @@ class User {
                 }
                 value.pos_support_finction = (_b = value.pos_support_finction) !== null && _b !== void 0 ? _b : [];
                 (_c = value.checkout_mode) !== null && _c !== void 0 ? _c : (value.checkout_mode = {
-                    payload: ['1', '3', '0'],
+                    payload: ['1'],
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
                 });
@@ -2576,7 +2576,7 @@ class User {
             },
             payload: {
                 key: `status`,
-                options: new Set(['1', '3', '0', '-1', '-2']),
+                options: new Set(['1', '3']),
                 addNull: new Set(),
             },
             progress: {

@@ -468,7 +468,7 @@ export class Template {
               console.log(`c_config[0]==>`, c_config[0]);
               b.config = c_config;
             }
-          }else  if (b.tag === 'footer') {
+          }else if (b.tag === 'footer') {
             const c_config = await new User(b.appName).getConfigV2({
               key: 'c_footer_' + config.req.query.page_refer,
               user_id: 'manager',
