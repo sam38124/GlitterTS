@@ -17,6 +17,7 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { Tool } from '../modules/tool.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { BgDialog } from '../backend-manager/bg-dialog.js';
 const html = String.raw;
 export class ShoppingDiscountSetting {
     static main(gvc, voucher_type) {
@@ -268,7 +269,13 @@ export class ShoppingDiscountSetting {
         };
         const voucherData = Object.assign(Object.assign({}, this.emptyVoucher(obj.reBackType)), vm.data);
         const cloneForKey = (key) => JSON.parse(JSON.stringify(key));
-        const setTitle = (title) => html ` <div class="tx_700">${title}</div>`;
+        const setTitle = (title, button) => {
+            return html `<div class="title-container">
+        <div class="tx_700">${title}</div>
+        <div class="flex-fill"></div>
+        ${button !== null && button !== void 0 ? button : ''}
+      </div>`;
+        };
         const voucherSettingCard = (array) => BgWidget.mainCard(array
             .map(stringArray => stringArray.filter(Boolean))
             .filter(stringArray => stringArray.length > 0)
@@ -628,6 +635,10 @@ export class ShoppingDiscountSetting {
                 }
                 function device() {
                     var _b;
+                    if (voucherData.trigger === 'distribution') {
+                        voucherData.device = ['normal'];
+                        return '';
+                    }
                     return BgWidget.multiCheckboxContainer(gvc, [
                         { key: 'normal', name: '官網 & APP 訂單' },
                         { key: 'pos', name: 'POS 訂單' },
@@ -1371,6 +1382,181 @@ export class ShoppingDiscountSetting {
                         endText: obj.endText,
                     });
                 }
+                function applyShop() {
+                    if (voucherData.trigger !== 'distribution') {
+                        return '';
+                    }
+                    const prefix = Tool.randomString(6);
+                    const shopTypeRecord = {
+                        group: {
+                            icon: html `<i class="fa-regular fa-puzzle-piece ${prefix}_icon"></i>`,
+                            title: '拼團賣場',
+                        },
+                        recommend: {
+                            icon: html `<i class="fa-regular fa-share-nodes ${prefix}_icon"></i>`,
+                            title: '分銷連結',
+                        },
+                        hidden: {
+                            icon: html `<i class="fa-solid fa-face-dotted ${prefix}_icon"></i>`,
+                            title: '隱形賣場',
+                        },
+                        onepage: {
+                            icon: html `<i class="fa-regular fa-file ${prefix}_icon"></i>`,
+                            title: '一頁商店',
+                        },
+                    };
+                    gvc.addStyle(`
+            .${prefix}_container {
+              max-width: 800px;
+              margin: 0 auto;
+              background-color: #fff;
+              border-radius: 8px;
+              overflow: hidden;
+            }
+
+            .${prefix}_table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+
+            .${prefix}_thead {
+            }
+
+            .${prefix}_th {
+              padding: 8px 16px;
+              text-align: left;
+              font-size: 16px;
+              font-weight: normal;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              border-bottom: 1px solid #e5e7eb;
+            }
+
+            .${prefix}_td {
+              padding: 8px 16px;
+              font-size: 16px;
+            }
+
+            .${prefix}_tr:hover {
+              background-color: #f9fafb;
+            }
+
+            .${prefix}_type_cell {
+              display: flex;
+              align-items: center;
+            }
+
+            .${prefix}_icon {
+              width: 16px;
+              height: 16px;
+              margin-right: 8px;
+              text-align: center;
+            }
+
+            .${prefix}_empty_referrer {
+              color: #9ca3af;
+            }
+
+            .${prefix}_expend {
+              display: flex;
+              height: 34px;
+              padding: 6px 0px;
+              justify-content: center;
+              align-items: center;
+              gap: 8px;
+              border-radius: 10px;
+              border: 1px solid #ddd;
+              background: #fff;
+              margin-top: 18px;
+            }
+
+            .${prefix}_expend:hover {
+              background-color: #f9fafb;
+            }
+          `);
+                    return gvc.bindView({
+                        bind: 'idnnn',
+                        view: () => {
+                            return html `<div class="${prefix}_container">
+                <table id="beauty-salon-table" class="${prefix}_table">
+                  <thead class="${prefix}_thead">
+                    <tr class="${prefix}_tr">
+                      <th class="${prefix}_th">賣場類型</th>
+                      <th class="${prefix}_th">賣場名稱</th>
+                      <th class="${prefix}_th">推薦人</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- 資料將由 JavaScript 動態填入 -->
+                  </tbody>
+                </table>
+                <div id="beauty-salon-div">
+                  <!-- 資料將由 JavaScript 動態填入 -->
+                </div>
+              </div>`;
+                        },
+                        divCreate: {},
+                        onCreate: () => {
+                            const salons = [
+                                {
+                                    type: 'group',
+                                    name: 'SPA 梳毛刷現實揪團中！人越多越便宜！',
+                                    referrer: '-',
+                                },
+                                {
+                                    type: 'recommend',
+                                    name: '與Sandy的貓跳台合作，給貓咪最好的跳台！',
+                                    referrer: 'YT貓皇',
+                                },
+                                {
+                                    type: 'hidden',
+                                    name: '毛孩防寒任三件8折，一起溫暖過冬！',
+                                    referrer: 'Sandy',
+                                },
+                                {
+                                    type: 'onepage',
+                                    name: '毛孩玩具聯名，買三件折扣8折！',
+                                    referrer: '-',
+                                },
+                            ];
+                            const tableBody = document.querySelector('#beauty-salon-table tbody');
+                            const tableDiv = document.querySelector('#beauty-salon-div');
+                            if (!tableBody || !tableDiv) {
+                                return;
+                            }
+                            salons.forEach(salon => {
+                                const data = shopTypeRecord[salon.type];
+                                const row = document.createElement('tr');
+                                row.className = `${prefix}_tr`;
+                                const typeCell = document.createElement('td');
+                                typeCell.className = `${prefix}_td ${prefix}_type_cell`;
+                                typeCell.innerHTML = `${data.icon} ${data.title}`;
+                                row.appendChild(typeCell);
+                                const nameCell = document.createElement('td');
+                                nameCell.className = `${prefix}_td`;
+                                nameCell.textContent = salon.name;
+                                row.appendChild(nameCell);
+                                const referrerCell = document.createElement('td');
+                                referrerCell.className = `${prefix}_td`;
+                                if (salon.referrer) {
+                                    referrerCell.textContent = salon.referrer;
+                                }
+                                else {
+                                    referrerCell.textContent = '-';
+                                    referrerCell.classList.add(`${prefix}_empty_referrer`);
+                                }
+                                row.appendChild(referrerCell);
+                                tableBody.appendChild(row);
+                            });
+                            const expendMore = document.createElement('div');
+                            expendMore.className = `${prefix}_expend`;
+                            const moreText = html `<span>展開更多</span>`;
+                            const chevronDown = html `<i class="fa-solid fa-chevron-dow ms-1"></i>`;
+                            expendMore.innerHTML = `${moreText} ${chevronDown}`;
+                            tableDiv.appendChild(expendMore);
+                        },
+                    });
+                }
                 const reBackProductView = {
                     rebate: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
                     discount: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
@@ -1378,6 +1564,14 @@ export class ShoppingDiscountSetting {
                     add_on_items: { title: '加購品項', html: [addProductView()].join('') },
                     giveaway: { title: '贈品品項', html: [addProductView()].join('') },
                 };
+                const applyShopButton = BgWidget.customButton({
+                    button: { color: 'gray', size: 'md' },
+                    text: { name: '選擇賣場' },
+                    event: gvc.event(() => {
+                        const bgDialog = new BgDialog(gvc);
+                        bgDialog.marketShop();
+                    }),
+                });
                 const viewList = [
                     [
                         { title: '活動設定', html: [status(), title()] },
@@ -1420,15 +1614,18 @@ export class ShoppingDiscountSetting {
                     BgWidget.container1x2({
                         html: viewList
                             .map(viewData => {
+                            if (viewData.length === 0 || viewData.every(view => !view.html)) {
+                                return '';
+                            }
                             return voucherSettingCard(viewData.map(view => {
                                 if (!view.html) {
                                     return [];
                                 }
                                 else if (Array.isArray(view.html)) {
-                                    return [setTitle(view.title), ...view.html];
+                                    return [setTitle(view.title, view.button), ...view.html];
                                 }
                                 else {
-                                    return [setTitle(view.title), view.html];
+                                    return [setTitle(view.title, view.button), view.html];
                                 }
                             }));
                         })
