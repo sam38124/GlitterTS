@@ -629,7 +629,7 @@ h6 {
 
 .btn-gray-disable {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -646,7 +646,7 @@ h6 {
 
 .btn-gray {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -663,7 +663,7 @@ h6 {
 
 .btn-black {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -680,7 +680,7 @@ h6 {
 
 .btn-orange {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -694,7 +694,7 @@ h6 {
 
 .btn-red {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -711,7 +711,7 @@ h6 {
 
 .btn-snow {
   display: flex;
-  padding: 8px 14px;
+  padding: 3.25px 18px;
   max-height: 36px;
   justify-content: center;
   align-items: center;
@@ -774,7 +774,7 @@ h6 {
   padding: 14px 16px;
   background: var(--main-white);
   box-shadow: 0px 1px 10px 0px var(--main-dark-alpha-15);
-  gap: 14px;
+  gap: 12px;
   left: 0;
   bottom: 0;
   width: 100%;
@@ -1292,7 +1292,7 @@ h6 {
   .btn-red,
   .btn-snow {
     max-height: 30px;
-    padding: 8px 14px;
+    padding: 4px 18px;
   }
 
   .btn .tx_700,
@@ -1302,7 +1302,6 @@ h6 {
 
   .update-bar-container {
     padding: 10px 16px;
-    gap: 12px;
   }
 
   .main-card {

@@ -1023,7 +1023,7 @@ ${obj.default ?? ''}</textarea
       </div>`;
   }
 
-  static searchPlace(event: string, vale: string, placeholder: string, margin?: string, padding?: string) {
+  static searchPlace(event: string, value: string, placeholder: string, margin?: string, padding?: string) {
     const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
     const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
     return html`
@@ -1039,7 +1039,7 @@ ${obj.default ?? ''}</textarea
             style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
             placeholder="${placeholder}"
             onchange="${event}"
-            value="${vale}"
+            value="${value}"
           />
         </div>
       </div>
@@ -2088,7 +2088,7 @@ ${obj.default ?? ''}</textarea
     gvc: GVC;
     filter: TableV3Filter[]; // 批量編輯與刪除物件陣列
     getData: (vm: TableV3) => void; // 非同步取得資料陣列事件
-    rowClick: (data: any, index: number) => void; // row 點擊事件
+    rowClick: (data: any, index: number, element: any, event: any) => void; // row 點擊事件
     hiddenPageSplit?: boolean; // 表格頁面導覽列
     defPage?: number; // 預設顯示第幾頁
     itemSelect?: () => void;
@@ -2451,8 +2451,8 @@ ${obj.default ?? ''}</textarea
                           class="${trIndex === 0 ? ids.tr : ''} ${dd.find(d3 => d3.tooltip)
                             ? 'tr-tooltip-container'
                             : ''}"
-                          onclick="${gvc.event(() => {
-                            obj.rowClick && obj.rowClick(dd, trIndex);
+                          onclick="${gvc.event((e, event) => {
+                            obj.rowClick && obj.rowClick(dd, trIndex, e, event);
                           })}"
                           onmouseover="${gvc.event(() => {
                             $(`#${ids.pencil}${trIndex}`).removeClass('d-none');

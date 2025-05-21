@@ -800,7 +800,7 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         >
       </div>`;
     }
-    static searchPlace(event, vale, placeholder, margin, padding) {
+    static searchPlace(event, value, placeholder, margin, padding) {
         const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
         const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
         return html `
@@ -816,7 +816,7 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
             style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
             placeholder="${placeholder}"
             onchange="${event}"
-            value="${vale}"
+            value="${value}"
           />
         </div>
       </div>
@@ -2044,8 +2044,8 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                           class="${trIndex === 0 ? ids.tr : ''} ${dd.find(d3 => d3.tooltip)
                                 ? 'tr-tooltip-container'
                                 : ''}"
-                          onclick="${gvc.event(() => {
-                                obj.rowClick && obj.rowClick(dd, trIndex);
+                          onclick="${gvc.event((e, event) => {
+                                obj.rowClick && obj.rowClick(dd, trIndex, e, event);
                             })}"
                           onmouseover="${gvc.event(() => {
                                 $(`#${ids.pencil}${trIndex}`).removeClass('d-none');

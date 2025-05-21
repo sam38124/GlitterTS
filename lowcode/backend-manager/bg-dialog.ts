@@ -14,6 +14,7 @@ import { TableStorage } from '../cms-plugin/module/table-storage.js';
 import { ProductAi } from '../cms-plugin/ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Animation } from '../glitterBundle/module/Animation.js';
+import { BgWidget } from './bg-widget.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -59,23 +60,6 @@ export class BgDialog {
         padding: 12px 20px;
       }
 
-      .${this.prefix}_btn {
-        display: flex;
-        padding: 3.25px 18px;
-        align-items: center;
-        gap: 8px;
-        border-radius: 10px;
-      }
-
-      .${this.prefix}_save {
-        background: #393939;
-      }
-
-      .${this.prefix}_cancel {
-        background: #fff;
-        border: 1px solid #ddd;
-      }
-
       .${this.prefix}_footer {
         display: flex;
         align-items: center;
@@ -98,48 +82,18 @@ export class BgDialog {
     `);
   }
 
-  static select(obj: { gvc: GVC; default: string; options: Option[]; callback: (value: string) => void }) {
-    return html` <select
-      class="c_select c_select_w_100"
-      onchange="${obj.gvc.event(e => {
-        return obj.callback(e.value);
-      })}"
-    >
-      ${obj.options
-        .map(opt => {
-          return html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
-            ${opt.value}
-          </option>`;
-        })
-        .join('')}
-      ${obj.options.find(opt => obj.default === opt.key)
-        ? ''
-        : html`<option class="d-none" selected>請選擇項目</option>`}
-    </select>`;
-  }
-
-  save(event: string, text: string = '完成'): string {
-    return html` <button class="btn ${this.prefix}_btn ${this.prefix}_save" type="button" onclick="${event}">
-      <span class="tx_700_white">${text}</span>
-    </button>`;
-  }
-
-  cancal(event: string, text: string = '取消'): string {
-    return html` <button class="btn ${this.prefix}_btn ${this.prefix}_cancel" type="button" onclick="${event}">
-      <span class="tx_700">${text}</span>
-    </button>`;
-  }
-
-  viewAllSelect(event: string, text: string = '檢視已選取項目'): string {
+  viewAll(event: string, text: string = '檢視已選取項目'): string {
     return html`<span
-      style="color: #4D86DB; font-size: 16px; font-weight: 400; cursor:pointer; overflow-wrap: break-word;"
+      style="color: #4D86DB; font-size: 16px; font-weight: 400; cursor: pointer; overflow-wrap: break-word;"
       onclick="${event}"
       >${text}</span
     >`;
   }
 
   clearAll(event: string, text: string = '清除全部'): string {
-    return html`<span style="margin-right: 8px; font-size: 16px; text-decoration: underline;" onclick="${event}"
+    return html`<span
+      style="margin-right: 8px; font-size: 16px; text-decoration: underline; cursor: pointer"
+      onclick="${event}"
       >${text}</span
     >`;
   }
@@ -148,6 +102,13 @@ export class BgDialog {
     const gvc = this.gvc;
     const glitter = this.glitter;
 
+    const vm = {
+      id: glitter.getUUID(),
+      loading: false,
+      search: '',
+      orderString: '',
+    };
+
     const marketOptions = [
       { key: 'hidden', value: '隱形賣場' },
       { key: 'onepage', value: '一頁商店' },
@@ -155,76 +116,100 @@ export class BgDialog {
       { key: 'recommend', value: '分銷連結' },
     ];
 
-    return glitter.innerDialog(
-      (gvc: GVC) => {
-        const vm = {
-          id: gvc.glitter.getUUID(),
-          loading: false,
-        };
+    const dialogView = (gvc: GVC) => {
+      const bindView = gvc.bindView({
+        bind: vm.id,
+        view: () => {
+          if (vm.loading) {
+            return 'Loading';
+          }
 
-        return html` <div class="${this.prefix}_body">
-          ${gvc.bindView({
-            bind: vm.id,
-            view: () => {
-              if (vm.loading) {
-                return 'Loading';
-              }
-
-              return html` <div class="${this.prefix}_header">
-                  <div class="tx_700">產品列表</div>
-                  <div class="flex-fill"></div>
-                </div>
-                <div class="c_dialog">
-                  <div class="c_dialog_body">
-                    <div class="c_dialog_main" style="height: auto; max-height: 500px; gap: 24px;">
-                      ${BgDialog.select({
+          return html` <div class="${this.prefix}_header">
+              <div class="tx_700">產品列表</div>
+              <div class="flex-fill"></div>
+            </div>
+            <div class="c_dialog">
+              <div class="c_dialog_body">
+                <div class="c_dialog_main" style="height: auto; max-height: 500px; gap: 8px;">
+                  ${BgWidget.select({
+                    gvc,
+                    default: marketOptions[0].key,
+                    options: marketOptions,
+                    callback: value => {
+                      console.log(value);
+                    },
+                  })}
+                  <div class="d-flex" style="gap: 10px">
+                    ${[
+                      BgWidget.select({
                         gvc,
                         default: marketOptions[0].key,
                         options: marketOptions,
                         callback: value => {
                           console.log(value);
                         },
-                      })}
-                    </div>
-                    <div class="${this.prefix}_footer">
-                      <div class="${this.prefix}_footer_left">
-                        ${this.viewAllSelect(
-                          gvc.event(() => {
-                            console.log('viewAllSelect');
+                        style: 'max-width: 120px;',
+                      }),
+                      html`<div class="w-100">
+                        ${BgWidget.searchPlace(
+                          gvc.event(e => {
+                            vm.search = e.value;
                           }),
-                          '檢視已選商品(12)'
+                          vm.search || '',
+                          '搜尋賣場名稱',
+                          '0',
+                          '0'
                         )}
-                      </div>
-                      <div class="${this.prefix}_footer_right">
-                        ${[
-                          this.clearAll(
-                            gvc.event(() => {
-                              console.log('clearAll');
-                            })
-                          ),
-                          this.cancal(
-                            gvc.event(() => {
-                              console.log('cancal');
-                            })
-                          ),
-                          this.save(
-                            gvc.event(() => {
-                              console.log('save');
-                            })
-                          ),
-                        ].join('')}
-                      </div>
-                    </div>
+                      </div>`,
+                      BgWidget.updownFilter({
+                        gvc,
+                        callback: (value: any) => {
+                          vm.orderString = value;
+                        },
+                        default: vm.orderString || 'default',
+                        options: [],
+                      }),
+                    ].join('')}
                   </div>
-                </div>`;
-            },
-          })}
-        </div>`;
-      },
-      gvc.glitter.getUUID(),
-      {
-        animation: Animation.fade,
-      }
-    );
+                </div>
+                <div class="${this.prefix}_footer">
+                  <div class="${this.prefix}_footer_left">
+                    ${this.viewAll(
+                      gvc.event(() => {
+                        console.log('viewAllSelect');
+                      }),
+                      '檢視已選商品(12)'
+                    )}
+                  </div>
+                  <div class="${this.prefix}_footer_right">
+                    ${[
+                      this.clearAll(
+                        gvc.event(() => {
+                          console.log('clearAll');
+                        })
+                      ),
+                      BgWidget.cancel(
+                        gvc.event(() => {
+                          console.log('cancel');
+                          gvc.closeDialog();
+                        })
+                      ),
+                      BgWidget.save(
+                        gvc.event(() => {
+                          console.log('save');
+                        })
+                      ),
+                    ].join('')}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        },
+      });
+
+      return html` <div class="${this.prefix}_body">${bindView}</div>`;
+    };
+
+    return glitter.innerDialog(dialogView, gvc.glitter.getUUID(), { animation: Animation.fade });
   }
 }

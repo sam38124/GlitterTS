@@ -35,7 +35,9 @@ export class StockList {
             replaceData: {},
             stockStores: [],
             listLimit: TableStorage.getLimit(),
+            isEqual: true,
         };
+        const dialog = new ShareDialog(gvc.glitter);
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
         vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
@@ -52,6 +54,14 @@ export class StockList {
                 }
             }
             return totalStockCount;
+        }
+        function areArraysEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length)
+                return false;
+            return arr1.every((item1, index) => {
+                const item2 = arr2[index];
+                return JSON.stringify(item1) === JSON.stringify(item2);
+            });
         }
         function getDatalist() {
             return vm.dataList.map((dd) => {
@@ -167,6 +177,7 @@ export class StockList {
                                                 item.product_content = dd.product_content;
                                             }
                                         });
+                                        vm.isEqual = areArraysEqual(vm.stockArray, vm.stockOriginArray);
                                         gvc.notifyDataChange(vm.updateId);
                                     })}"
                           value="${(_c = stockData.count) !== null && _c !== void 0 ? _c : 0}"
@@ -347,17 +358,28 @@ export class StockList {
                                                     }
                                                 }
                                             },
-                                            rowClick: (data, index) => {
-                                                if (option.select_mode) {
+                                            rowClick: (data, index, e, event) => {
+                                                if (option.select_mode || event.target.tagName === 'TR') {
                                                     return;
                                                 }
-                                                const product = vm.dataList[index].product_content;
-                                                const variant = vm.dataList[index].variant_content;
-                                                product.variants.map((dd) => {
-                                                    dd.editable = JSON.stringify(variant.spec) === JSON.stringify(dd.spec);
-                                                });
-                                                vm.replaceData = product;
-                                                vm.type = 'editSpec';
+                                                function call() {
+                                                    const product = vm.dataList[index].product_content;
+                                                    const variant = vm.dataList[index].variant_content;
+                                                    product.variants.map((dd) => {
+                                                        dd.editable = JSON.stringify(variant.spec) === JSON.stringify(dd.spec);
+                                                    });
+                                                    vm.replaceData = product;
+                                                    vm.type = 'editSpec';
+                                                }
+                                                if (vm.isEqual) {
+                                                    call();
+                                                }
+                                                else {
+                                                    dialog.checkYesOrNot({
+                                                        text: '已修正的資料尚未儲存，確定要進到此規格詳細頁嗎',
+                                                        callback: bool => bool && call(),
+                                                    });
+                                                }
                                             },
                                             filter: option.select_mode
                                                 ? [
@@ -380,42 +402,34 @@ export class StockList {
                         gvc.bindView({
                             bind: vm.updateId,
                             view: () => {
-                                const areArraysEqual = (arr1, arr2) => {
-                                    if (arr1.length !== arr2.length)
-                                        return false;
-                                    return arr1.every((item1, index) => {
-                                        const item2 = arr2[index];
-                                        return JSON.stringify(item1) === JSON.stringify(item2);
-                                    });
-                                };
-                                if (!areArraysEqual(vm.stockArray, vm.stockOriginArray)) {
-                                    return html ` <div class="update-bar-container">
-                        ${BgWidget.cancel(gvc.event(() => {
-                                        gvc.notifyDataChange(vm.tableId);
-                                    }))}
-                        ${BgWidget.save(gvc.event(() => {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.dataLoading({
-                                            text: '更新庫存中',
-                                            visible: true,
-                                        });
-                                        ApiShop.putVariants({
-                                            data: vm.dataList,
-                                            token: window.parent.config.token,
-                                        }).then(re => {
-                                            dialog.dataLoading({ visible: false });
-                                            if (re.result) {
-                                                dialog.successMessage({ text: '更新成功' });
-                                                gvc.notifyDataChange(vm.tableId);
-                                            }
-                                            else {
-                                                dialog.errorMessage({ text: '更新失敗' });
-                                            }
-                                        });
-                                    }))}
-                      </div>`;
+                                if (vm.isEqual) {
+                                    return '';
                                 }
-                                return '';
+                                return html ` <div class="update-bar-container">
+                      ${BgWidget.cancel(gvc.event(() => {
+                                    vm.isEqual = true;
+                                    gvc.notifyDataChange(vm.tableId);
+                                }), '回到初始值')}
+                      ${BgWidget.save(gvc.event(() => {
+                                    dialog.dataLoading({
+                                        text: '更新庫存中',
+                                        visible: true,
+                                    });
+                                    ApiShop.putVariants({
+                                        data: vm.dataList,
+                                        token: window.parent.config.token,
+                                    }).then(re => {
+                                        dialog.dataLoading({ visible: false });
+                                        if (re.result) {
+                                            dialog.successMessage({ text: '更新成功' });
+                                            gvc.notifyDataChange(vm.tableId);
+                                        }
+                                        else {
+                                            dialog.errorMessage({ text: '更新失敗' });
+                                        }
+                                    });
+                                }))}
+                    </div>`;
                             },
                         }),
                     ].join(''))}
@@ -429,7 +443,6 @@ export class StockList {
                             defData: vm.replaceData,
                             goBackEvent: {
                                 save: postMD => {
-                                    const dialog = new ShareDialog(gvc.glitter);
                                     dialog.dataLoading({ visible: true });
                                     ApiShop.putProduct({
                                         data: postMD,
