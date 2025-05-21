@@ -69,6 +69,7 @@ export interface VoucherData {
         type: SelectShipmentType;
         list: string[];
     };
+    distribution_shop: string[];
     bind: BindItem[];
     bind_subtotal: number;
     times: number;

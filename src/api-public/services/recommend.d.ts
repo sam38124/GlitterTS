@@ -11,6 +11,7 @@ export declare class Recommend {
         limit: number;
         user_id?: string;
         no_detail?: boolean;
+        id_list?: string;
     }): Promise<{
         data: any;
         total: any;

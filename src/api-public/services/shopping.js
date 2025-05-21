@@ -2093,10 +2093,7 @@ class Shopping {
                 return [checkSource, checkTarget, setBindProduct].every(fn => fn(voucher));
             })
                 .sort((a, b) => {
-                if (sortedVoucher.toggle) {
-                    return manualSorted(a, b);
-                }
-                return compare(b) > compare(a) ? 1 : -1;
+                return sortedVoucher.toggle ? manualSorted(a, b) : compare(b) - compare(a);
             })
                 .filter(voucher => {
                 return [checkCartTotal, checkOverlay, checkCondition].every(fn => fn(voucher));

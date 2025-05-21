@@ -109,6 +109,7 @@ export interface VoucherData {
     type: SelectShipmentType;
     list: string[];
   };
+  distribution_shop: string[];
 
   // backend-value
   bind: BindItem[];

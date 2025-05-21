@@ -18,6 +18,8 @@ import { FilterOptions } from './filter-options.js';
 import { Tool } from '../modules/tool.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { BgDialog } from '../backend-manager/bg-dialog.js';
+import { Article } from '../glitter-base/route/article.js';
+import { ApiRecommend } from '../glitter-base/route/recommend.js';
 const html = String.raw;
 export class ShoppingDiscountSetting {
     static main(gvc, voucher_type) {
@@ -63,7 +65,7 @@ export class ShoppingDiscountSetting {
                                         const triggerLabels = {
                                             auto: '自動',
                                             code: '輸入代碼',
-                                            distribution: '分銷 & 一頁式',
+                                            distribution: '特定賣場',
                                         };
                                         function getDatalist() {
                                             return data.response.data.map((dd) => {
@@ -199,7 +201,7 @@ export class ShoppingDiscountSetting {
                 if (voucherData.trigger === 'auto')
                     return '自動折扣';
                 if (voucherData.trigger === 'distribution')
-                    return '分銷連結';
+                    return '特定賣場使用';
                 if (voucherData.trigger === 'code')
                     return `優惠代碼「${(_b = voucherData.code) !== null && _b !== void 0 ? _b : ''}」`;
                 return '';
@@ -263,6 +265,7 @@ export class ShoppingDiscountSetting {
         const vm = obj.vm;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
+        const bgDialog = new BgDialog(gvc);
         const getUUID = glitter.getUUID;
         const pageVM = {
             viewID: getUUID(),
@@ -369,7 +372,7 @@ export class ShoppingDiscountSetting {
                         {
                             key: 'distribution',
                             name: '供特定賣場優惠使用',
-                            innerHtml: BgWidget.grayNote('僅限於隱形賣場 / 一頁商店 / 拼團賣場 / 分銷連結使用'),
+                            innerHtml: BgWidget.grayNote('僅限於隱形賣場 / 一頁商店 / 分銷連結使用'),
                         },
                     ], [voucherData.trigger], text => {
                         if (text[0] === 'auto') {
@@ -1386,28 +1389,12 @@ export class ShoppingDiscountSetting {
                     if (voucherData.trigger !== 'distribution') {
                         return '';
                     }
+                    const id = 'apply_shop_view';
                     const prefix = Tool.randomString(6);
-                    const shopTypeRecord = {
-                        group: {
-                            icon: html `<i class="fa-regular fa-puzzle-piece ${prefix}_icon"></i>`,
-                            title: '拼團賣場',
-                        },
-                        recommend: {
-                            icon: html `<i class="fa-regular fa-share-nodes ${prefix}_icon"></i>`,
-                            title: '分銷連結',
-                        },
-                        hidden: {
-                            icon: html `<i class="fa-solid fa-face-dotted ${prefix}_icon"></i>`,
-                            title: '隱形賣場',
-                        },
-                        onepage: {
-                            icon: html `<i class="fa-regular fa-file ${prefix}_icon"></i>`,
-                            title: '一頁商店',
-                        },
-                    };
+                    let loading = true;
+                    let dataList = [];
                     gvc.addStyle(`
             .${prefix}_container {
-              max-width: 800px;
               margin: 0 auto;
               background-color: #fff;
               border-radius: 8px;
@@ -1417,9 +1404,9 @@ export class ShoppingDiscountSetting {
             .${prefix}_table {
               width: 100%;
               border-collapse: collapse;
-            }
-
-            .${prefix}_thead {
+              overflow-x: auto;
+              white-space: nowrap;
+              ${bgDialog.isMobile ? 'display: block;' : ''}
             }
 
             .${prefix}_th {
@@ -1473,13 +1460,21 @@ export class ShoppingDiscountSetting {
             .${prefix}_expend:hover {
               background-color: #f9fafb;
             }
+
+            .${prefix}_none_text {
+              text-align: center;
+              padding: 18px 0;
+            }
           `);
                     return gvc.bindView({
-                        bind: 'idnnn',
+                        bind: id,
                         view: () => {
+                            if (loading) {
+                                return BgWidget.spinner();
+                            }
                             return html `<div class="${prefix}_container">
-                <table id="beauty-salon-table" class="${prefix}_table">
-                  <thead class="${prefix}_thead">
+                <table id="apply-shop-table" class="${prefix}_table">
+                  <thead>
                     <tr class="${prefix}_tr">
                       <th class="${prefix}_th">賣場類型</th>
                       <th class="${prefix}_th">賣場名稱</th>
@@ -1490,86 +1485,139 @@ export class ShoppingDiscountSetting {
                     <!-- 資料將由 JavaScript 動態填入 -->
                   </tbody>
                 </table>
-                <div id="beauty-salon-div">
+                <div id="apply-shop-div">
                   <!-- 資料將由 JavaScript 動態填入 -->
                 </div>
               </div>`;
                         },
-                        divCreate: {},
                         onCreate: () => {
-                            const salons = [
-                                {
-                                    type: 'group',
-                                    name: 'SPA 梳毛刷現實揪團中！人越多越便宜！',
-                                    referrer: '-',
-                                },
-                                {
-                                    type: 'recommend',
-                                    name: '與Sandy的貓跳台合作，給貓咪最好的跳台！',
-                                    referrer: 'YT貓皇',
-                                },
-                                {
-                                    type: 'hidden',
-                                    name: '毛孩防寒任三件8折，一起溫暖過冬！',
-                                    referrer: 'Sandy',
-                                },
-                                {
-                                    type: 'onepage',
-                                    name: '毛孩玩具聯名，買三件折扣8折！',
-                                    referrer: '-',
-                                },
-                            ];
-                            const tableBody = document.querySelector('#beauty-salon-table tbody');
-                            const tableDiv = document.querySelector('#beauty-salon-div');
-                            if (!tableBody || !tableDiv) {
-                                return;
+                            function render() {
+                                const tableBody = document.querySelector('#apply-shop-table tbody');
+                                const tableDiv = document.querySelector('#apply-shop-div');
+                                if (!tableBody || !tableDiv) {
+                                    return;
+                                }
+                                tableBody.innerHTML = '';
+                                if (voucherData.distribution_shop.length === 0) {
+                                    const row = document.createElement('tr');
+                                    row.className = `${prefix}_tr`;
+                                    row.innerHTML = html `<td colspan="3" class="${prefix}_none_text">尚未選擇賣場</td>`;
+                                    tableBody.appendChild(row);
+                                    return;
+                                }
+                                const shopTypeRecord = bgDialog.shopTypeRecord();
+                                dataList.forEach(data => {
+                                    const shopData = shopTypeRecord[data.type];
+                                    const row = document.createElement('tr');
+                                    row.className = `${prefix}_tr`;
+                                    const referrerText = data.referrer ? data.referrer : '-';
+                                    const referrerClass = data.referrer ? '' : `${prefix}_empty_referrer`;
+                                    row.innerHTML = html `
+                    <td class="${prefix}_td ${prefix}_type_cell">${shopData.icon} ${shopData.title}</td>
+                    <td class="${prefix}_td">${data.name}</td>
+                    <td class="${prefix}_td ${referrerClass}">${referrerText}</td>
+                  `;
+                                    tableBody.appendChild(row);
+                                });
                             }
-                            salons.forEach(salon => {
-                                const data = shopTypeRecord[salon.type];
-                                const row = document.createElement('tr');
-                                row.className = `${prefix}_tr`;
-                                const typeCell = document.createElement('td');
-                                typeCell.className = `${prefix}_td ${prefix}_type_cell`;
-                                typeCell.innerHTML = `${data.icon} ${data.title}`;
-                                row.appendChild(typeCell);
-                                const nameCell = document.createElement('td');
-                                nameCell.className = `${prefix}_td`;
-                                nameCell.textContent = salon.name;
-                                row.appendChild(nameCell);
-                                const referrerCell = document.createElement('td');
-                                referrerCell.className = `${prefix}_td`;
-                                if (salon.referrer) {
-                                    referrerCell.textContent = salon.referrer;
+                            if (loading) {
+                                if (voucherData.distribution_shop.length === 0) {
+                                    loading = false;
+                                    setTimeout(() => gvc.notifyDataChange(id), 100);
+                                    return;
                                 }
-                                else {
-                                    referrerCell.textContent = '-';
-                                    referrerCell.classList.add(`${prefix}_empty_referrer`);
-                                }
-                                row.appendChild(referrerCell);
-                                tableBody.appendChild(row);
-                            });
-                            const expendMore = document.createElement('div');
-                            expendMore.className = `${prefix}_expend`;
-                            const moreText = html `<span>展開更多</span>`;
-                            const chevronDown = html `<i class="fa-solid fa-chevron-dow ms-1"></i>`;
-                            expendMore.innerHTML = `${moreText} ${chevronDown}`;
-                            tableDiv.appendChild(expendMore);
+                                dataList = [];
+                                const articleIds = [];
+                                const recommendIds = [];
+                                voucherData.distribution_shop.map(item => {
+                                    const [pageType, id] = item.split('-');
+                                    pageType === 'recommend' ? recommendIds.push(id) : articleIds.push(id);
+                                });
+                                Promise.all([
+                                    articleIds.length > 0
+                                        ? Article.get({
+                                            page: 0,
+                                            limit: 9999,
+                                            search: vm.search || undefined,
+                                            status: '0,1',
+                                            id_list: articleIds.join(','),
+                                        }).then(data => {
+                                            var _b;
+                                            return Array.isArray((_b = data.response) === null || _b === void 0 ? void 0 : _b.data) ? data.response.data : [];
+                                        })
+                                        : [],
+                                    recommendIds.length > 0
+                                        ? ApiRecommend.getList({
+                                            data: {},
+                                            limit: 9999,
+                                            page: 0,
+                                            token: window.parent.config.token,
+                                            id_list: recommendIds.join(','),
+                                        }).then(data => {
+                                            var _b;
+                                            return Array.isArray((_b = data.response) === null || _b === void 0 ? void 0 : _b.data) ? data.response.data : [];
+                                        })
+                                        : [],
+                                ]).then(dataArray => {
+                                    const [article, recommend] = dataArray;
+                                    article.map((item) => {
+                                        dataList.push({
+                                            type: item.content.page_type === 'hidden' ? 'hidden' : 'onepage',
+                                            name: item.content.name,
+                                            referrer: '-',
+                                        });
+                                    });
+                                    recommend.map((item) => {
+                                        var _b, _c;
+                                        dataList.push({
+                                            type: 'recommend',
+                                            name: item.content.title,
+                                            referrer: (_c = (_b = item.content.recommend_user) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '-',
+                                        });
+                                    });
+                                    loading = false;
+                                    gvc.notifyDataChange(id);
+                                });
+                            }
+                            else {
+                                render();
+                            }
                         },
                     });
                 }
                 const reBackProductView = {
-                    rebate: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
-                    discount: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
-                    shipment_free: { title: '活動商品', html: '' },
-                    add_on_items: { title: '加購品項', html: [addProductView()].join('') },
-                    giveaway: { title: '贈品品項', html: [addProductView()].join('') },
+                    rebate: {
+                        title: '活動商品',
+                        html: voucherData.for === 'all' ? '' : selectProduct(),
+                    },
+                    discount: {
+                        title: '活動商品',
+                        html: voucherData.for === 'all' ? '' : selectProduct(),
+                    },
+                    shipment_free: {
+                        title: '活動商品',
+                        html: '',
+                    },
+                    add_on_items: {
+                        title: '加購品項',
+                        html: [addProductView()].join(''),
+                    },
+                    giveaway: {
+                        title: '贈品品項',
+                        html: [addProductView()].join(''),
+                    },
                 };
                 const applyShopButton = BgWidget.customButton({
                     button: { color: 'gray', size: 'md' },
                     text: { name: '選擇賣場' },
                     event: gvc.event(() => {
-                        const bgDialog = new BgDialog(gvc);
-                        bgDialog.marketShop();
+                        bgDialog.marketShop({
+                            def: voucherData.distribution_shop.slice(),
+                            callback: postData => {
+                                voucherData.distribution_shop = postData;
+                                gvc.notifyDataChange(pageVM.viewID);
+                            },
+                        });
                     }),
                 });
                 const viewList = [
@@ -1577,6 +1625,13 @@ export class ShoppingDiscountSetting {
                         { title: '活動設定', html: [status(), title()] },
                         { title: '折扣方式', html: trigger() },
                         { title: '適用訂單類型', html: device() },
+                    ],
+                    [
+                        {
+                            title: '套用賣場',
+                            button: applyShopButton,
+                            html: applyShop(),
+                        },
                     ],
                     [
                         { title: '折扣設定', html: method() },
@@ -1772,6 +1827,7 @@ ShoppingDiscountSetting.emptyVoucher = (reBackType) => {
         includeDiscount: 'before',
         productOffStart: 'price_desc',
         selectShipment: { type: 'all', list: [] },
+        distribution_shop: [],
     };
 };
 window.glitter.setModule(import.meta.url, ShoppingDiscountSetting);
