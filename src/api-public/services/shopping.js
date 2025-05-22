@@ -4353,8 +4353,8 @@ class Shopping {
     async batchPostCustomerInvoice(dataArray) {
         let result = [];
         const chunk = 10;
-        const chunksCount = Math.ceil(dataArray.length / chunk);
-        for (let i = 0; i < chunksCount; i++) {
+        const chunkLength = Math.ceil(dataArray.length / chunk);
+        for (let i = 0; i < chunkLength; i++) {
             const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
             const res = await Promise.all(arr.map(item => {
                 return this.postCustomerInvoice(item);

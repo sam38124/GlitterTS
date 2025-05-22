@@ -1,11 +1,10 @@
 type Status = 0 | 1 | -1;
 type VoucherMethod = 'percent' | 'fixed';
-type ReBackType = 'rebate' | 'discount' | 'shipment_free';
-type TriggerType = 'auto' | 'code';
 type VoucherFor = 'collection' | 'product' | 'all';
 type VoucherRule = 'min_price' | 'min_count';
+type ReBackType = 'rebate' | 'discount' | 'shipment_free';
+type TriggerType = 'auto' | 'code';
 type FilterType = 'normal' | 'block' | 'pos' | 'all';
-type PaymentMethod = 'ATM' | 'CreditCard' | 'ConvenienceStore';
 type ShipmentMethod =
   | 'normal'
   | 'FAMIC2C'
@@ -17,9 +16,12 @@ type ShipmentMethod =
   | 'global_express'
   | 'UNIMARTFREEZE'
   | 'black_cat_freezing'
-  | 'black_cat';
-
+  | 'black_cat'
+  | 'FAMIC2CFREEZE';
+type PaymentMethod = 'ATM' | 'CreditCard' | 'ConvenienceStore';
 type ViewModelType = 'list' | 'add' | 'replace' | 'select' | 'createInvoice' | 'viewInvoice' | 'recommend';
+type POSPayment = 'cash' | 'credit' | 'line_pay';
+type TradeStatus = '0' | '1' | '10200095';
 
 interface EditRecord {
   time: string;
@@ -88,13 +90,34 @@ interface CartData {
 }
 
 interface OrderData {
-  cash_flow: PaymentFlow;
-  editRecord: EditRecord[];
-  distribution_info?: DistributionInfo;
+  distribution_info?: {
+    code: string;
+    condition: number;
+    link: string;
+    recommend_medium: any;
+    recommend_status: string;
+    recommend_user: any;
+    redirect: string;
+    relative: string;
+    relative_data: any;
+    share_type: string;
+    share_value: number;
+    startDate: string;
+    startTime: string;
+    status: boolean;
+    title: string;
+    voucher: number;
+    voucher_status: string;
+  };
   archived: 'true' | 'false';
-  customer_info: UserInfo;
+  customer_info: any;
+  editRecord: any;
   method: string;
-  shipment_selector: ShipmentSelector[];
+  shipment_selector: {
+    name: string;
+    value: string;
+    form: any;
+  }[];
   orderStatus: string;
   use_wallet: number;
   email: string;
@@ -105,16 +128,17 @@ interface OrderData {
   use_rebate: number;
   lineItems: LineItem[];
   user_info: UserInfo;
+  custom_receipt_form?: any;
+  custom_form_format?: any;
+  custom_form_data?: any;
   proof_purchase: any;
   progress: string;
   order_note: string;
   voucherList: VoucherData[];
   orderSource?: string;
   deliveryData: Record<string, string>;
+  cash_flow: PaymentFlow;
   pos_info: POSInfo;
-  custom_receipt_form?: any;
-  custom_form_format?: any;
-  custom_form_data?: any;
   tags?: string[];
   fbp?: string;
   fbc?:string;
@@ -125,7 +149,7 @@ interface PaymentFlow {
   HandlingCharge?: string;
   PaymentType: PaymentMethod;
   PaymentDate?: string;
-  TradeStatus?: '0' | '1' | '10200095';
+  TradeStatus?: TradeStatus;
   TradeAmt: string;
   TradeNo: string;
   credit_receipt?: any;
@@ -148,22 +172,32 @@ interface UserInfo {
   name: string;
   email: string;
   phone: string;
+  address: string;
+  shipment: ShipmentMethod;
+  CVSStoreName: string;
+  CVSStoreID: string;
+  CVSTelephone: string;
+  MerchantTradeNo: string;
+  CVSAddress: string;
+  note: string;
   city?: string;
   area?: string;
   shipment_date: string;
   shipment_refer: string;
-  address: string;
   shipment_number?: string;
   state: string;
   company: string;
   country: string;
   postal_code: string;
   invoice_type: string;
+  custom_form_delivery?: any;
+  shipment_detail?: any;
+  code_note?: string;
   [key: string]: any;
 }
 
 interface POSInfo {
-  payment: 'cash' | 'credit' | 'line_pay';
+  payment: POSPayment;
   who: {
     id: number;
     user: string;
@@ -185,24 +219,31 @@ interface POSConfig {
 
 interface LineItem {
   id: number;
-  sku: string;
   spec: string[];
   count: number;
-  stock: number;
-  title: string;
+  sale_price: number;
+  sku: string;
   rebate: number;
   weight: number;
   is_gift: boolean;
-  sale_price: number;
   origin_price: number;
   discount_price: number;
-  deduction_log: any;
+  title?: string;
+  preview_image?: string;
+  deduction_log?: any;
 }
 
 interface OrderQuery {
   isPOS?: boolean;
   isArchived?: boolean;
   isShipment?: boolean;
+}
+
+interface CustomerInfo {
+  name: string;
+  email: string;
+  phone: string;
+  payment_select?: string;
 }
 
 interface ViewModel {

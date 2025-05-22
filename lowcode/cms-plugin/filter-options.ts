@@ -226,7 +226,7 @@ export class FilterOptions {
   static payloadStatusOptions = [
     { key: '1', name: '已付款' },
     { key: '3', name: '部分付款' },
-    { key: '0', name: '未付款' },
+    { key: '0', name: '待核款 / 貨到付款 / 未付款' },
     { key: '-1', name: '付款失敗' },
     { key: '-2', name: '已退款' },
   ];
