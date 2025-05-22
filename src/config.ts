@@ -144,6 +144,7 @@ export const config = {
     reconciliation: '/reconciliation',
     fb: '/fb',
     progress: '/progress',
+    app_market: '/app_market',
   },
   route: {
     shopee: '/shopee',

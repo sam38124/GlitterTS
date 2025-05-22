@@ -29,6 +29,7 @@
   --main-orange-2: #ffb400;
   --main-orange-3: #ff6c02;
   --main-green: #10931d;
+  --main-yellow: #FFB21C;
 
   --item-primary: #4d86db;
   --item-success: #d8ecda;
@@ -417,6 +418,12 @@ h6 {
 .tx_gray_12 {
   font-size: 12px;
   color: var(--main-gray-3);
+  font-weight: 400;
+}
+
+.tx_yellow_12 {
+  font-size: 12px;
+  color: var(--main-yellow);
   font-weight: 400;
 }
 

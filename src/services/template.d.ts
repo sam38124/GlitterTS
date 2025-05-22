@@ -1,3 +1,4 @@
+/// <reference types="cookie-parser" />
 import { IToken } from '../models/Auth.js';
 import { LanguageLocation } from '../Language.js';
 import express from 'express';

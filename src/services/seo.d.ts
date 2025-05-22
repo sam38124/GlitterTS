@@ -1,3 +1,4 @@
+/// <reference types="cookie-parser" />
 import express from 'express';
 export declare class Seo {
     static getPageInfo(appName: string, query_page: string, language: any, req: express.Request): Promise<any>;

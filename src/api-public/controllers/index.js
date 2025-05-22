@@ -27,6 +27,7 @@ const app_release = require("./app-release");
 const smtp = require("./smtp");
 const sms = require("./sms");
 const line_message = require("./line-message");
+const app_market = require("./app-market");
 const fb_message = require("./fb-message");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
@@ -52,6 +53,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'),
 router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
 router.use(config_1.config.getRoute(config_1.config.public_route.sms, 'public'), sms);
 router.use(config_1.config.getRoute(config_1.config.public_route.line_message, 'public'), line_message);
+router.use(config_1.config.getRoute(config_1.config.public_route.app_market, 'public'), app_market);
 router.use(config_1.config.getRoute(config_1.config.public_route.fb_message, 'public'), fb_message);
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);

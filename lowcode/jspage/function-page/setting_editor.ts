@@ -628,6 +628,15 @@ export class Setting_editor {
                 moduleName: '蝦皮',
             },
             {
+              icon: '',
+              page: 'APP-Market-Landing',
+              group: 'APP應用',
+              title: 'APP Market',
+              appName: 'cms_system',
+              groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/list-tree-regular.svg',
+              moduleName: 'APP Market',
+            },
+            {
                 icon: '',
                 page: 'web_theme',
                 group: '品牌官網',

@@ -9,7 +9,7 @@ import { Tool } from './tool.js';
 export type FileItem = {
   selected?: boolean;
   title: string;
-  data: FileItem[];
+  data: string;
   items?: FileItem[];
   type: 'file' | 'folder';
   tag: string[];
