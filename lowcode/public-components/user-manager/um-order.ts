@@ -2,7 +2,6 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { UmClass } from './um-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Ad } from '../public/ad.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
@@ -411,30 +410,30 @@ export class UMOrder {
         cursor: pointer;
       }
       .customer-btn-text {
-        line-height:normal;
+        line-height: normal;
         text-align: center;
         color: white;
         font-size: 14px;
         font-weight: 400;
         letter-spacing: 0.56px;
       }
-      
+
       .payment-section {
         border: 1px solid #ccc;
         padding: 10px;
         margin-bottom: 20px;
       }
       #repay-button {
-        height:32px;
-        
+        height: 32px;
+
         background-color: #4caf50;
         color: white;
-        border-radius:10px;
+        border-radius: 10px;
         padding: 6px 14px;
         border: none;
         cursor: pointer;
       }
-      
+
       #repay-button:hover {
         background-color: #45a049;
       }
@@ -454,6 +453,7 @@ export class UMOrder {
       showPayError();
       return;
     }
+
     switch (payment_method) {
       case 'line_pay':
         if (gvc.glitter.share.is_application) {
@@ -472,7 +472,8 @@ export class UMOrder {
         if (res.response.approveLink) {
           location.href = res.response.approveLink;
         }
-        showPayError();break;
+        showPayError();
+        break;
       }
       case 'jkopay': {
         if (gvc.glitter.share.is_application) {
@@ -506,8 +507,8 @@ export class UMOrder {
                 margin: 18px 0;
               }
               .button-text {
-                  color: #fff;
-                  font-size: 16px;
+                color: #fff;
+                font-size: 16px;
               }
             `);
             return gvc.bindView({
@@ -515,12 +516,17 @@ export class UMOrder {
               view: () => {
                 return html` <div class="w-100 h-100 d-flex align-items-center justify-content-center">
                   ${document.body.clientWidth < 800
-                    ? `
-                    <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
-                    padding-top:${50 + gvc.glitter.share.top_inset}px;
-                    ">
-                    `
-                    : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                    ? html`
+                        <div
+                          class="bg-white position-relative vw-100"
+                          style="height: ${window.innerHeight}px;overflow-y: auto; padding-top:${50 +
+                          gvc.glitter.share.top_inset}px;"
+                        ></div>
+                      `
+                    : html`<div
+                        class="p-3  bg-white position-relative"
+                        style="max-height: calc(100vh - 90px);overflow-y:auto;"
+                      ></div>`}
                   <div
                     style="position: absolute; right: 15px;top:${15 + gvc.glitter.share.top_inset}px;z-index:1;"
                     onclick="${gvc.event(() => {
@@ -529,7 +535,7 @@ export class UMOrder {
                   >
                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                   </div>
-                  <div id="paynow-container"  >
+                  <div id="paynow-container">
                     <div style="width:200px;height:200px;">loading...</div>
                   </div>
                   <div class="px-3 px-sm-0 w-100">
@@ -537,10 +543,7 @@ export class UMOrder {
                       class="button-bgr"
                       id="checkoutButton"
                       onclick="${gvc.event(() => {
-                        // const inputGroup = document.querySelector('#paynow-container');
-                        // console.log("inputGroup -- " , inputGroup)
                         const PayNow = (window as any).PayNow;
-                        const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ visible: true });
                         PayNow.checkout().then((response: any) => {
                           dialog.dataLoading({ visible: false });
@@ -558,20 +561,21 @@ export class UMOrder {
                 </div>`;
               },
               divCreate: {
-                class: ` h-100 d-flex align-items-center justify-content-center`,
-                style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                class: `h-100 d-flex align-items-center justify-content-center`,
+                style: `max-width: 100vw; ${document.body.clientWidth < 800 ? 'width: 100%;' : 'width: 400px;'}`,
               },
               onCreate: () => {
                 const publicKey = res.response?.responseData.publicKey;
                 const secret = res.response?.responseData.data.result.secret;
                 const env = res.response.responseData.BETA == 'true' ? 'sandbox' : 'production';
-                // res.response.result.secret
                 const PayNow = (window as any).PayNow;
+
                 PayNow.createPayment({
                   publicKey: publicKey,
                   secret: secret,
                   env: env,
                 });
+
                 PayNow.mount('#paynow-container', {
                   locale: 'zh_tw',
                   appearance: {
@@ -589,7 +593,7 @@ export class UMOrder {
               },
             });
           },
-          `paynow`,
+          'paynow',
           {
             animation: document.body.clientWidth > 800 ? Animation.fade : Animation.popup,
             dismiss: () => {
@@ -601,7 +605,7 @@ export class UMOrder {
       }
       default: {
         const id = gvc.glitter.getUUID();
-        $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+        $('body').append(html`<div id="${id}" style="display: none;">${res.response.form}</div>`);
         (document.querySelector(`#${id} #submit`) as any).click();
       }
     }
@@ -610,9 +614,14 @@ export class UMOrder {
   static repay(gvc: GVC, orderData: any) {
     const id = orderData.cart_token;
     const dialog = new ShareDialog(gvc.glitter);
-    dialog.dataLoading({ visible: true, text: Language.text('loading') });
     const redirect = gvc.glitter.root_path + 'order_detail' + location.search;
     const url = new URL(redirect as any, location.href);
+
+    dialog.dataLoading({
+      visible: true,
+      text: Language.text('loading'),
+    });
+
     return new Promise(() => {
       ApiShop.repay(id, url.href).then(res => {
         dialog.dataLoading({ visible: false });
@@ -856,20 +865,8 @@ export class UMOrder {
   ];
 
   static main(gvc: GVC, widget: any, subData: any) {
-    this.addStyle(gvc);
-    gvc.addMtScript(
-      [
-        {
-          src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
-        },
-      ],
-      () => {},
-      () => {}
-    );
-    UmClass.addStyle(gvc);
     const glitter = gvc.glitter;
-    const dialog = new ShareDialog(gvc.glitter);
-
+    const dialog = new ShareDialog(glitter);
     const ids = {
       view: glitter.getUUID(),
     };
@@ -881,7 +878,20 @@ export class UMOrder {
       type: '',
       formList: [] as any,
     };
-    //判定可以重新付款的付款方式
+
+    this.addStyle(gvc);
+    gvc.addMtScript(
+      [
+        {
+          src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
+        },
+      ],
+      () => {},
+      () => {}
+    );
+    UmClass.addStyle(gvc);
+
+    // 判定可以重新付款的付款方式
     const repayArray = ['ecPay', 'newWebPay', 'paypal', 'jkopay', 'paynow', 'line_pay'];
 
     return html` <div class="container py-4">
@@ -904,12 +914,14 @@ export class UMOrder {
 
             const orderData = vm.data.orderData;
 
-            //判斷需要出貨單號碼
+            // 判斷需要出貨單號碼
             if ((window as any).store_info.pickup_mode) {
               dialog.infoMessage({
-                text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${(vm.data as any).shipment_number} 號 』</div>`,
+                text: html`取貨時請核對您的取貨號碼，您的取貨號碼為<br />
+                  <div class="fw-bold fs-5 text-danger">『 ${(vm.data as any).shipment_number} 號 』</div>`,
               });
             }
+
             const showUploadProof =
               orderData.method === 'off_line' &&
               orderData.customer_info.payment_select !== 'cash_on_delivery' &&
@@ -985,7 +997,6 @@ export class UMOrder {
                           class="o-title-container ${item.title === Language.text('payment_instructions')
                             ? 'align-items-start mt-2'
                             : ''}"
-                          
                         >
                           <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
                           <div class="o-title fr-view">${item.value}</div>
@@ -1163,7 +1174,7 @@ export class UMOrder {
                 ${gvc.map(
                   orderData.lineItems.map(item => {
                     return html`
-                      <div class="o-line-item ${document.body.clientWidth < 800 ? `p-2` : ``}">
+                      <div class="o-line-item ${document.body.clientWidth < 800 ? 'p-2' : ''}">
                         <div class="d-flex gap-3 align-items-center">
                           <div>
                             ${UmClass.validImageBox({
@@ -1197,12 +1208,8 @@ export class UMOrder {
                                 });
                               })}"
                             >
-                              ${(() => {
-                                const title =
-                                  (item.language_data && (item as any).language_data[Language.getLanguage()].title) ||
-                                  item.title;
-                                return title;
-                              })()}
+                              ${(item.language_data && (item as any).language_data[Language.getLanguage()].title) ||
+                              item.title}
                             </p>
                             <p class="o-item-spec">
                               ${item.spec.length > 0
@@ -1228,7 +1235,7 @@ export class UMOrder {
                                   })()}`
                                 : Language.text('single_specification')}
                             </p>
-                            <span class="me-3  d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
+                            <span class="me-3 d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
                           </div>
                         </div>
                         <div class="d-none d-sm-flex">
@@ -1445,8 +1452,8 @@ export class UMOrder {
                                       class="customer-btn-text ms-3"
                                       id="repay-button"
                                       onclick="${gvc.event(() => {
-                                    UMOrder.repay(gvc, vm.data).then(r => {});
-                                  })}"
+                                        UMOrder.repay(gvc, vm.data).then(r => {});
+                                      })}"
                                     >
                                       重新付款
                                     </button>
@@ -1736,7 +1743,7 @@ export class UMOrder {
             `;
           } catch (e) {
             console.error(e);
-            return ``;
+            return '';
           }
         },
         divCreate: {
