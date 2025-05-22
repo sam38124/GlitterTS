@@ -9,7 +9,7 @@ import { Tool } from './tool.js';
 export type FileItem = {
   selected?: boolean;
   title: string;
-  data: string;
+  data: any;
   items?: FileItem[];
   type: 'file' | 'folder';
   tag: string[];
@@ -77,7 +77,6 @@ export class imageLibrary {
       selectBarID: gvc.glitter.getUUID(),
     };
 
-
     if (cf.key == 'folderEdit') {
       vm.tag = cf.tag;
       vm.type = 'folderEdit';
@@ -118,17 +117,21 @@ export class imageLibrary {
     function getPublicConfig(callback: () => void) {
       ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
         if (data.response.value) {
-
           const tagDiv = window.parent.document.querySelector('.tag-title');
 
           vm.link = data.response.value;
           if (tagDiv) {
             const tag = tagDiv.getAttribute('data-tag');
             if (tag) {
-              console.log("vm.link.filter(item => item.tag.includes(tag)) -- " , vm.link.filter(item => item.tag.includes(tag)));
-              vm.link.filter(item => item.tag.includes(tag)).forEach(item => {
-                item.selected = true;
-              })
+              console.log(
+                'vm.link.filter(item => item.tag.includes(tag)) -- ',
+                vm.link.filter(item => item.tag.includes(tag))
+              );
+              vm.link
+                .filter(item => item.tag.includes(tag))
+                .forEach(item => {
+                  item.selected = true;
+                });
             }
           }
           function loop(array: FileItem[]) {
@@ -326,7 +329,7 @@ export class imageLibrary {
                                     });
                                   }
                                   (fileItem as any).selected = !defaultSelect;
-                                  gvc.notifyDataChange([viewID , ids.selectBarID]);
+                                  gvc.notifyDataChange([viewID, ids.selectBarID]);
                                   event.stopPropagation();
                                 })}"
                                 ${!gvc.glitter.isTouchDevice()
@@ -590,7 +593,9 @@ export class imageLibrary {
                   image.selected = false;
                 });
                 folder.data.push(
-                  ...imageArray.filter(image => !folder.data.some(existingImage => existingImage.id === image.id))
+                  ...imageArray.filter(
+                    image => !folder.data.some((existingImage: any) => existingImage.id === image.id)
+                  )
                 );
                 return folder.data;
               }
@@ -609,8 +614,7 @@ export class imageLibrary {
                   (data as any).selected = false;
                 });
               }
-              function drawAlbumInsertImage(callback: (selectData:FileItem[]) => void){
-
+              function drawAlbumInsertImage(callback: (selectData: FileItem[]) => void) {
                 return html`
                   <div class="w-100 ${gClass('new-album-add-block')}">
                     <div
@@ -619,7 +623,7 @@ export class imageLibrary {
                         that.selectImageLibrary(
                           gvc,
                           selectData => {
-                            callback(selectData)
+                            callback(selectData);
                           },
                           `<div class="d-flex flex-column tag-title" data-tag="${vm.tag}"  style="border-radius: 10px 10px 0 0;background: #F2F2F2;">${vm.tag}</div>`,
                           {
@@ -638,9 +642,9 @@ export class imageLibrary {
                           gvc,
                           fileArray => {
                             vm.link.push(...fileArray);
-                            callback(fileArray)
+                            callback(fileArray);
                             save(() => {
-                             gvc.notifyDataChange(vm.id);
+                              gvc.notifyDataChange(vm.id);
                             });
                           },
                           'file'
@@ -650,20 +654,16 @@ export class imageLibrary {
                       上傳新圖片
                     </div>
                   </div>
-
-                `
+                `;
               }
 
               function drawSelectBar(data: FileItem[]) {
-
                 return gvc.bindView({
                   bind: ids.selectBarID,
                   view: () => {
                     const selectCount = getSelectCount(data);
                     return html`
-                      <div
-                        class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}"
-                      >
+                      <div class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}">
                         已選取${selectCount}項
                       </div>
                       <div class="ms-auto ${gClass('search-raw')}">上傳時間舊>新</div>
@@ -676,7 +676,7 @@ export class imageLibrary {
               }
               // 空白資料夾新增的頁面
               if (vm.type == 'folderADD') {
-                const copyLink = structuredClone(vm.link)
+                const copyLink = structuredClone(vm.link);
                 return html`
                   <div class="d-flex flex-column ${gClass('new-album-title-bar')}">
                     相簿名稱
@@ -689,13 +689,12 @@ export class imageLibrary {
                       })}"
                     />
                   </div>
-                  ${drawAlbumInsertImage((selectData:FileItem[])=>{
+                  ${drawAlbumInsertImage((selectData: FileItem[]) => {
                     pushFolder(vm.newFolder, selectData);
                     // vm.newFolder.data = [];
                     vm.link.push(vm.newFolder);
-                    
-                    gvc.notifyDataChange('folderItemGroup');  
-                    
+
+                    gvc.notifyDataChange('folderItemGroup');
                   })}
                   ${gvc.bindView({
                     bind: `folderItemGroup`,
@@ -762,12 +761,11 @@ export class imageLibrary {
                       })}"
                     />
                   </div>
-                  ${drawAlbumInsertImage((selectData:FileItem[])=>{
+                  ${drawAlbumInsertImage((selectData: FileItem[]) => {
                     pushDataToFolder(selectData);
-                    save(()=>{
+                    save(() => {
                       gvc.notifyDataChange('folderItemGroup');
-                    })
-                    
+                    });
                   })}
                   <div class="d-flex w-100 justify-content-end" style="gap:12px;margin-top: 18px;">
                     ${drawSelectBar(vm.link)}
@@ -831,12 +829,12 @@ export class imageLibrary {
                     margin-top: 18px;
                     margin-bottom: 8px;
                   }
-                  .${ids.classPrefix}-select-bar-text{
+                  .${ids.classPrefix}-select-bar-text {
                     flex: 1 1 0;
                     color: #393939;
                     font-size: 14px;
                     font-weight: 700;
-                    word-wrap: break-word
+                    word-wrap: break-word;
                   }
 
                   .${ids.classPrefix}-new-album-title-bar {
@@ -900,7 +898,7 @@ export class imageLibrary {
                     class="w-100 d-inline-flex flex-column justify-content-start align-items-start ${gClass('content')}"
                   >
                     <div class="fixed-top-section">
-                      <div class=" ${(cf.key != 'album') ? `d-flex` : `d-none`}" style="gap:14px;">${pageBTN()}</div>
+                      <div class=" ${cf.key != 'album' ? `d-flex` : `d-none`}" style="gap:14px;">${pageBTN()}</div>
                       <div class="d-flex w-100" style="gap:14px;">
                         ${BgWidget.searchFilter(
                           gvc.event(e => {
@@ -1003,7 +1001,7 @@ export class imageLibrary {
                           }
                           return html`
                             <div
-                              class="w-100 ${(vm.type == 'file' || vm.type == 'folder')
+                              class="w-100 ${vm.type == 'file' || vm.type == 'folder'
                                 ? `d-flex`
                                 : `d-none`} align-items-center justify-content-center"
                               style="padding: 39px 0;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
@@ -1178,7 +1176,7 @@ export class imageLibrary {
                   closeFolderView();
                   vm.type = 'folderView';
                   gvc.notifyDataChange(vm.id);
-                }else {
+                } else {
                   gvc.closeDialog();
                 }
               },
@@ -1188,7 +1186,7 @@ export class imageLibrary {
               label: '編輯',
               onClick: () => {
                 vm.type = 'folderEdit';
-                cf.key = "album";
+                cf.key = 'album';
                 gvc.notifyDataChange(vm.id);
               },
             },
@@ -1606,7 +1604,10 @@ export class imageLibrary {
                   const dialog = new ShareDialog(gvc.glitter);
 
                   function deleteImage() {
-                    const text = (item.type == 'folder')?`此操作不可復原。確定要刪除相簿${item.title}嗎？`:'刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？' ;
+                    const text =
+                      item.type == 'folder'
+                        ? `此操作不可復原。確定要刪除相簿${item.title}嗎？`
+                        : '刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？';
                     dialog.checkYesOrNotWithCustomWidth({
                       width: '432',
                       text: text,

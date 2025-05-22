@@ -156,7 +156,7 @@ class CheckoutEvent {
             const userData = await getUserDataAsync(type, this.token, data);
             if (data.customer_info) {
                 const newCustomerInfo = (_f = (await userClass.getUserData(data.email || data.customer_info.email, 'email_or_phone'))) !== null && _f !== void 0 ? _f : {
-                    userData: {}
+                    userData: {},
                 };
                 data.customer_info = Object.assign(Object.assign({}, data.customer_info), newCustomerInfo.userData);
             }
@@ -824,6 +824,7 @@ class CheckoutEvent {
                     macroLimited: 0,
                     microLimited: 0,
                     selectShipment: { type: 'all', list: [] },
+                    distribution_shop: [],
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -1042,10 +1043,10 @@ class CheckoutEvent {
                             await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.info('訂單簡訊寄送成功');
                         }
-                        console.log("carData.customer_info -- ", carData.customer_info);
+                        console.log('carData.customer_info -- ', carData.customer_info);
                         if (carData.customer_info.lineID) {
                             let line = new line_message_js_1.LineMessage(this.app);
-                            console.log("here -- OK");
+                            console.log('here -- OK');
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.info('訂單line訊息寄送成功');
                         }

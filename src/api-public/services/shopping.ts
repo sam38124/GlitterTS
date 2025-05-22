@@ -109,6 +109,7 @@ export interface VoucherData {
     type: SelectShipmentType;
     list: string[];
   };
+  distribution_shop: string[];
 
   // backend-value
   bind: BindItem[];
@@ -646,55 +647,7 @@ export class Shopping {
       }
 
       if (query.status) {
-        const statusSplit = query.status.split(',').map(status => status.trim());
-        const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
-
-        // 基本條件
-        const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
-
-        // 時間條件
-        const currentDate = db.escape(new Date().toISOString());
-
-        const scheduleConditions = statusSplit
-          .map(status => {
-            switch (status) {
-              case 'inRange':
-                return `OR (
-                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                      AND (
-                          content->>'$.active_schedule' IS NULL OR 
-                          (
-                              (
-                                  ((CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.startDate') IS NULL)) or
-                                  ((CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}) or (CONCAT(content->>'$.active_schedule.startDate') <= ${db.escape(moment().format('YYYY-MM-DD'))}))
-                              )
-                              AND (
-                                ((CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL) and (CONCAT(content->>'$.active_schedule.endDate') IS NULL)) or
-                                  (CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}) or (CONCAT(content->>'$.active_schedule.endDate') >= ${db.escape(moment().format('YYYY-MM-DD'))})
-                              )
-                          )
-                      )
-                  )`;
-              case 'beforeStart':
-                return `
-                  OR (
-                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                      AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
-                  )`;
-              case 'afterEnd':
-                return `
-                  OR (
-                      JSON_EXTRACT(content, '$.status') IN ('active', 1)
-                      AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
-                  )`;
-              default:
-                return '';
-            }
-          })
-          .join('');
-
-        // 組合 SQL 條件
-        querySql.push(`(${statusCondition} ${scheduleConditions})`);
+        querySql.push(Shopping.productStatusSQL(query.status));
       }
 
       if (query.channel) {
@@ -4502,6 +4455,25 @@ export class Shopping {
         `,
         [{ content: JSON.stringify(content) }, content.id]
       );
+
+      // 刪除不存在的商品規格
+      const null_variant_id_array = (
+        await db.query(
+          `SELECT v.id
+          FROM \`${this.app}\`.t_variants v
+          LEFT JOIN \`${this.app}\`.t_manager_post p ON v.product_id = p.id
+          WHERE p.content->>'$.type' <> 'product' OR p.id IS NULL`,
+          []
+        )
+      ).map((item: any) => item.id);
+
+      if (null_variant_id_array.length > 0) {
+        await db.query(
+          `DELETE FROM \`${this.app}\`.t_variants WHERE id IN (${null_variant_id_array.join(',')})
+          `,
+          []
+        );
+      }
     } catch (error) {
       console.error(error);
       throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
@@ -5576,6 +5548,59 @@ export class Shopping {
     }
   }
 
+  static productStatusSQL(queryStatus: string, table: string = '') {
+    const tableName = table ? `${table}.` : '';
+    const statusSplit = queryStatus.split(',').map(status => status.trim());
+    const statusJoin = statusSplit.map(status => `"${status}"`).join(',');
+
+    // 基本條件
+    const statusCondition = `JSON_EXTRACT(${tableName}content, '$.status') IN (${statusJoin})`;
+
+    // 時間條件
+    const currentDate = db.escape(new Date().toISOString());
+
+    const scheduleConditions = statusSplit
+      .map(status => {
+        switch (status) {
+          case 'inRange':
+            return `OR (
+                  JSON_EXTRACT(${tableName}content, '$.status') IN ('active', 1)
+                  AND (
+                    ${tableName}content->>'$.active_schedule' IS NULL OR 
+                      (
+                          (
+                              ((CONCAT(${tableName}content->>'$.active_schedule.start_ISO_Date') IS NULL) and (CONCAT(${tableName}content->>'$.active_schedule.startDate') IS NULL)) or
+                              ((CONCAT(${tableName}content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}) or (CONCAT(${tableName}content->>'$.active_schedule.startDate') <= ${db.escape(moment().format('YYYY-MM-DD'))}))
+                          )
+                          AND (
+                            ((CONCAT(${tableName}content->>'$.active_schedule.end_ISO_Date') IS NULL) and (CONCAT(${tableName}content->>'$.active_schedule.endDate') IS NULL)) or
+                              (CONCAT(${tableName}content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}) or (CONCAT(${tableName}content->>'$.active_schedule.endDate') >= ${db.escape(moment().format('YYYY-MM-DD'))})
+                          )
+                      )
+                  )
+              )`;
+          case 'beforeStart':
+            return `
+              OR (
+                  JSON_EXTRACT(${tableName}content, '$.status') IN ('active', 1)
+                  AND CONCAT(${tableName}content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
+              )`;
+          case 'afterEnd':
+            return `
+              OR (
+                  JSON_EXTRACT(${tableName}content, '$.status') IN ('active', 1)
+                  AND CONCAT(${tableName}content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
+              )`;
+          default:
+            return '';
+        }
+      })
+      .join('');
+
+    // 組合 SQL 條件
+    return `(${statusCondition} ${scheduleConditions})`;
+  }
+
   async getVariants(query: {
     page: number;
     limit: number;
@@ -5640,11 +5665,14 @@ export class Shopping {
             })
             .join(' or ')})`
         );
-      query.status &&
+
+      if (query.status) {
         querySql.push(`
-             v.product_id in (select p.id
-                                            from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.status') = '${query.status}'))
-            `);
+          v.product_id IN (SELECT p.id
+            FROM \`${this.app}\`.t_manager_post AS p WHERE ${Shopping.productStatusSQL(query.status, 'p')})
+       `);
+      }
+
       query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
       query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
 
@@ -5986,9 +6014,7 @@ export class Shopping {
   async getProductComment(product_id: number) {
     try {
       const comments = await db.query(
-        `SELECT *
-         FROM \`${this.app}\`.t_product_comment
-         WHERE product_id = ?;
+        `SELECT * FROM \`${this.app}\`.t_product_comment WHERE product_id = ?;
         `,
         [product_id]
       );

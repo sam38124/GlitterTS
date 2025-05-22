@@ -14,6 +14,7 @@ export class ApiRecommend {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.user_id && par.push(`user_id=${json.user_id}`);
                     json.code && par.push(`code=${json.code}`);
+                    json.id_list && par.push(`id_list=${json.id_list}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

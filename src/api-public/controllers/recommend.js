@@ -16,6 +16,7 @@ router.get('/list', async (req, resp) => {
                 page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
                 limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 0,
                 code: req.query.code ? `${req.query.code}` : '',
+                id_list: req.query.id_list ? `${req.query.id_list}` : '',
             }));
         }
         else {

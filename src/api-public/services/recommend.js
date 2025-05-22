@@ -35,6 +35,16 @@ class Recommend {
             if (query === null || query === void 0 ? void 0 : query.user_id) {
                 search.push(`(JSON_EXTRACT(content, '$.recommend_user.id') = ${query.user_id})`);
             }
+            const idStr = query.id_list
+                ? query.id_list
+                    .split(',')
+                    .filter(Boolean)
+                    .map(id => database_1.default.escape(id))
+                    .join(',')
+                : '';
+            if (query.id_list && idStr) {
+                search.push(`(id in (${idStr}))`);
+            }
             const links = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
                 ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `, []);
@@ -243,11 +253,11 @@ class Recommend {
                 };
             }
             let n = 0;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 data.map(async (user) => {
                     database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links
                         WHERE (JSON_EXTRACT(content, '$.recommend_user.id') = ${user.id});
-                        `, []).then((results) => {
+                        `, []).then(results => {
                         const orders = allOrders.filter((order) => {
                             try {
                                 return order.orderData.distribution_info.recommend_user.id === user.id;

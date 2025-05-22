@@ -8,7 +8,9 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { Tool } from '../modules/tool.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
-import { BgDialog } from '../backend-manager/bg-dialog.js';
+import { BgDialog, ShopType } from '../backend-manager/bg-dialog.js';
+import { Article } from '../glitter-base/route/article.js';
+import { ApiRecommend } from '../glitter-base/route/recommend.js';
 
 type VoucherForType = 'all' | 'collection' | 'product' | 'manager_tag';
 type RebackType = 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
@@ -58,6 +60,7 @@ interface VoucherData {
     type: SelectShipmentType;
     list: string[];
   };
+  distribution_shop: string[];
 }
 
 const html = String.raw;
@@ -121,7 +124,7 @@ export class ShoppingDiscountSetting {
                           const triggerLabels: Record<string, string> = {
                             auto: '自動',
                             code: '輸入代碼',
-                            distribution: '分銷 & 一頁式',
+                            distribution: '特定賣場',
                           };
 
                           function getDatalist() {
@@ -298,6 +301,7 @@ export class ShoppingDiscountSetting {
       includeDiscount: 'before',
       productOffStart: 'price_desc',
       selectShipment: { type: 'all', list: [] },
+      distribution_shop: [],
     };
   };
 
@@ -310,7 +314,7 @@ export class ShoppingDiscountSetting {
       })()}`,
       `活動方式：${(() => {
         if (voucherData.trigger === 'auto') return '自動折扣';
-        if (voucherData.trigger === 'distribution') return '分銷連結';
+        if (voucherData.trigger === 'distribution') return '特定賣場使用';
         if (voucherData.trigger === 'code') return `優惠代碼「${voucherData.code ?? ''}」`;
         return '';
       })()}`,
@@ -370,6 +374,7 @@ export class ShoppingDiscountSetting {
     const vm = obj.vm;
     const glitter = gvc.glitter;
     const dialog = new ShareDialog(glitter);
+    const bgDialog = new BgDialog(gvc);
     const getUUID = glitter.getUUID;
 
     const pageVM = {
@@ -519,7 +524,7 @@ export class ShoppingDiscountSetting {
               {
                 key: 'distribution',
                 name: '供特定賣場優惠使用',
-                innerHtml: BgWidget.grayNote('僅限於隱形賣場 / 一頁商店 / 拼團賣場 / 分銷連結使用'),
+                innerHtml: BgWidget.grayNote('僅限於隱形賣場 / 一頁商店 / 分銷連結使用'),
               },
             ],
             [voucherData.trigger],
@@ -1710,32 +1715,13 @@ export class ShoppingDiscountSetting {
             return '';
           }
 
+          const id = 'apply_shop_view';
           const prefix = Tool.randomString(6);
-
-          type ShopType = 'group' | 'recommend' | 'hidden' | 'onepage';
-
-          const shopTypeRecord: Record<ShopType, { icon: string; title: string }> = {
-            group: {
-              icon: html`<i class="fa-regular fa-puzzle-piece ${prefix}_icon"></i>`,
-              title: '拼團賣場',
-            },
-            recommend: {
-              icon: html`<i class="fa-regular fa-share-nodes ${prefix}_icon"></i>`,
-              title: '分銷連結',
-            },
-            hidden: {
-              icon: html`<i class="fa-solid fa-face-dotted ${prefix}_icon"></i>`,
-              title: '隱形賣場',
-            },
-            onepage: {
-              icon: html`<i class="fa-regular fa-file ${prefix}_icon"></i>`,
-              title: '一頁商店',
-            },
-          };
+          let loading = true;
+          let dataList: { type: ShopType; name: string; referrer: string }[] = [];
 
           gvc.addStyle(`
             .${prefix}_container {
-              max-width: 800px;
               margin: 0 auto;
               background-color: #fff;
               border-radius: 8px;
@@ -1745,9 +1731,9 @@ export class ShoppingDiscountSetting {
             .${prefix}_table {
               width: 100%;
               border-collapse: collapse;
-            }
-
-            .${prefix}_thead {
+              overflow-x: auto;
+              white-space: nowrap;
+              ${bgDialog.isMobile ? 'display: block;' : ''}
             }
 
             .${prefix}_th {
@@ -1801,14 +1787,23 @@ export class ShoppingDiscountSetting {
             .${prefix}_expend:hover {
               background-color: #f9fafb;
             }
+
+            .${prefix}_none_text {
+              text-align: center;
+              padding: 18px 0;
+            }
           `);
 
           return gvc.bindView({
-            bind: 'idnnn',
+            bind: id,
             view: () => {
+              if (loading) {
+                return BgWidget.spinner();
+              }
+
               return html`<div class="${prefix}_container">
-                <table id="beauty-salon-table" class="${prefix}_table">
-                  <thead class="${prefix}_thead">
+                <table id="apply-shop-table" class="${prefix}_table">
+                  <thead>
                     <tr class="${prefix}_tr">
                       <th class="${prefix}_th">賣場類型</th>
                       <th class="${prefix}_th">賣場名稱</th>
@@ -1819,83 +1814,119 @@ export class ShoppingDiscountSetting {
                     <!-- 資料將由 JavaScript 動態填入 -->
                   </tbody>
                 </table>
-                <div id="beauty-salon-div">
+                <div id="apply-shop-div">
                   <!-- 資料將由 JavaScript 動態填入 -->
                 </div>
               </div>`;
             },
-            divCreate: {},
             onCreate: () => {
-              const salons: { type: ShopType; name: string; referrer: string }[] = [
-                {
-                  type: 'group',
-                  name: 'SPA 梳毛刷現實揪團中！人越多越便宜！',
-                  referrer: '-',
-                },
-                {
-                  type: 'recommend',
-                  name: '與Sandy的貓跳台合作，給貓咪最好的跳台！',
-                  referrer: 'YT貓皇',
-                },
-                {
-                  type: 'hidden',
-                  name: '毛孩防寒任三件8折，一起溫暖過冬！',
-                  referrer: 'Sandy',
-                },
-                {
-                  type: 'onepage',
-                  name: '毛孩玩具聯名，買三件折扣8折！',
-                  referrer: '-',
-                },
-              ];
+              function render() {
+                const tableBody = document.querySelector('#apply-shop-table tbody');
+                const tableDiv = document.querySelector('#apply-shop-div');
 
-              const tableBody = document.querySelector('#beauty-salon-table tbody');
-              const tableDiv = document.querySelector('#beauty-salon-div');
+                if (!tableBody || !tableDiv) {
+                  return;
+                }
 
-              if (!tableBody || !tableDiv) {
-                return;
+                tableBody.innerHTML = '';
+
+                if (voucherData.distribution_shop.length === 0) {
+                  const row = document.createElement('tr');
+                  row.className = `${prefix}_tr`;
+                  row.innerHTML = html`<td colspan="3" class="${prefix}_none_text">尚未選擇賣場</td>`;
+                  tableBody.appendChild(row);
+                  return;
+                }
+
+                const shopTypeRecord = bgDialog.shopTypeRecord();
+
+                dataList.forEach(data => {
+                  const shopData = shopTypeRecord[data.type];
+                  const row = document.createElement('tr');
+                  row.className = `${prefix}_tr`;
+
+                  const referrerText = data.referrer ? data.referrer : '-';
+                  const referrerClass = data.referrer ? '' : `${prefix}_empty_referrer`;
+
+                  row.innerHTML = html`
+                    <td class="${prefix}_td ${prefix}_type_cell">${shopData.icon} ${shopData.title}</td>
+                    <td class="${prefix}_td">${data.name}</td>
+                    <td class="${prefix}_td ${referrerClass}">${referrerText}</td>
+                  `;
+                  tableBody.appendChild(row);
+                });
+
+                // 「展開更多」元素
+                // const expendMore = document.createElement('div');
+                // expendMore.className = `${prefix}_expend`;
+                // expendMore.innerHTML = html`展開更多 <i class="fa-solid fa-chevron-down"></i>`;
+                // tableDiv.appendChild(expendMore);
               }
 
-              // 將資料填入表格
-              salons.forEach(salon => {
-                const data = shopTypeRecord[salon.type];
-                const row = document.createElement('tr');
-                row.className = `${prefix}_tr`;
-
-                // 賣場類型欄位
-                const typeCell = document.createElement('td');
-                typeCell.className = `${prefix}_td ${prefix}_type_cell`;
-                typeCell.innerHTML = `${data.icon} ${data.title}`;
-                row.appendChild(typeCell);
-
-                // 賣場名稱欄位
-                const nameCell = document.createElement('td');
-                nameCell.className = `${prefix}_td`;
-                nameCell.textContent = salon.name;
-                row.appendChild(nameCell);
-
-                // 推薦人欄位
-                const referrerCell = document.createElement('td');
-                referrerCell.className = `${prefix}_td`;
-                if (salon.referrer) {
-                  referrerCell.textContent = salon.referrer;
-                } else {
-                  referrerCell.textContent = '-';
-                  referrerCell.classList.add(`${prefix}_empty_referrer`);
+              if (loading) {
+                if (voucherData.distribution_shop.length === 0) {
+                  loading = false;
+                  setTimeout(() => gvc.notifyDataChange(id), 100);
+                  return;
                 }
-                row.appendChild(referrerCell);
 
-                // 將該行添加到表格中
-                tableBody.appendChild(row);
-              });
+                dataList = [];
+                const articleIds: string[] = [];
+                const recommendIds: string[] = [];
 
-              // 展開更多
-              const expendMore = document.createElement('div');
-              expendMore.className = `${prefix}_expend`;
-              const moreText = html`<span>展開更多</span>`;
-              const chevronDown = html`<i class="fa-solid fa-chevron-dow ms-1"></i>`;
-              expendMore.innerHTML = `${moreText} ${chevronDown}`;
-              tableDiv.appendChild(expendMore);
+                voucherData.distribution_shop.map(item => {
+                  const [pageType, id] = item.split('-');
+                  pageType === 'recommend' ? recommendIds.push(id) : articleIds.push(id);
+                });
+
+                Promise.all([
+                  articleIds.length > 0
+                    ? Article.get({
+                        page: 0,
+                        limit: 9999,
+                        search: vm.search || undefined,
+                        status: '0,1',
+                        id_list: articleIds.join(','),
+                      }).then(data => {
+                        return Array.isArray(data.response?.data) ? data.response.data : [];
+                      })
+                    : [],
+                  recommendIds.length > 0
+                    ? ApiRecommend.getList({
+                        data: {},
+                        limit: 9999,
+                        page: 0,
+                        token: (window.parent as any).config.token,
+                        id_list: recommendIds.join(','),
+                      }).then(data => {
+                        return Array.isArray(data.response?.data) ? data.response.data : [];
+                      })
+                    : [],
+                ]).then(dataArray => {
+                  const [article, recommend] = dataArray;
+
+                  article.map((item: any) => {
+                    dataList.push({
+                      type: item.content.page_type === 'hidden' ? 'hidden' : 'onepage',
+                      name: item.content.name,
+                      referrer: '-',
+                    });
+                  });
+
+                  recommend.map((item: any) => {
+                    dataList.push({
+                      type: 'recommend',
+                      name: item.content.title,
+                      referrer: item.content.recommend_user?.name ?? '-',
+                    });
+                  });
+
+                  loading = false;
+                  gvc.notifyDataChange(id);
+                });
+              } else {
+                render();
+              }
             },
           });
         }
@@ -1906,11 +1937,26 @@ export class ShoppingDiscountSetting {
 
         // 優惠促銷模式的選取商品畫面
         const reBackProductView: Record<RebackType, { title: string; html: string | string[] }> = {
-          rebate: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
-          discount: { title: '活動商品', html: voucherData.for === 'all' ? '' : selectProduct() },
-          shipment_free: { title: '活動商品', html: '' },
-          add_on_items: { title: '加購品項', html: [addProductView()].join('') },
-          giveaway: { title: '贈品品項', html: [addProductView()].join('') },
+          rebate: {
+            title: '活動商品',
+            html: voucherData.for === 'all' ? '' : selectProduct(),
+          },
+          discount: {
+            title: '活動商品',
+            html: voucherData.for === 'all' ? '' : selectProduct(),
+          },
+          shipment_free: {
+            title: '活動商品',
+            html: '',
+          },
+          add_on_items: {
+            title: '加購品項',
+            html: [addProductView()].join(''),
+          },
+          giveaway: {
+            title: '贈品品項',
+            html: [addProductView()].join(''),
+          },
         };
 
         // 優惠套用賣場按鈕
@@ -1918,8 +1964,13 @@ export class ShoppingDiscountSetting {
           button: { color: 'gray', size: 'md' },
           text: { name: '選擇賣場' },
           event: gvc.event(() => {
-            const bgDialog = new BgDialog(gvc);
-            bgDialog.marketShop();
+            bgDialog.marketShop({
+              def: voucherData.distribution_shop.slice(),
+              callback: postData => {
+                voucherData.distribution_shop = postData;
+                gvc.notifyDataChange(pageVM.viewID);
+              },
+            });
           }),
         });
 
@@ -1930,13 +1981,13 @@ export class ShoppingDiscountSetting {
             { title: '折扣方式', html: trigger() },
             { title: '適用訂單類型', html: device() },
           ],
-          // [
-          //   {
-          //     title: '套用賣場',
-          //     button: applyShopButton,
-          //     html: applyShop(),
-          //   },
-          // ],
+          [
+            {
+              title: '套用賣場',
+              button: applyShopButton,
+              html: applyShop(),
+            },
+          ],
           [
             { title: '折扣設定', html: method() },
             { title: '使用條件', html: rule() },

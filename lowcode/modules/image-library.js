@@ -79,8 +79,10 @@ export class imageLibrary {
                     if (tagDiv) {
                         const tag = tagDiv.getAttribute('data-tag');
                         if (tag) {
-                            console.log("vm.link.filter(item => item.tag.includes(tag)) -- ", vm.link.filter(item => item.tag.includes(tag)));
-                            vm.link.filter(item => item.tag.includes(tag)).forEach(item => {
+                            console.log('vm.link.filter(item => item.tag.includes(tag)) -- ', vm.link.filter(item => item.tag.includes(tag)));
+                            vm.link
+                                .filter(item => item.tag.includes(tag))
+                                .forEach(item => {
                                 item.selected = true;
                             });
                         }
@@ -512,7 +514,7 @@ export class imageLibrary {
                                 imageArray.forEach(image => {
                                     image.selected = false;
                                 });
-                                folder.data.push(...imageArray.filter(image => !folder.data.some(existingImage => existingImage.id === image.id)));
+                                folder.data.push(...imageArray.filter(image => !folder.data.some((existingImage) => existingImage.id === image.id)));
                                 return folder.data;
                             }
                             function pushDataToFolder(selectData) {
@@ -560,7 +562,6 @@ export class imageLibrary {
                       上傳新圖片
                     </div>
                   </div>
-
                 `;
                             }
                             function drawSelectBar(data) {
@@ -569,9 +570,7 @@ export class imageLibrary {
                                     view: () => {
                                         const selectCount = getSelectCount(data);
                                         return html `
-                      <div
-                        class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}"
-                      >
+                      <div class="${selectCount ? `` : `d-none`} ${gClass('select-bar-text')}">
                         已選取${selectCount}項
                       </div>
                       <div class="ms-auto ${gClass('search-raw')}">上傳時間舊>新</div>
@@ -727,12 +726,12 @@ export class imageLibrary {
                     margin-top: 18px;
                     margin-bottom: 8px;
                   }
-                  .${ids.classPrefix}-select-bar-text{
+                  .${ids.classPrefix}-select-bar-text {
                     flex: 1 1 0;
                     color: #393939;
                     font-size: 14px;
                     font-weight: 700;
-                    word-wrap: break-word
+                    word-wrap: break-word;
                   }
 
                   .${ids.classPrefix}-new-album-title-bar {
@@ -796,7 +795,7 @@ export class imageLibrary {
                     class="w-100 d-inline-flex flex-column justify-content-start align-items-start ${gClass('content')}"
                   >
                     <div class="fixed-top-section">
-                      <div class=" ${(cf.key != 'album') ? `d-flex` : `d-none`}" style="gap:14px;">${pageBTN()}</div>
+                      <div class=" ${cf.key != 'album' ? `d-flex` : `d-none`}" style="gap:14px;">${pageBTN()}</div>
                       <div class="d-flex w-100" style="gap:14px;">
                         ${BgWidget.searchFilter(gvc.event(e => {
                                     vm.query = e.value;
@@ -892,7 +891,7 @@ export class imageLibrary {
                                     }
                                     return html `
                             <div
-                              class="w-100 ${(vm.type == 'file' || vm.type == 'folder')
+                              class="w-100 ${vm.type == 'file' || vm.type == 'folder'
                                         ? `d-flex`
                                         : `d-none`} align-items-center justify-content-center"
                               style="padding: 39px 0;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
@@ -1059,7 +1058,7 @@ export class imageLibrary {
                             label: '編輯',
                             onClick: () => {
                                 vm.type = 'folderEdit';
-                                cf.key = "album";
+                                cf.key = 'album';
                                 gvc.notifyDataChange(vm.id);
                             },
                         },
@@ -1441,7 +1440,9 @@ export class imageLibrary {
                                 BgWidget.danger(gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     function deleteImage() {
-                                        const text = (item.type == 'folder') ? `此操作不可復原。確定要刪除相簿${item.title}嗎？` : '刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？';
+                                        const text = item.type == 'folder'
+                                            ? `此操作不可復原。確定要刪除相簿${item.title}嗎？`
+                                            : '刪除此圖片後，所有使用它的頁面與商品將無法顯示。<br>是否確定？';
                                         dialog.checkYesOrNotWithCustomWidth({
                                             width: '432',
                                             text: text,

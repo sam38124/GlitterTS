@@ -72,6 +72,19 @@ router.get('/manager', async (req: express.Request, resp: express.Response) => {
       );
     }
 
+    const idStr = req.query.id_list
+      ? req.query.id_list
+          .toString()
+          .split(',')
+          .filter(Boolean)
+          .map(id => db.escape(id))
+          .join(',')
+      : '';
+
+    if (req.query.id_list && idStr) {
+      query.push(`(id in (${idStr}))`);
+    }
+
     const collection_list_value = await new User(req.get('g-app') as string).getConfigV2({
       key: 'blog_collection',
       user_id: 'manager',

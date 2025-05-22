@@ -69,6 +69,7 @@ export interface VoucherData {
         type: SelectShipmentType;
         list: string[];
     };
+    distribution_shop: string[];
     bind: BindItem[];
     bind_subtotal: number;
     times: number;
@@ -568,6 +569,7 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    static productStatusSQL(queryStatus: string, table?: string): string;
     getVariants(query: {
         page: number;
         limit: number;
