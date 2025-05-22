@@ -1844,7 +1844,7 @@ export class ShoppingOrderManager {
                                             }),
                                         })}
                           </div>
-                          ${BgWidget.horizontalLine()}
+                          ${BgWidget.horizontalLine({ margin: 0.5 })}
                           <div class="d-flex flex-column">
                             ${orderData.orderData.lineItems
                                             .map((dd) => {
@@ -1919,7 +1919,7 @@ export class ShoppingOrderManager {
                                             });
                                         })
                                             .join(html ` <div style="margin-top: 12px;"></div>`)}
-                            ${BgWidget.horizontalLine()}
+                            ${BgWidget.horizontalLine({ margin: 0.5 })}
                             ${[
                                             {
                                                 title: '小計',
@@ -2057,7 +2057,7 @@ export class ShoppingOrderManager {
                                   <div>分倉出貨</div>
                                   <div
                                     class="${is_shipment ? 'd-none' : ''}"
-                                    style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                    style="display: flex;padding: 4px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                                 OrderSetting.showEditShip({
                                                     gvc: gvc,
@@ -2389,17 +2389,17 @@ export class ShoppingOrderManager {
                                   <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
                                     <div>顧客備註</div>
                                     <div
-                                      style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                      style="display: flex;padding: 4px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                       onclick="${gvc.event(() => {
                                                         vm.edit_mode = !vm.edit_mode;
                                                         gvc.notifyDataChange(vm.id);
                                                     })}"
                                     >
-                                      ${vm.edit_mode ? `取消編輯` : `編輯`}
+                                      ${vm.edit_mode ? '取消編輯' : '編輯'}
                                     </div>
                                   </div>
                                   ${BgWidget.mbContainer(18)}
-                                  <div style="position: relative;">
+                                  <div style="position: relative; color: #8d8d8d;">
                                     ${vm.edit_mode
                                                         ? EditorElem.editeText({
                                                             gvc: gvc,
@@ -2426,30 +2426,19 @@ export class ShoppingOrderManager {
                                                 view: () => {
                                                     return html `
                                   <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                    <div>商家備註</div>
-                                    <div
-                                      style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                      onclick="${gvc.event(() => {
-                                                        vm.edit_mode = !vm.edit_mode;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    })}"
-                                    >
-                                      ${vm.edit_mode ? `取消編輯` : `編輯`}
-                                    </div>
+                                    訂單備註
                                   </div>
                                   ${BgWidget.mbContainer(18)}
                                   <div style="position: relative;">
-                                    ${vm.edit_mode
-                                                        ? EditorElem.editeText({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            default: orderData.orderData.order_note || '',
-                                                            placeHolder: '',
-                                                            callback: text => {
-                                                                orderData.orderData.order_note = text;
-                                                            },
-                                                        })
-                                                        : orderData.orderData.order_note || '尚未填寫商家備註'}
+                                    ${EditorElem.editeText({
+                                                        gvc: gvc,
+                                                        title: '',
+                                                        default: orderData.orderData.order_note || '',
+                                                        placeHolder: '請輸入備註',
+                                                        callback: text => {
+                                                            orderData.orderData.order_note = text;
+                                                        },
+                                                    })}
                                   </div>
                                 `;
                                                 },
@@ -2650,7 +2639,7 @@ export class ShoppingOrderManager {
                                 <div class="tx_700">訂購人資料</div>
                                 <div class="flex-fill"></div>
                               </div>
-                              <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
+                              <div class="w-100 d-flex flex-column mt-2" style="gap:6px;">
                                 ${[
                                             html ` <div class="d-flex flex-column" style="gap:8px;">
                                     <div
@@ -2711,7 +2700,7 @@ export class ShoppingOrderManager {
                                       ${(_l = (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _j === void 0 ? void 0 : _j.email) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.email) !== null && _l !== void 0 ? _l : ''}
                                     </div>
                                   </div>`,
-                                            BgWidget.horizontalLine(),
+                                            BgWidget.horizontalLine({ margin: 0.5 }),
                                             gvc.bindView({
                                                 bind: `user_info`,
                                                 view: () => {
@@ -2748,10 +2737,11 @@ export class ShoppingOrderManager {
                                                         </div>
                                                       `;
                                                                         })
-                                                                            .join(BgWidget.mbContainer(4));
+                                                                            .join('');
                                                                     }),
                                                                     divCreate: {
-                                                                        class: `tx_normal`,
+                                                                        class: 'd-flex flex-column tx_normal',
+                                                                        style: 'gap: 8px;',
                                                                     },
                                                                 };
                                                             }),
@@ -2775,33 +2765,28 @@ export class ShoppingOrderManager {
                                                             case 'UNIMARTC2C':
                                                             case 'UNIMARTFREEZE':
                                                             case 'FAMIC2CFREEZE':
-                                                                return [
-                                                                    html ` <div class="d-flex flex-wrap w-100">
-                                                  <span class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                return html ` <div class="tx_700">配送資訊</div>
+                                                <div class="d-flex flex-wrap w-100">
                                                   <div
                                                     class="fw-normal fs-6"
                                                     style="white-space: normal;word-break: break-all;"
                                                   >
-                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
+                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}（${orderData.orderData.user_info.CVSStoreID}）
                                                   </div>
-                                                </div>`,
-                                                                    html ` <div class="fw-normal fs-6">
-                                                  代號: ${orderData.orderData.user_info.CVSStoreID}
-                                                </div>`,
-                                                                    html ` <div
+                                                </div>
+                                                <div
                                                   class="fw-normal fs-6 w-100"
                                                   style="white-space: normal;word-break: break-all;"
                                                 >
-                                                  地址: ${orderData.orderData.user_info.CVSAddress}
-                                                </div>`,
-                                                                ].join('');
+                                                  ${orderData.orderData.user_info.CVSAddress}
+                                                </div>`;
                                                             case 'global_express':
                                                             case 'black_cat_freezing':
                                                             case 'normal':
                                                             default:
                                                                 const mapView = [];
                                                                 if (orderData.orderData.user_info.address) {
-                                                                    mapView.push(html ` <div class="tx_700">配送地址</div>
+                                                                    mapView.push(html `<div class="tx_700">配送資訊</div>
                                                     <div class="fw-normal fs-6" style="white-space: normal;">
                                                       ${[
                                                                         orderData.orderData.user_info.city,
@@ -2865,7 +2850,7 @@ export class ShoppingOrderManager {
                                             `
                                                         : ''}
                                       `);
-                                                    return view.join(`<div class="my-2"></div>`);
+                                                    return view.join(BgWidget.horizontalLine({ margin: 0.5 }));
                                                 },
                                                 divCreate: {
                                                     class: 'd-flex flex-column',
@@ -3982,7 +3967,7 @@ export class ShoppingOrderManager {
                 style: 'width: 100%; display: flex; align-items: center; margin: 24px 0;',
             },
         })}
-        ${BgWidget.horizontalLine()} ${showOrderDetail()}
+        ${BgWidget.horizontalLine({ margin: 0.5 })} ${showOrderDetail()}
       </div>
       <!-- 選擇顧客 --- 顧客資料填寫 -->
       <div style="margin-top: 24px"></div>
