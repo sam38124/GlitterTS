@@ -76,7 +76,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
   return {
     onCreateView: () => {
-      FirstBanner.main({ gvc: gvc });
       //定義SEO TITLE
       if (gBundle.page_config.seo && gBundle.page_config.seo.type === 'custom' && gBundle.page_config.seo.title) {
         glitter.setUrlParameter(

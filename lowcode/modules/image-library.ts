@@ -1225,7 +1225,7 @@ export class imageLibrary {
                 if (cf.key === 'album') {
                   dialog.successMessage({ text: '相簿建立成功' });
                   cf.getSelect(selected);
-                  gvc.closeDialog();
+                  // gvc.closeDialog();
                   return;
                 }
 
