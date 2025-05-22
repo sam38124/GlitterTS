@@ -569,6 +569,7 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    static productStatusSQL(queryStatus: string, table?: string): string;
     getVariants(query: {
         page: number;
         limit: number;
