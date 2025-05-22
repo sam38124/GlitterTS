@@ -1961,10 +1961,10 @@ class Shopping {
             const disValue = parseFloat(voucher.value) / (voucher.method === 'percent' ? 100 : 1);
             if (voucher.conditionType === 'order') {
                 if (voucher.method === 'fixed') {
-                    voucher.discount_total = disValue * voucher.times;
+                    voucher.discount_total = Math.floor(disValue * voucher.times);
                 }
                 if (voucher.method === 'percent') {
-                    voucher.discount_total = voucher.bind_subtotal * disValue;
+                    voucher.discount_total = Math.floor(voucher.bind_subtotal * disValue);
                 }
                 if (voucher.bind_subtotal >= voucher.discount_total) {
                     let remain = parseInt(`${voucher.discount_total}`, 10);
@@ -2038,6 +2038,7 @@ class Shopping {
                     });
                 }
             }
+            voucher.discount_total = Math.floor(voucher.discount_total);
             return voucher.bind.length > 0;
         }
         function countingBindDiscount(voucher) {

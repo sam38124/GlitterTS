@@ -1844,7 +1844,7 @@ export class ShoppingOrderManager {
                                             }),
                                         })}
                           </div>
-                          ${BgWidget.horizontalLine({ margin: 0.5 })}
+                          ${BgWidget.horizontalLine()}
                           <div class="d-flex flex-column">
                             ${orderData.orderData.lineItems
                                             .map((dd) => {
@@ -1919,7 +1919,7 @@ export class ShoppingOrderManager {
                                             });
                                         })
                                             .join(html ` <div style="margin-top: 12px;"></div>`)}
-                            ${BgWidget.horizontalLine({ margin: 0.5 })}
+                            ${BgWidget.horizontalLine()}
                             ${[
                                             {
                                                 title: '小計',
@@ -1999,7 +1999,7 @@ export class ShoppingOrderManager {
                                                             const status = dd.discount_total > 0;
                                                             const isMinus = status ? '-' : '';
                                                             const isNegative = status ? 1 : -1;
-                                                            return `${isMinus} $${(dd.discount_total * isNegative).toLocaleString()}`;
+                                                            return `${isMinus} $${(Math.floor(dd.discount_total) * isNegative).toLocaleString()}`;
                                                         })(),
                                                     },
                                                 };

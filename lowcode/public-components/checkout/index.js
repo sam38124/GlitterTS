@@ -690,6 +690,37 @@ export class CheckoutIndex {
                                 return html ` ${(() => {
                                     let tempRebate = 0;
                                     const dialog = new ShareDialog(gvc.glitter);
+                                    function useRebateButtonEvent() {
+                                        return __awaiter(this, void 0, void 0, function* () {
+                                            const sum = yield new Promise((resolve, reject) => {
+                                                ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                                    if (res.result && res.response.sum) {
+                                                        resolve(res.response.sum);
+                                                    }
+                                                    else {
+                                                        resolve(0);
+                                                    }
+                                                }));
+                                            });
+                                            const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
+                                            if (sum === 0) {
+                                                dialog.errorMessage({
+                                                    text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
+                                                });
+                                                return;
+                                            }
+                                            if (tempRebate > Math.min(sum, limit)) {
+                                                dialog.errorMessage({
+                                                    text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
+                                                });
+                                                return;
+                                            }
+                                            apiCart.setCart(cartItem => {
+                                                cartItem.use_rebate = tempRebate;
+                                                refreshCartData();
+                                            });
+                                        });
+                                    }
                                     return html ` <div class="${gClass(['price-row', 'text-2'])}">
                               <div>${vm.rebateConfig.title}${Language.text('discount')}</div>
                               <div>- ${Currency.convertCurrencyText(vm.cartData.use_rebate)}</div>
@@ -714,9 +745,14 @@ export class CheckoutIndex {
                                         ? `width:calc(100% - 150px) !important;`
                                         : ''}"
                                   value="${vm.cartData.use_rebate || ''}"
-                                  onchange="${gvc.event((e, event) => {
+                                  onchange="${gvc.event(e => {
                                         if (CheckInput.isNumberString(e.value)) {
                                             tempRebate = parseInt(e.value, 10);
+                                            useRebateButtonEvent();
+                                        }
+                                        else if (e.value === '') {
+                                            tempRebate = 0;
+                                            useRebateButtonEvent();
                                         }
                                         else {
                                             dialog.errorMessage({ text: Language.text('enter_value') });
@@ -725,38 +761,7 @@ export class CheckoutIndex {
                                     })}"
                                 />
                                 <div class="${gClass('group-button')}">
-                                  <div
-                                    class="${gClass('button-text')}"
-                                    onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                        const sum = yield new Promise((resolve, reject) => {
-                                            ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                                if (res.result && res.response.sum) {
-                                                    resolve(res.response.sum);
-                                                }
-                                                else {
-                                                    resolve(0);
-                                                }
-                                            }));
-                                        });
-                                        const limit = vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.use_rebate;
-                                        if (sum === 0) {
-                                            dialog.errorMessage({
-                                                text: `您的 ${vm.rebateConfig.title} 為 0 點，無法折抵`,
-                                            });
-                                            return;
-                                        }
-                                        if (tempRebate > Math.min(sum, limit)) {
-                                            dialog.errorMessage({
-                                                text: `${Language.text('please_enter')} 0 到 ${Math.min(sum, limit)} 的數值`,
-                                            });
-                                            return;
-                                        }
-                                        apiCart.setCart(cartItem => {
-                                            cartItem.use_rebate = tempRebate;
-                                            refreshCartData();
-                                        });
-                                    }))}"
-                                  >
+                                  <div class="${gClass('button-text')}" onclick="${gvc.event(useRebateButtonEvent)}">
                                     ${Language.text('apply')}
                                   </div>
                                 </div>

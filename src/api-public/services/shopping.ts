@@ -2820,10 +2820,10 @@ export class Shopping {
 
       if (voucher.conditionType === 'order') {
         if (voucher.method === 'fixed') {
-          voucher.discount_total = disValue * voucher.times;
+          voucher.discount_total = Math.floor(disValue * voucher.times);
         }
         if (voucher.method === 'percent') {
-          voucher.discount_total = voucher.bind_subtotal * disValue;
+          voucher.discount_total = Math.floor(voucher.bind_subtotal * disValue);
         }
         if (voucher.bind_subtotal >= voucher.discount_total) {
           let remain = parseInt(`${voucher.discount_total}`, 10);
@@ -2897,6 +2897,7 @@ export class Shopping {
         }
       }
 
+      voucher.discount_total = Math.floor(voucher.discount_total);
       return voucher.bind.length > 0;
     }
 
@@ -5875,9 +5876,9 @@ export class Shopping {
   async batchPostCustomerInvoice(dataArray: InvoiceData[]) {
     let result: any = [];
     const chunk = 10;
-    const chunksCount = Math.ceil(dataArray.length / chunk);
+    const chunkLength = Math.ceil(dataArray.length / chunk);
 
-    for (let i = 0; i < chunksCount; i++) {
+    for (let i = 0; i < chunkLength; i++) {
       const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
       const res = await Promise.all(
         arr.map(item => {
