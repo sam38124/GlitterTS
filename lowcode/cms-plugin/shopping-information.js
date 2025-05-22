@@ -314,6 +314,9 @@ export class ShoppingInformation {
                               .shopnex.tw
                             </div>
                           </div>
+                          ${domainType === 'custom' ? (() => {
+                                    return ``;
+                                })() : ``}
                           <div class="d-flex justify-content-end">${BgWidget.save(gvc.event(applyDomain), '申請')}</div>
                         </div>
                       `, 'guide6-5'),

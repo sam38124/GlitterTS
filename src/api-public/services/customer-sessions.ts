@@ -266,14 +266,6 @@ export class CustomerSessions {
                         } catch (error: any) {
                             console.error('發送訊息錯誤:', error.response?.data || error.message);
                         }
-                        //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
-                        if (pd.shopee_id) {
-                            await new Shopee(this.app, this.token).asyncStockToShopee({
-                                product: pdDqlData,
-                                callback: () => {
-                                },
-                            });
-                        }
                     })
                 }
                 try {

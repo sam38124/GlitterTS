@@ -2617,11 +2617,11 @@ export class ShoppingOrderManager {
                             <div class="d-flex flex-column gap-1 mt-1">
                               ${(() => {
                                             var _a;
-                                            if (orderData.orderData.fbp) {
+                                            if (orderData.orderData.fbc) {
                                                 return html `
                                     <div>FB廣告</div>
                                     ${BgWidget.blueNote(html `複製追蹤碼<i class="fa-regular fa-copy ms-1"></i>`, gvc.event(() => {
-                                                    navigator.clipboard.writeText(`${orderData.orderData.fbp}`);
+                                                    navigator.clipboard.writeText(`${orderData.orderData.fbc}`);
                                                     BgWidget.jumpAlert({
                                                         gvc,
                                                         text: '複製成功',

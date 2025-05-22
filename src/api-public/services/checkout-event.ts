@@ -478,7 +478,7 @@ export class CheckoutEvent {
       }
 
       const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
-
+      const store_manager = (await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' })).list ?? [];
       data.line_items = await Promise.all(
         data.line_items.map(async item => {
           const getProductData = (
@@ -510,7 +510,22 @@ export class CheckoutEvent {
               const isManualType = type === 'manual' || type === 'manual-preview';
 
               if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                variant.stock = variant.stockList?.[data.pos_store!]?.count || 0;
+                variant.stock =
+                  store_manager
+                    .filter((dd: any) => {
+                      return (
+                        dd.id === data.pos_store! ||
+                        (
+                          store_manager.find((dd: any) => {
+                            return dd.id === data.pos_store;
+                          }).support_store ?? []
+                        ).includes(dd.id)
+                      );
+                    })
+                    .map((d1: any) => {
+                      return variant.stockList?.[d1.id!]?.count;
+                    })
+                    .reduce((acc: any, val: any) => acc + val, 0) || 0;
               }
 
               if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
@@ -584,8 +599,8 @@ export class CheckoutEvent {
                     // 如果之前沒查詢過，才執行查詢 不這樣寫的話 -> 再按自動縮排時會自己打開
                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                     const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                      SELECT *
+                      FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                     `;
                     scheduledData = (await db.query(scheduledDataQuery, []))[0];
                     if (scheduledData) {
@@ -623,14 +638,43 @@ export class CheckoutEvent {
                       await this.shopping.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
                     }
                   } else {
-                    variant.deduction_log = { [data.pos_store!!]: item.count };
-                    variant.stockList[data.pos_store!!].count -= item.count;
+                    const refer = JSON.parse(JSON.stringify(variant.stockList));
+                    Object.keys(refer).forEach(key => {
+                      if (
+                        (key !== data.pos_store) &&
+                        (!(
+                          store_manager.find((dd: any) => {
+                            return dd.id === data.pos_store;
+                          }).support_store ?? []
+                        ).includes(key))
+                      ) {
+                        delete refer[key];
+                      }
+                    });
+                    const returnData = new Stock(this.app, this.token).allocateStock(refer, item.count);
+                    variant.stockList={
+                      ...variant.stockList,
+                        ...refer
+                    }
+                    variant.deduction_log = {
+                      ...variant.deduction_log,
+                      ...returnData.deductionLog,
+                    };
                     item.deduction_log = variant.deduction_log;
+                    console.log(`item.deduction_log===>`,item.deduction_log);
+                    console.log(`variant.stockList===>`,variant.stockList);
+                    console.log(`variant.deduction_log===>`,variant.deduction_log);
+                    content.variants.forEach((d1: any, index: number) => {
+                      console.log(`update-content-pos->`,d1.stockList)
+                    })
                   }
                 } else {
                   const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
                   variant.deduction_log = returnData.deductionLog;
                   item.deduction_log = returnData.deductionLog;
+                  content.variants.forEach((d1: any, index: number) => {
+                    console.log(`update-content-web->`,d1.stockList)
+                  })
                 }
 
                 saveStockArray.push(
@@ -642,8 +686,8 @@ export class CheckoutEvent {
                             // 如果之前沒查詢過，才執行查詢 ，不這樣寫的話 -> 再按自動縮排時會自己打開
                             const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                             const scheduledDataQuery = `
-                                SELECT *
-                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                              SELECT *
+                              FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                             `;
                             scheduledData = (await db.query(scheduledDataQuery, []))[0];
                           }
@@ -675,13 +719,6 @@ export class CheckoutEvent {
                             }
                           }
                         } else {
-                          if (content.shopee_id) {
-                            await new Shopee(this.app, this.token).asyncStockToShopee({
-                              product: getProductData,
-                              callback: () => {},
-                            });
-                          }
-
                           if (content.product_category === 'kitchen' && variant.spec?.length) {
                             // 餐廳類別的庫存處理方式
                             variant.spec.forEach((d1: any, index: number) => {
@@ -698,16 +735,23 @@ export class CheckoutEvent {
                             });
                             item.deduction_log = { [store_config.list[0].id]: item.count };
                           } else {
-                            await this.shopping.updateVariantsWithSpec(variant, item.id, item.spec);
-                          }
 
-                          // 更新資料庫
-                          await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE id = ${getProductData.id}`,
-                            [{ content: JSON.stringify(content) }]
-                          );
+                            // await this.shopping.updateVariantsWithSpec(variant, item.id, item.spec);
+
+                            content.variants.forEach((d1: any, index: number) => {
+                              console.log(`update-content->`,d1.stockList)
+                            })
+                            await this.shopping.postVariantsAndPriceValue(content)
+                          }
+                          console.log(`post-variants===>`,content);
+                          //
+                          // // 更新資料庫
+                          // await db.query(
+                          //   `UPDATE \`${this.app}\`.\`t_manager_post\`
+                          //    SET ?
+                          //    WHERE id = ${getProductData.id}`,
+                          //   [{ content: JSON.stringify(content) }]
+                          // );
                         }
                         // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
 
@@ -754,22 +798,22 @@ export class CheckoutEvent {
       if (hasMaxProduct && data.email !== 'no-email') {
         // 查詢歷史訂單 SQL
         const cartTokenSQL = `
-            SELECT cart_token
-            FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
-              .filter(Boolean)
-              .map(item => db.escape(item))
-              .join(',')})
-              AND order_status <> '-1'
+          SELECT cart_token
+          FROM \`${this.app}\`.t_checkout
+          WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
+            .filter(Boolean)
+            .map(item => db.escape(item))
+            .join(',')})
+            AND order_status <> '-1'
         `;
 
         // 查詢商品購買紀錄
         const soldHistory = await db.query(
           `
-              SELECT *
-              FROM \`${this.app}\`.t_products_sold_history
-              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-                AND order_id IN (${cartTokenSQL})
+            SELECT *
+            FROM \`${this.app}\`.t_products_sold_history
+            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+              AND order_id IN (${cartTokenSQL})
           `,
           []
         );
@@ -1221,14 +1265,14 @@ export class CheckoutEvent {
             console.error(e);
           }
         }
+        await trans.commit();
+        await trans.release();
+        await Promise.all(saveStockArray.map(dd => dd()));
         await OrderEvent.insertOrder({
           cartData: carData,
           status: data.pay_status as any,
           app: this.app,
         });
-        await trans.commit();
-        await trans.release();
-        await Promise.all(saveStockArray.map(dd => dd()));
         await this.shopping.releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
         checkPoint('release pos checkout');
         for (const email of new Set(

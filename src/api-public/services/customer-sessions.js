@@ -21,7 +21,6 @@ const shopnex_line_message_1 = require("./model/shopnex-line-message");
 const axios_1 = __importDefault(require("axios"));
 const shopping_js_1 = require("./shopping.js");
 const stock_js_1 = require("./stock.js");
-const shopee_js_1 = require("./shopee.js");
 const mime = require('mime');
 class CustomerSessions {
     constructor(app, token) {
@@ -194,13 +193,6 @@ class CustomerSessions {
                         }
                         catch (error) {
                             console.error('發送訊息錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
-                        }
-                        if (pd.shopee_id) {
-                            await new shopee_js_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                product: pdDqlData,
-                                callback: () => {
-                                },
-                            });
                         }
                     });
                 }

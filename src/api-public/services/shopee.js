@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -484,14 +474,16 @@ class Shopee {
     }
     async asyncStockToShopee(obj) {
         var _a, _b, _c;
-        console.log(`asyncStockToShopee===>`);
+        function callback(response) {
+            obj.callback(response);
+        }
         if (!obj.access_token || !obj.shop_id) {
             const access = await new Shopee(this.app, this.token).fetchShopeeAccessToken();
             obj.access_token = access.access_token;
             obj.shop_id = access.shop_id;
         }
         if (!obj.product.content.shopee_id) {
-            obj.callback();
+            callback();
             return;
         }
         let basicData = {
@@ -516,7 +508,7 @@ class Shopee {
         try {
             const response = await (0, axios_1.default)(config);
             if (!((_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.response) === null || _c === void 0 ? void 0 : _c.model)) {
-                obj.callback(response.data);
+                callback(response.data);
             }
             obj.product.content.variants.map((variant) => {
                 let basicStock = {
@@ -553,7 +545,7 @@ class Shopee {
                 const response = await (0, axios_1.default)(updateConfig);
                 console.log(`update_stock`, JSON.stringify(basicData));
                 console.log(`update_stock`, response.data);
-                obj.callback(response.data);
+                callback(response.data);
             }
             catch (error) {
                 if (axios_1.default.isAxiosError(error) && error.response) {
@@ -572,6 +564,11 @@ class Shopee {
                 console.error('Unexpected Error:', error.message);
             }
         }
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(true);
+            }, 500);
+        });
     }
     async asyncStockFromShopnex() {
         let origData = {};

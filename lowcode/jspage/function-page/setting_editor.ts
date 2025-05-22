@@ -964,7 +964,7 @@ export class Setting_editor {
                 ) {
                     return userPlan > 1;
                 }
-                if (['app-design', 'app-upload', 'cloud_subscrible', 'notify_message_list'].includes(item.page)) {
+                if (['app-design', 'app-upload', 'cloud_subscrible', 'notify_message_list','auto_fcm_push','auto_fcm_advertise','upload','auto_fcm_history'].includes(item.page)) {
                     return userPlan > 2;
                 }
                 return true;

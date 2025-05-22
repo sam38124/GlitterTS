@@ -347,6 +347,13 @@ export class POSSetting {
             });
             return product.content.variants.find((variant) => arraysEqual(variant.spec, emptyArray));
         }
+        data.content.specs.map((dd, index) => {
+            dd.option.map((d1, index) => {
+                d1.select = index === 0;
+            });
+        });
+        selectVariant = changeSelectVariant(data);
+        obj.callback(selectVariant);
         gvc.glitter.innerDialog(gvc => {
             return gvc.bindView({
                 bind: 'productDialog',
@@ -354,10 +361,14 @@ export class POSSetting {
                     var _a;
                     try {
                         selectVariant.preview_image = selectVariant.preview_image || [];
-                        selectVariant.stock =
-                            (selectVariant.stockList[POSSetting.config.where_store] &&
-                                parseInt(selectVariant.stockList[POSSetting.config.where_store].count, 10)) ||
-                                0;
+                        selectVariant.stock = gvc.glitter.share.store_list.filter((dd) => {
+                            var _a;
+                            return (dd.id === POSSetting.config.where_store) || ((_a = gvc.glitter.share.store_list.find((dd) => {
+                                return dd.id === POSSetting.config.where_store;
+                            }).support_store) !== null && _a !== void 0 ? _a : []).includes(dd.id);
+                        }).map((d1) => {
+                            return selectVariant.stockList[d1.id].count;
+                        }).reduce((acc, val) => acc + val, 0);
                         return html ` <div
                 class="w-100 h-100 d-flex align-items-center justify-content-center"
                 onclick="${gvc.event(() => gvc.glitter.closeDiaLog())}"
@@ -507,7 +518,7 @@ export class POSSetting {
                                 </div>
                                 ${selectVariant.show_understocking === 'false'
                                         ? ''
-                                        : BgWidget.blueNote('查看其他庫存點', gvc.event(() => {
+                                        : BgWidget.blueNote('查看各庫存點數量', gvc.event(() => {
                                             BgWidget.settingDialog({
                                                 gvc,
                                                 title: '其他庫存點',
@@ -528,7 +539,7 @@ export class POSSetting {
                                                                 return dataList.map((dd) => {
                                                                     return [
                                                                         {
-                                                                            key: '門市名稱',
+                                                                            key: '門市/庫存點',
                                                                             value: `<span class="fs-7">${dd.name}</span>`,
                                                                         },
                                                                         {
@@ -540,6 +551,7 @@ export class POSSetting {
                                                             }
                                                             ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
                                                                 var _a;
+                                                                console.log(`selectVariant===>`, selectVariant);
                                                                 if (dd.result && Array.isArray((_a = dd.response.value) === null || _a === void 0 ? void 0 : _a.list)) {
                                                                     dd.response.value.list.map((store) => {
                                                                         var _a, _b, _c;

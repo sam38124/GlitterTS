@@ -40,6 +40,7 @@ import { Readable } from 'stream';
 import { extractCols, SeoConfig } from './seo-config.js';
 import { Language } from './Language.js';
 import { CaughtError } from './modules/caught-error.js';
+import { verifyDomain, verifyStatus } from './services/ses.js';
 
 export const app = express();
 const logger = new Logger();
@@ -102,6 +103,8 @@ export async function initial(serverPort: number) {
     WebSocket.start();
     logger.info('[Init]', `Server is listening on port: ${serverPort}`);
     CaughtError.initial();
+//     await verifyDomain('dd.shopnex.tw')
+//。   console.log(await verifyStatus('dd.shopnex.tw'))
   })();
   console.log('Starting up the server now.');
 }
@@ -227,7 +230,7 @@ export async function createAPP(dd: any) {
                   )
                 ).map((d2: any) => {
                   if (d2.tag === 'index') {
-                    return { url: `https://${domain}`, changefreq: 'weekly' };
+                    return { url: `https://${domain}`, changefreq: 'weekly' , priority: 1.0};
                   } else {
                     return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };
                   }

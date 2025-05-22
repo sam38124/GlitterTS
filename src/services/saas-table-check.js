@@ -276,7 +276,7 @@ function chunkArray(array, groupSize) {
 }
 async function compare_sql_table(scheme, table, sql) {
     try {
-        await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+        await database_1.default.query(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         return true;
     }
     catch (e) {

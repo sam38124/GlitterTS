@@ -33,16 +33,32 @@ export class SocialLinks01 {
     };
     const gotoTopImg = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/arrow-up-to-line-light.svg';
     gvc.addStyle(css`
-      .floating-action-panel {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        display: flex;
-        flex-direction: column; /* 垂直排列 */
-        align-items: center;
-        gap: 10px; /* 按鈕間距 */
-        z-index: 1000;
+      @media (max-width: 768px) {
+        .floating-action-panel {
+          position: fixed;
+          bottom: 20px;
+          right: 10px;
+          display: flex;
+          flex-direction: column; /* 垂直排列 */
+          align-items: center;
+          gap: 10px; /* 按鈕間距 */
+          z-index: 1000;
+        }
       }
+
+      @media (min-width: 769px) {
+        .floating-action-panel {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          display: flex;
+          flex-direction: column; /* 垂直排列 */
+          align-items: center;
+          gap: 10px; /* 按鈕間距 */
+          z-index: 1000;
+        }
+      }
+
 
       .social-links {
         display: flex;
@@ -69,56 +85,64 @@ export class SocialLinks01 {
         border: none;
         padding: 2px;
         cursor: pointer;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
-      .component-img {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-      }
 
-      .component-circle:hover .component-img {
+
+      .component-circle:hover {
         opacity: 0.8;
       }
 
       .up-to-top.hidden {
-        display: none;
+        display: none !important;
       }
     `);
+
     return gvc.bindView({
       bind:vm.id,
       view:()=>{
         return html`
-      <div class="floating-action-panel">
-        <div class="social-links">
-          ${socialList
-          .map(socialLink => {
-            const imgSrc = supportSocial.includes(socialLink.social_type)
-              ? socialIMG[socialLink.social_type]
-              : socialIMG.other;
-            return html`
-                <a href="${socialLink.link}" class="component-circle">
-                  <img src="${socialLink.icon??imgSrc}" alt="Go to top" class="component-img" />
-                </a>
-              `;
-          })
-          .join('')}
-        </div>
-        <button
-          class="component-circle up-to-top hidden"
-          onclick="${gvc.event(() => {
-          scrollToTop();
-        })}"
-        >
-          <img src="${gotoTopImg}" alt="Go to top" class="component-img" />
-        </button>
-      </div>
-    `;
+          <div class="floating-action-panel">
+            <div class="social-links">
+              ${socialList
+                .map(socialLink => {
+                  if(socialLink.icon==='https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'){
+                    (socialLink.icon as any) = undefined;
+                  }
+                  const imgSrc = supportSocial.includes(socialLink.social_type)
+                    ? socialIMG[socialLink.social_type]
+                    : socialIMG.other;
+                  return html`
+                    <div onclick="${
+                      gvc.event(()=>{
+                        gvc.glitter.href = socialLink.link;
+                      })
+                    }" class="component-circle" style="overflow: hidden;
+background-image: url('${socialLink.icon??imgSrc}');background-size: cover;background-position: center;"
+                    >
+                    </div>
+                  `;
+                })
+                .join('')}
+            </div>
+            <button
+              class="component-circle up-to-top hidden  rounded-circle  align-items-center justify-content-center"
+              style="overflow: hidden; background-color: white;display: flex; "
+              onclick="${gvc.event(() => {
+                scrollToTop();
+              })}"
+            >
+              <i class="fa-solid fa-angle-up fs-3"></i>
+            </button>
+          </div>
+        `;
       },divCreate:{}
       ,onInitial:()=>{
-        (window as any).onscroll = function() {
+        window.addEventListener('scroll', function() {
           const scrollPosition = window.scrollY;
 
           const threshold = window.innerHeight / 2;
@@ -130,7 +154,8 @@ export class SocialLinks01 {
           } else {
             panel!.classList.add('hidden');
           }
-        };
+        });
+
       }
     })
 

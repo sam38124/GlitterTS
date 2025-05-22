@@ -1408,7 +1408,7 @@ export class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.phone AND ${orderCountingSQL}
+              WHERE email = u.phone 
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1417,7 +1417,7 @@ export class User {
             (
               SELECT MAX(shipment_date)
               FROM \`${this.app}\`.t_checkout
-              WHERE email = u.email AND ${orderCountingSQL}
+              WHERE email = u.email 
             )
             BETWEEN ${startDate} AND ${endDate}
           `;
@@ -1660,8 +1660,6 @@ export class User {
           user.last_order_total = user.last_order_total || 0;
           user.order_count = user.order_count || 0;
           user.total_amount = user.total_amount || 0;
-
-          console.log('shipmentOrder', user.email);
 
           const shipmentOrder = await _shopping.getCheckOut({
             page: 0,

@@ -276,7 +276,7 @@ function chunkArray(array: any, groupSize: number) {
 
 export async function compare_sql_table(scheme: string, table: string, sql: string): Promise<any> {
   try {
-    await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+    await db.query(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
     // const tempKey = 'tempcompare' + table;
     // const trans = await db.Transaction.build();
     // await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);

@@ -2208,23 +2208,6 @@ class Shopping {
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
             }
-            await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
-                var _a;
-                const shopping = new Shopping(this.app, this.token);
-                const shopee = new shopee_1.Shopee(this.app, this.token);
-                const pd = await shopping.getProduct({
-                    id: lineItem.id,
-                    page: 0,
-                    limit: 10,
-                    skip_shopee_check: true,
-                });
-                if ((_a = pd.data) === null || _a === void 0 ? void 0 : _a.shopee_id) {
-                    await shopee.asyncStockToShopee({
-                        product: pd.data,
-                        callback: () => { },
-                    });
-                }
-            }));
             await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                 id: origin.id,
                 orderData: update.orderData,
@@ -3223,10 +3206,15 @@ class Shopping {
           FROM \`${this.app}\`.t_variants v
           LEFT JOIN \`${this.app}\`.t_manager_post p ON v.product_id = p.id
           WHERE p.content->>'$.type' <> 'product' OR p.id IS NULL`, [])).map((item) => item.id);
-            console.log(null_variant_id_array);
             if (null_variant_id_array.length > 0) {
                 await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE id IN (${null_variant_id_array.join(',')})
           `, []);
+            }
+            if (content.shopee_id) {
+                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                    product: { content },
+                    callback: () => { },
+                });
             }
         }
         catch (error) {
@@ -3943,12 +3931,6 @@ class Shopping {
                 content.id,
             ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
-            if (content.shopee_id) {
-                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                    product: { content },
-                    callback: () => { },
-                });
-            }
             return content.insertId;
         }
         catch (e) {

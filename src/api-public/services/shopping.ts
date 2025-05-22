@@ -3130,27 +3130,6 @@ export class Shopping {
         await this.setOrderCustomizeTagConifg(update.orderData.tags);
       }
 
-      // 同步蝦皮商品
-      await Promise.all(
-        origin.orderData.lineItems.map(async (lineItem: any) => {
-          const shopping = new Shopping(this.app, this.token);
-          const shopee = new Shopee(this.app, this.token);
-
-          const pd = await shopping.getProduct({
-            id: lineItem.id as string,
-            page: 0,
-            limit: 10,
-            skip_shopee_check: true,
-          });
-
-          if (pd.data?.shopee_id) {
-            await shopee.asyncStockToShopee({
-              product: pd.data,
-              callback: () => {},
-            });
-          }
-        })
-      );
 
       // 加入到索引欄位
       await CheckoutService.updateAndMigrateToTableColumn({
@@ -4474,6 +4453,13 @@ export class Shopping {
           []
         );
       }
+        // 同步更新蝦皮
+        if (content.shopee_id) {
+          await new Shopee(this.app, this.token).asyncStockToShopee({
+            product: { content },
+            callback: () => {},
+          });
+      }
     } catch (error) {
       console.error(error);
       throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
@@ -5383,13 +5369,7 @@ export class Shopping {
       // 更新商品 Variant
       await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
 
-      // 同步更新蝦皮
-      if (content.shopee_id) {
-        await new Shopee(this.app, this.token).asyncStockToShopee({
-          product: { content },
-          callback: () => {},
-        });
-      }
+
 
       return content.insertId;
     } catch (e) {

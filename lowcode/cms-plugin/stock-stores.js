@@ -52,6 +52,7 @@ export class StockStores {
             manager_phone: '',
             note: '',
             is_shop: is_shop,
+            support_store: []
         };
     }
     static list(gvc, vm, isShop) {
@@ -161,6 +162,7 @@ export class StockStores {
                                             manager_phone: '',
                                             note: '',
                                             is_shop: false,
+                                            support_store: []
                                         },
                                     ];
                                     ApiUser.setPublicConfig({
@@ -290,6 +292,59 @@ export class StockStores {
                     })}
                     </div>
                   </div>`,
+                    (() => {
+                        if (vm.data.is_shop) {
+                            return gvc.bindView(() => {
+                                var _a;
+                                const id = gvc.glitter.getUUID();
+                                vm.data.support_store = (_a = vm.data.support_store) !== null && _a !== void 0 ? _a : [];
+                                let manager = undefined;
+                                ApiUser.getPublicConfig('store_manager', 'manager').then(res => {
+                                    manager = res;
+                                    gvc.notifyDataChange(id);
+                                });
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        if (!manager) {
+                                            return BgWidget.spinner();
+                                        }
+                                        if (!manager.response.value.list.filter((dd) => {
+                                            return !dd.is_shop;
+                                        }).length) {
+                                            return ``;
+                                        }
+                                        return BgWidget.inlineCheckBox({
+                                            title: '門市相關庫存點',
+                                            gvc: gvc,
+                                            def: vm.data.support_store,
+                                            type: 'multiple',
+                                            array: manager.response.value.list
+                                                .filter((dd) => {
+                                                return !dd.is_shop;
+                                            })
+                                                .map((dd) => {
+                                                return {
+                                                    title: dd.name,
+                                                    value: dd.id,
+                                                };
+                                            }),
+                                            callback: text => {
+                                                vm.data.support_store = text;
+                                                gvc.notifyDataChange(id);
+                                            },
+                                        });
+                                    },
+                                    divCreate: {
+                                        class: `col-12`,
+                                    },
+                                };
+                            });
+                        }
+                        else {
+                            return ``;
+                        }
+                    })(),
                     html ` <div class="tx_normal">備註</div>
                     ${EditorElem.editeText({
                         gvc: gvc,
