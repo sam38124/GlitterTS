@@ -137,21 +137,22 @@ export class ShoppingInformation {
                 const infoModule = new InformationModule(gvc, vm, ShoppingInformation);
                 function createSection(title, description) {
                     return html `
-            <div style="color: #393939; font-size: 16px;">${title}</div>
+            <div class="d-flex" style="font-weight: 700;color: #393939; font-size: 16px;line-height: 1.4;gap: 6px;">${title}</div>
             ${description
-                        ? html ` <div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">${description}</div>`
+                        ? html ` <div style="color: #8D8D8D; font-size: 14px; padding-right: 10px;">${description}</div>`
                         : ''}
           `;
                 }
                 function createToggle(title, description, key) {
-                    return createRow(title, description, html ` <div class="cursor_pointer form-check form-switch m-0 p-0" style="min-width: 50px;">
+                    const toggleHtml = html ` <div class="cursor_pointer form-check form-switch m-0 p-0" style="min-width: 50px;">
               <input
                 class="form-check-input m-0"
                 type="checkbox"
                 onchange="${gvc.event(() => (vm.data[key] = !vm.data[key]))}"
                 ${vm.data[key] ? 'checked' : ''}
               />
-            </div>`);
+            </div>`;
+                    return createRow(html `<div>${title}</div>${toggleHtml}`, description, '');
                 }
                 function createSelect(title, description, key) {
                     return createRow(title, description, html ` <div class="d-flex align-items-center justify-content-center" style="min-width: 150px;">
@@ -172,7 +173,7 @@ export class ShoppingInformation {
                     return html `
             ${BgWidget.horizontalLine({ margin: 0.5 })}
             <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex flex-column" style="gap:8px;">${createSection(title, description)}</div>
+              <div class="d-flex flex-column" style="gap:4px;">${createSection(title, description)}</div>
               ${elem}
             </div>
           `;
@@ -490,10 +491,8 @@ export class ShoppingInformation {
             `;
                     },
                     function: () => {
-                        return BgWidget.mainCard(html `
-              <div class="d-flex flex-column gap-2">
-                ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
-                ${BgWidget.inlineCheckBox({
+                        BgWidget.mainCard(html `
+              ${BgWidget.inlineCheckBox({
                             title: '',
                             gvc,
                             def: vm.data.web_type,
@@ -509,478 +508,36 @@ export class ShoppingInformation {
                             },
                             type: 'multiple',
                         })}
+            `);
+                        return BgWidget.mainCard(html `
+              <div class="tx_700">商店類型</div>
+              <div class="tx_gray_14">系統將根據您勾選的項目，開放相對應的功能</div>
+              ${BgWidget.inlineCheckBox({
+                            title: '',
+                            gvc,
+                            def: vm.data.web_type,
+                            array: [
+                                { title: '零售購物', value: 'shop' },
+                                { title: '授課網站', value: 'teaching' },
+                                { title: '預約系統', value: 'reserve' },
+                                { title: '餐飲組合', value: 'kitchen' },
+                                { title: '秤重交易', value: 'weighing' },
+                            ],
+                            callback: (array) => {
+                                vm.data.web_type = array;
+                            },
+                            type: 'multiple',
+                        })}
+            `) +
+                            BgWidget.mbContainer(24)
+                            +
+                                BgWidget.mainCard(html `
+              <div class="d-flex flex-column gap-2">
+                ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
                 ${createToggle('啟用 AI 選品', '透過 AI 選品功能，用戶可以使用自然語言描述找到所需商品', 'ai_search')}
                 ${GlobalUser.getPlan().id > 0
-                            ? createToggle('啟用聊聊功能', '啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容', 'chat_toggle')
-                            : ''}
-                ${createToggle('啟用心願單功能', '方便客戶收藏並管理喜愛的商品清單，隨時查看心儀商品，提升購物體驗與轉換率', 'wishlist')}
-                ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
-                ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
-                ${createToggle('顯示商品剩餘庫存', '啟用此功能，顧客會在商品頁面看到此商品剩餘的庫存數', 'stock_view')}
-                ${createToggle('線上商店開放預購商品', '啟用此功能，顧客可以在線上商店的商品無庫存時，進行預購', 'pre_order_status')}
-                ${createToggle('商品卡片顯示區間價格', '啟用後，若商品有多個規格、不同價位，前台商品卡片將會使用價格區間來顯示，關閉則顯示該商品規格中最低價者', 'interval_price_card')}
-                ${createToggle('單獨顯示商品特價', '啟用此功能，會將含有特價的商品價格或區間，單獨使用紅字顯示，關閉則採用刪改線的方式呈現特價', 'independent_special_price')}
-                ${createPickUpModeDialog('取貨號碼', '針對特店取貨功能，開啟取貨號碼功能消費者需告知商家取貨號碼並前往特店取貨')}
-                ${createCheckoutModeDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制')}
-                ${createInvoiceModeDialog('發票開立時機', '設定發票開立的時機，可在商家想要的時間點，開立並發送訂單發票')}
-              </div>
-            `);
-                    },
-                    global: () => {
-                        return BgWidget.mainCard(html `
-              ${gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            const allLanguages = ['en-US', 'zh-CN', 'zh-TW'];
-                            const { language_setting } = window.parent.store_info;
-                            vm.data.language_setting = language_setting;
-                            function refreshLanguage() {
-                                gvc.notifyDataChange([id, 'SEO']);
-                            }
-                            function renderLanguageOptions() {
-                                return language_setting.support
-                                    .map((langKey) => {
-                                    const langMap = {
-                                        'en-US': '英文',
-                                        'zh-CN': '簡體中文',
-                                        'zh-TW': '繁體中文',
-                                    };
-                                    const isDefault = langKey === language_setting.def;
-                                    return html `
-                        <div
-                          class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
-                          style="border-radius: 20px; background: #393939; cursor: pointer; width: 100px;"
-                          onclick="${gvc.event(() => {
-                                        BgWidget.settingDialog({
-                                            gvc,
-                                            title: '語系設定',
-                                            innerHTML: gvc => html `
-                                <div class="w-100 d-flex align-items-center justify-content-end" style="gap:10px;">
-                                  ${BgWidget.danger(gvc.event(() => {
-                                                vm.data.language_setting.support = vm.data.language_setting.support.filter((d) => d !== langKey);
-                                                refreshLanguage();
-                                                gvc.closeDialog();
-                                            }), '刪除語系')}
-                                  ${BgWidget.save(gvc.event(() => {
-                                                vm.data.language_setting.def = langKey;
-                                                refreshLanguage();
-                                                gvc.closeDialog();
-                                            }), '設為預設語系')}
-                                </div>
-                              `,
-                                            footer_html: () => '',
-                                            width: 400,
-                                        });
-                                    })}"
-                        >
-                          ${langMap[langKey]}
-                          ${isDefault
-                                        ? html ` <div
-                                class="position-absolute text-white rounded-2 px-2"
-                                style="top: -12px; right: -10px; height:20px; font-size: 11px; background: #ff6c02;"
-                              >
-                                預設
-                              </div>`
-                                        : ''}
-                        </div>
-                      `;
-                                })
-                                    .join('');
-                            }
-                            function createMultiLanguage() {
-                                return html `
-                    <div class="d-flex flex-column mb-2" style="gap:8px;">
-                      <div style="color: #393939;font-size: 16px;">
-                        多國語言<span
-                          class="cursor_pointer ms-1"
-                          style="font-size: 13px;color:#36B;"
-                          onclick="${gvc.event(() => {
-                                    BgWidget.selectLanguage({});
-                                })}"
-                        >
-                          管理語言包
-                        </span>
-                      </div>
-                      <div style="color: #8D8D8D;font-size: 13px;">初次載入時優先預設為用戶裝置所設定的語言</div>
-                      <div class="d-flex mt-3" style="gap:15px;">
-                        ${renderLanguageOptions()}
-                        ${allLanguages.length !== language_setting.support.length
-                                    ? html `
-                              <div
-                                class="d-flex align-items-center justify-content-center cursor_pointer"
-                                style="color: #36B; font-size: 16px; font-weight: 400;"
-                                onclick="${gvc.event(() => {
-                                        let add = '';
-                                        BgWidget.settingDialog({
-                                            gvc,
-                                            title: '新增語系',
-                                            innerHTML: gvc => {
-                                                const availableLanguages = [
-                                                    { key: 'en-US', value: '英文' },
-                                                    { key: 'zh-CN', value: '簡體中文' },
-                                                    { key: 'zh-TW', value: '繁體中文' },
-                                                ].filter(lang => !language_setting.support.includes(lang.key));
-                                                add = availableLanguages[0].key;
-                                                return BgWidget.select({
-                                                    gvc,
-                                                    default: add,
-                                                    options: availableLanguages,
-                                                    callback: text => (add = text),
-                                                });
-                                            },
-                                            footer_html: (gvc) => BgWidget.save(gvc.event(() => {
-                                                vm.data.language_setting.support.push(add);
-                                                gvc.closeDialog();
-                                                setTimeout(refreshLanguage, 100);
-                                            }), '新增'),
-                                            width: 300,
-                                        });
-                                    })}"
-                              >
-                                <div>新增語系</div>
-                                <div class="d-flex align-items-center justify-content-center p-2">
-                                  <i class="fa-solid fa-plus fs-6" style="font-size: 16px;" aria-hidden="true"></i>
-                                </div>
-                              </div>
-                            `
+                                    ? createToggle('啟用聊聊功能', '啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容', 'chat_toggle')
                                     : ''}
-                      </div>
-                    </div>
-                  `;
-                            }
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return html ` <div class="d-flex flex-column gap-2">
-                      ${[
-                                        createMultiLanguage(),
-                                        createSelect('商店貨幣', '統一設定商品幣別，前台將依據商品幣別進行換算顯示', 'currency_code'),
-                                        createToggle('啟用多國貨幣', '啟用多國貨幣功能，將自動根據用戶 IP 所在地區進行幣值轉換', 'multi_currency'),
-                                        vm.data.multi_currency
-                                            ? createToggle('啟用貨幣切換', '是否開放用戶於前台自行切換幣別進行顯示', 'switch_currency')
-                                            : '',
-                                        createSelect('預設顯示幣別', '當查無相關幣別支援國家，前台將預設使用此幣別進行顯示', 'currency_code_f_def'),
-                                    ]
-                                        .filter(item => item.length > 0)
-                                        .join('')}
-                    </div>`;
-                                },
-                            };
-                        })}
-            `);
-                    },
-                };
-                const typeMap2 = {
-                    basic: () => {
-                        return html `
-              ${gvc.bindView({
-                            bind: 'basic',
-                            view: () => {
-                                var _a;
-                                const createInput = (title, key, placeHolder) => {
-                                    var _a;
-                                    return html ` <div class="col-12 col-md-6">
-                      ${BgWidget.editeInput({
-                                        gvc,
-                                        title,
-                                        default: (_a = vm.data[key]) !== null && _a !== void 0 ? _a : '',
-                                        callback: text => (vm.data[key] = text),
-                                        placeHolder,
-                                        divStyle: 'width:100%;',
-                                    })}
-                    </div>`;
-                                };
-                                return BgWidget.mainCard(html `
-                      <div class="d-flex flex-column" style="gap:18px;">
-                        <div class="tx_normal fw-bold">關於商店</div>
-                        <div class="row guide6-3">
-                          ${createInput('商店名稱', 'shop_name', '請輸入商店名稱')}
-                          <div class="col-12 col-md-6">
-                            <div class="tx_normal fw-normal">商店類別</div>
-                            ${BgWidget.select({
-                                    gvc,
-                                    default: (_a = vm.data.category) !== null && _a !== void 0 ? _a : '',
-                                    callback: key => {
-                                        vm.data.category = key;
-                                    },
-                                    options: [...new Set(shopCategory)].map(item => ({ key: item, value: item })),
-                                    style: 'width: 100%; margin: 8px 0;',
-                                })}
-                          </div>
-                          ${createInput('電子信箱', 'email', '請輸入電子信箱')}
-                          ${createInput('聯絡電話', 'phone', '請輸入聯絡電話')}
-                          ${createInput('店家地址', 'address', '請輸入店家地址')}
-                          ${createInput('統一編號', 'ubn', '請輸入統一編號')}
-                        </div>
-                      </div>
-                    `, '');
-                            },
-                        })}
-              <div style="margin-top: 24px;"></div>
-              ${gvc.bindView(() => {
-                            const editorVM = window.parent.glitter.share.editorViewModel;
-                            const isShopnex = editorVM.domain.includes('shopnex.tw');
-                            let domainType = isShopnex ? 'free' : 'custom';
-                            let domainText = editorVM.domain.replace('.shopnex.tw', '');
-                            const updateDomain = (text) => {
-                                domainText = text;
-                            };
-                            const applyDomain = () => {
-                                if (!domainText)
-                                    return dialog.errorMessage({ text: '請輸入網域名稱' });
-                                if (editorVM.domain === domainText)
-                                    return dialog.errorMessage({ text: '此網域已部署完成' });
-                                dialog.dataLoading({ visible: true });
-                                const { appName, saasConfig } = window.parent;
-                                const apiMethod = domainType === 'custom' ? saasConfig.api.setDomain : saasConfig.api.setSubDomain;
-                                const payload = domainType === 'custom'
-                                    ? { domain: domainText, app_name: appName }
-                                    : { sub_domain: domainText, app_name: appName };
-                                apiMethod(Object.assign(Object.assign({}, payload), { token: saasConfig.config.token })).then((res) => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (res.result) {
-                                        dialog.successMessage({ text: '網域部署成功' });
-                                        editorVM.domain = domainType === 'custom' ? domainText : `${domainText}.shopnex.tw`;
-                                    }
-                                    else {
-                                        dialog.errorMessage({ text: '網域部署失敗' });
-                                    }
-                                });
-                            };
-                            return {
-                                bind: 'domain',
-                                view: () => BgWidget.mainCard(html `
-                        <div class="d-flex flex-column" style="gap: 8px">
-                          <div class="tx_normal fw-bold">網域設定</div>
-                          <div class="d-flex align-items-center" style="gap:8px;">
-                            ${BgWidget.inlineCheckBox({
-                                    gvc,
-                                    title: '',
-                                    def: domainType,
-                                    array: [
-                                        { title: '子網域', value: 'free' },
-                                        { title: '獨立網域', value: 'custom' },
-                                    ],
-                                    callback: text => {
-                                        domainType = text;
-                                        domainText =
-                                            isShopnex === (text === 'free') ? editorVM.domain.replace('.shopnex.tw', '') : '';
-                                        gvc.notifyDataChange('domain');
-                                    },
-                                })}
-                            ${this.goDaddyDoc(gvc)}
-                          </div>
-                          <div class="d-flex w-100" style="border:1px solid #DDD;border-radius:10px;overflow:hidden;">
-                            <div style="padding: 9px 10px; background: #EAEAEA; border-radius: 10px 0 0 10px;">
-                              https://
-                            </div>
-                            <input
-                              class="flex-fill border-0 px-2"
-                              value="${domainText}"
-                              onchange="${gvc.event(e => updateDomain(e.value))}"
-                            />
-                            <div
-                              class="${domainType === 'custom' ? 'd-none' : ''}"
-                              style="padding: 9px 10px; background: #EAEAEA; border-radius: 0 10px 10px 0;"
-                            >
-                              .shopnex.tw
-                            </div>
-                          </div>
-                          <div class="d-flex justify-content-end">${BgWidget.save(gvc.event(applyDomain), '申請')}</div>
-                        </div>
-                      `, 'guide6-5'),
-                            };
-                        })}
-              <div style="margin-top: 24px;"></div>
-              ${BgWidget.card([
-                            html ` <div class="d-flex align-items-center">
-                    <div class="d-flex flex-column">
-                      <div class="tx_normal fw-bold">301轉址</div>
-                      <div style="color: #8D8D8D; font-size: 13px; padding-right: 10px;">
-                        設定301轉址，將舊有連結導向至新連結
-                      </div>
-                    </div>
-                    <div class="flex-fill"></div>
-                    ${BgWidget.customButton({
-                                button: { color: 'snow', size: 'md' },
-                                text: { name: '設定' },
-                                event: gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                    var _a;
-                                    let domain_301 = (_a = (yield ApiUser.getPublicConfig('domain_301', 'manager')).response.value.list) !== null && _a !== void 0 ? _a : [];
-                                    function plusEvent() {
-                                        const plus_data = {
-                                            legacy_url: '',
-                                            new_url: '',
-                                        };
-                                        BgWidget.settingDialog({
-                                            gvc,
-                                            title: '新增網址',
-                                            width: 600,
-                                            innerHTML: gvc => {
-                                                return [
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '舊網址',
-                                                        default: plus_data.legacy_url || '',
-                                                        placeHolder: '請輸入相對路徑(例如:/blogs/sample-page)',
-                                                        callback: text => {
-                                                            plus_data.legacy_url = text;
-                                                        },
-                                                    }),
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '新網址',
-                                                        default: plus_data.new_url || '',
-                                                        placeHolder: '請輸入相對路徑(例如:/blogs/sample-page)',
-                                                        callback: text => {
-                                                            plus_data.new_url = text;
-                                                        },
-                                                    }),
-                                                ].join('');
-                                            },
-                                            footer_html: gvc => {
-                                                return [
-                                                    BgWidget.cancel(gvc.event(() => {
-                                                        gvc.closeDialog();
-                                                    })),
-                                                    BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                                        if (domain_301.find((dd) => dd.legacy_url === plus_data.legacy_url || dd.new_url === plus_data.new_url)) {
-                                                            dialog.errorMessage({ text: '此網址已設定過' });
-                                                            return;
-                                                        }
-                                                        if (!plus_data.legacy_url) {
-                                                            dialog.errorMessage({ text: '請輸入原先網址' });
-                                                            return;
-                                                        }
-                                                        if (!plus_data.new_url) {
-                                                            dialog.errorMessage({ text: '請輸入新網址' });
-                                                            return;
-                                                        }
-                                                        if (plus_data.legacy_url === plus_data.new_url) {
-                                                            dialog.errorMessage({ text: '網址不可相同' });
-                                                            return;
-                                                        }
-                                                        dialog.dataLoading({ visible: true });
-                                                        ApiUser.setPublicConfig({
-                                                            key: 'domain_301',
-                                                            user_id: 'manager',
-                                                            value: {
-                                                                list: [
-                                                                    {
-                                                                        new_url: plus_data.new_url,
-                                                                        legacy_url: plus_data.legacy_url,
-                                                                    },
-                                                                    ...domain_301,
-                                                                ],
-                                                            },
-                                                        }).then(res => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            dialog.successMessage({ text: '設定成功' });
-                                                            gvc.closeDialog();
-                                                        });
-                                                    })), '新增'),
-                                                ].join('');
-                                            },
-                                        });
-                                    }
-                                    BgWidget.settingDialog({
-                                        gvc,
-                                        title: '301轉址設定',
-                                        width: 600,
-                                        innerHTML: gvc => {
-                                            if (domain_301.length) {
-                                                return BgWidget.tableV3({
-                                                    gvc: gvc,
-                                                    getData: vd => {
-                                                        vd.pageSize = 1;
-                                                        vd.originalData = domain_301;
-                                                        vd.tableData = domain_301.map((dd) => {
-                                                            var _a, _b;
-                                                            return [
-                                                                { key: '舊網址', value: `${(_a = dd.legacy_url) !== null && _a !== void 0 ? _a : ''}` },
-                                                                { key: '新網址', value: `${(_b = dd.new_url) !== null && _b !== void 0 ? _b : ''}` },
-                                                            ];
-                                                        });
-                                                        setTimeout(() => {
-                                                            vd.callback();
-                                                        });
-                                                    },
-                                                    rowClick: (data, index) => { },
-                                                    filter: [
-                                                        {
-                                                            name: '批量移除',
-                                                            event: checkedData => {
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認移除?',
-                                                                    callback: response => {
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        domain_301 = domain_301.filter((dd) => {
-                                                                            return !checkedData.find((d1) => {
-                                                                                return d1.legacy_url === dd.legacy_url || d1.new_url === dd.new_url;
-                                                                            });
-                                                                        });
-                                                                        ApiUser.setPublicConfig({
-                                                                            key: 'domain_301',
-                                                                            user_id: 'manager',
-                                                                            value: {
-                                                                                list: domain_301,
-                                                                            },
-                                                                        }).then(res => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            dialog.successMessage({ text: '設定成功' });
-                                                                            gvc.recreateView();
-                                                                        });
-                                                                    },
-                                                                });
-                                                            },
-                                                        },
-                                                    ],
-                                                });
-                                            }
-                                            else {
-                                                return BgWidget.warningInsignia('尚未新增轉址連結，點擊右下角新增');
-                                            }
-                                        },
-                                        footer_html: gvc => {
-                                            return [
-                                                BgWidget.cancel(gvc.event(() => {
-                                                    gvc.closeDialog();
-                                                })),
-                                                BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                                                    plusEvent();
-                                                })), '新增'),
-                                            ].join('');
-                                        },
-                                    });
-                                })),
-                            })}
-                  </div>`,
-                        ].join(`<div class="mt-2"></div>`))}
-            `;
-                    },
-                    function: () => {
-                        return BgWidget.mainCard(html `
-              <div class="d-flex flex-column gap-2">
-                ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
-                ${BgWidget.inlineCheckBox({
-                            title: '',
-                            gvc,
-                            def: vm.data.web_type,
-                            array: [
-                                { title: '零售購物', value: 'shop' },
-                                { title: '授課網站', value: 'teaching' },
-                                { title: '預約系統', value: 'reserve' },
-                                { title: '餐飲組合', value: 'kitchen' },
-                                { title: '秤重交易', value: 'weighing' },
-                            ],
-                            callback: (array) => {
-                                vm.data.web_type = array;
-                            },
-                            type: 'multiple',
-                        })}
-                ${createToggle('啟用 AI 選品', '透過 AI 選品功能，用戶可以使用自然語言描述找到所需商品', 'ai_search')}
-                ${GlobalUser.getPlan().id > 0
-                            ? createToggle('啟用聊聊功能', '啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容', 'chat_toggle')
-                            : ''}
                 ${createToggle('啟用心願單功能', '方便客戶收藏並管理喜愛的商品清單，隨時查看心儀商品，提升購物體驗與轉換率', 'wishlist')}
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
