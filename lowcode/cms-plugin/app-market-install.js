@@ -83,7 +83,7 @@ export class AppMarketInstall {
                         getAppList();
                     }
                     return BgWidget.container(html `
-          <div class="tx_700" style="font-size: 24px;margin-bottom: 18px;">已安裝APP</div>
+          <div class="tx_700 ps-3" style="font-size: 24px;margin-bottom: 18px;">已安裝APP</div>
           ${that.drawAppList(gvc, vm.card_list_id, vm.app_list)}
           `);
                 }, divCreate: {

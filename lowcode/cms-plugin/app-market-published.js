@@ -28,7 +28,7 @@ export class AppMarketPublished {
                         getAppList();
                     }
                     return BgWidget.container(html `
-          <div class="tx_700" style="font-size: 24px;margin-bottom: 18px;">已發佈APP</div>
+          <div class="tx_700 ps-3" style="font-size: 24px;margin-bottom: 18px;">已發佈APP</div>
           ${AppMarketInstall.drawAppList(gvc, vm.card_list_id, vm.app_list)}
           `);
                 }, divCreate: {
