@@ -318,6 +318,7 @@ export class User {
 
   // 用戶初次建立的initial函式
   async createUserHook(userID: string, req: express.Request) {
+    req.body.create_user_success = true;
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;

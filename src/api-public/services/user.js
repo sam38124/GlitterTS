@@ -237,6 +237,7 @@ class User {
         }
     }
     async createUserHook(userID, req) {
+        req.body.create_user_success = true;
         const usData = await this.getUserData(userID, 'userID');
         usData.userData.repeatPwd = undefined;
         await database_1.default.query(`update \`${this.app}\`.t_user

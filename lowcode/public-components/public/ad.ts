@@ -1,5 +1,6 @@
 import { ApiTrack } from '../../glitter-base/route/api-track.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import { Glitter } from '../../glitterBundle/Glitter.js';
 
 export class Ad {
   static gtagEvent(name: string, obj: any) {
@@ -13,12 +14,6 @@ export class Ad {
     const fbq = (window as any).fbq;
     obj.eventID = obj.eventID || (window as any).glitter.getUUID();
     if (fbq) {
-      // console.log(`pixel-user-info`,GlobalUser.userInfo)
-      //fbq('init', '你的PIXEL_ID', {
-      //   em: '雜湊後的email',
-      //   ph: '雜湊後的phone'
-      // });
-      // 這通常在登入成功或註冊完成之後
       if (GlobalUser.userInfo) {
         async function hashSHA256(input: any) {
           const encoder = new TextEncoder();
@@ -39,6 +34,7 @@ export class Ad {
         }
         fbq('init', (window as any).fb_pixel_id, obj);
       }
+      obj.fbc=((window as any).glitter as Glitter).cookie('_fbc')
       fbq('track', name, JSON.parse(JSON.stringify(obj)));
     }
     obj.event_id = obj.eventID;

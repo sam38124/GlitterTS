@@ -41,6 +41,7 @@ export class Ad {
                     }
                     fbq('init', window.fb_pixel_id, obj);
                 }
+                obj.fbc = window.glitter.cookie('_fbc');
                 fbq('track', name, JSON.parse(JSON.stringify(obj)));
             }
             obj.event_id = obj.eventID;

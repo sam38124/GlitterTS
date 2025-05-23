@@ -2,17 +2,29 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { Ad } from '../../public-components/public/ad.js';
 
 export class ApiUser {
   public static register(json: { account: string; pwd: string; userData: any }) {
-    return BaseApi.create({
-      url: getBaseUrl() + `/api-public/v1/user/register`,
-      type: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'g-app': getConfig().config.appName,
-      },
-      data: JSON.stringify(json),
+    return new Promise<{ result: boolean; response: any }>(async (resolve, reject) => {
+      const res_=await BaseApi.create({
+        url: getBaseUrl() + `/api-public/v1/user/register`,
+        type: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'g-app': getConfig().config.appName,
+        },
+        data: JSON.stringify(json),
+      });
+      if(res_.result){
+        Ad.gtagEvent( 'sign_up', {
+          method:  'normal' // 自訂參數，可略
+        })
+        Ad.fbqEvent('CompleteRegistration', {
+          method:  'normal' // 自訂參數，可略
+        });
+      }
+      resolve(res_)
     });
   }
 
@@ -627,16 +639,35 @@ export class ApiUser {
     pin?: string;
     redirect?: string;
   }) {
-    return BaseApi.create({
-      url: getBaseUrl() + `/api-public/v1/user/login`,
-      type: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'g-app': json.app_name || getConfig().config.appName,
-        Authorization: json.token,
-      },
-      data: JSON.stringify(json),
-    });
+
+    return new Promise<{ result: boolean; response: any }>(async (resolve, reject) => {
+      const res_=await BaseApi.create({
+        url: getBaseUrl() + `/api-public/v1/user/login`,
+        type: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'g-app': json.app_name || getConfig().config.appName,
+          Authorization: json.token,
+        },
+        data: JSON.stringify(json),
+      });
+      if(res_.response.create_user_success){
+        Ad.gtagEvent( 'sign_up', {
+          method: json.login_type || 'normal' // 自訂參數，可略
+        })
+        Ad.fbqEvent('CompleteRegistration', {
+          method: json.login_type || 'normal' // 自訂參數，可略
+        });
+      }else{
+        Ad.gtagEvent( 'login', {
+          method: json.login_type || 'normal' // 自訂參數，可略
+        })
+        Ad.fbqEvent('Login', {
+          method: json.login_type || 'normal' // 自訂參數，可略
+        });
+      }
+      resolve(res_)
+    })
   }
 
   public static checkAdminAuth(cg: { app: string; token: string }) {
