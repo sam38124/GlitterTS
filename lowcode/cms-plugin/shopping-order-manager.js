@@ -589,6 +589,60 @@ export class ShoppingOrderManager {
                             },
                         },
                         {
+                            name: '更改付款狀態',
+                            option: true,
+                            event: (checkArray) => {
+                                OrderSetting.allEditDialog({
+                                    gvc,
+                                    title: '批量更改付款狀態',
+                                    options: OrderSetting.getPaymentStatusOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.status = Number(value);
+                                        });
+                                        updateOrders(checkArray);
+                                    },
+                                });
+                            },
+                        },
+                        {
+                            name: '更改出貨狀態',
+                            option: true,
+                            event: (checkArray) => {
+                                OrderSetting.allEditDialog({
+                                    gvc,
+                                    title: '批量更改出貨狀態',
+                                    options: OrderSetting.getShippmentOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.orderData.progress = value;
+                                            if (['wait', 'returns', undefined].includes(value)) {
+                                                order.orderData.user_info.shipment_number = '';
+                                            }
+                                        });
+                                        updateOrders(checkArray);
+                                    },
+                                });
+                            },
+                        },
+                        {
+                            name: '更改訂單狀態',
+                            option: true,
+                            event: (checkArray) => {
+                                OrderSetting.allEditDialog({
+                                    gvc,
+                                    title: '批量更改訂單狀態',
+                                    options: OrderSetting.getOrderStatusOpt(),
+                                    callback: (value) => {
+                                        checkArray.forEach((order) => {
+                                            order.orderData.orderStatus = value;
+                                        });
+                                        updateOrders(checkArray);
+                                    },
+                                });
+                            },
+                        },
+                        {
                             name: '批改訂單各項狀態',
                             option: true,
                             event: (checkArray) => {
@@ -873,6 +927,51 @@ export class ShoppingOrderManager {
                     ];
                     const defaultArray = [
                         {
+                            name: '列印出貨明細 / 地址貼條',
+                            event: (checkArray) => {
+                                let type = '';
+                                BgWidget.settingDialog({
+                                    gvc: gvc,
+                                    title: '列印模式',
+                                    innerHTML: (gvc) => BgWidget.select({
+                                        gvc,
+                                        callback: (value) => {
+                                            type = value;
+                                        },
+                                        default: '',
+                                        options: [
+                                            { title: '選擇列印模式', value: '' },
+                                            { title: '出貨明細', value: 'shipment' },
+                                            { title: '地址貼條', value: 'address' },
+                                            { title: '出貨明細 + 地址貼條', value: 'shipAddr' },
+                                        ].map(item => {
+                                            return {
+                                                key: item.value,
+                                                value: item.title,
+                                            };
+                                        }),
+                                    }),
+                                    footer_html: (gvc) => {
+                                        return [
+                                            BgWidget.cancel(gvc.event(() => {
+                                                gvc.closeDialog();
+                                            }), '取消'),
+                                            BgWidget.save(gvc.event(() => {
+                                                if (['shipment', 'address', 'shipAddr'].includes(type)) {
+                                                    gvc.closeDialog();
+                                                    DeliveryHTML.print(gvc, checkArray, type);
+                                                }
+                                                else {
+                                                    dialog.infoMessage({ text: '請選擇列印模式' });
+                                                }
+                                            }), '列印'),
+                                        ].join('');
+                                    },
+                                    width: 350,
+                                });
+                            },
+                        },
+                        {
                             name: query.isArchived ? '解除封存' : '批量封存',
                             event: (checkArray) => {
                                 const action_with = ['order_list', 'order_list_archive'].includes(window.glitter.getUrlParameter('page'))
@@ -913,27 +1012,6 @@ export class ShoppingOrderManager {
                             option: true,
                             event: (checkArray) => {
                                 DeliveryHTML.print(gvc, checkArray, 'pick');
-                            },
-                        },
-                        {
-                            name: '列印出貨明細',
-                            option: true,
-                            event: (checkArray) => {
-                                DeliveryHTML.print(gvc, checkArray, 'shipment');
-                            },
-                        },
-                        {
-                            name: '列印地址貼條',
-                            option: true,
-                            event: (checkArray) => {
-                                DeliveryHTML.print(gvc, checkArray, 'address');
-                            },
-                        },
-                        {
-                            name: '列印出貨明細 + 地址貼條',
-                            option: true,
-                            event: (checkArray) => {
-                                DeliveryHTML.print(gvc, checkArray, 'shipAddr');
                             },
                         },
                     ];
@@ -1999,7 +2077,7 @@ export class ShoppingOrderManager {
                                                             const status = dd.discount_total > 0;
                                                             const isMinus = status ? '-' : '';
                                                             const isNegative = status ? 1 : -1;
-                                                            return `${isMinus} $${(dd.discount_total * isNegative).toLocaleString()}`;
+                                                            return `${isMinus} $${(Math.floor(dd.discount_total) * isNegative).toLocaleString()}`;
                                                         })(),
                                                     },
                                                 };
@@ -2057,7 +2135,7 @@ export class ShoppingOrderManager {
                                   <div>分倉出貨</div>
                                   <div
                                     class="${is_shipment ? 'd-none' : ''}"
-                                    style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                    style="display: flex;padding: 4px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                     onclick="${gvc.event(() => {
                                                 OrderSetting.showEditShip({
                                                     gvc: gvc,
@@ -2171,19 +2249,22 @@ export class ShoppingOrderManager {
                                                         title: '',
                                                         gvc: gvc,
                                                         default: `${orderData.status}`,
-                                                        options: [
-                                                            {
-                                                                title: '變更付款狀態',
-                                                                value: '',
-                                                            },
-                                                        ]
-                                                            .concat(ApiShop.getStatusArray(orderData.orderData.proof_purchase))
-                                                            .map(item => {
-                                                            return {
-                                                                key: item.value,
-                                                                value: item.title,
-                                                            };
-                                                        }),
+                                                        options: (() => {
+                                                            const paymentOptions = OrderSetting.getPaymentStatusOpt();
+                                                            const unpayOption = paymentOptions.find(item => item.key === '0');
+                                                            if (unpayOption) {
+                                                                if (orderData.orderData.proof_purchase) {
+                                                                    unpayOption.value = '待核款';
+                                                                }
+                                                                else if (orderData.orderData.customer_info.payment_select == 'cash_on_delivery') {
+                                                                    unpayOption.value = '貨到付款';
+                                                                }
+                                                                else {
+                                                                    unpayOption.value = '未付款';
+                                                                }
+                                                            }
+                                                            return paymentOptions;
+                                                        })(),
                                                         callback: text => {
                                                             dialog.checkYesOrNot({
                                                                 text: '是否確認變更付款狀態?',
@@ -2389,28 +2470,28 @@ export class ShoppingOrderManager {
                                   <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
                                     <div>顧客備註</div>
                                     <div
-                                      style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                      style="display: flex;padding: 4px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                       onclick="${gvc.event(() => {
                                                         vm.edit_mode = !vm.edit_mode;
                                                         gvc.notifyDataChange(vm.id);
                                                     })}"
                                     >
-                                      ${vm.edit_mode ? `取消編輯` : `編輯`}
+                                      ${vm.edit_mode ? '取消編輯' : '編輯'}
                                     </div>
                                   </div>
                                   ${BgWidget.mbContainer(18)}
-                                  <div style="position: relative;">
+                                  <div style="position: relative; color: #8d8d8d;">
                                     ${vm.edit_mode
                                                         ? EditorElem.editeText({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: orderData.orderData.user_info.note || '',
-                                                            placeHolder: '',
+                                                            placeHolder: '請輸入備註',
                                                             callback: text => {
                                                                 orderData.orderData.user_info.note = text;
                                                             },
                                                         })
-                                                        : orderData.orderData.user_info.note || '尚未填寫顧客備註'}
+                                                        : orderData.orderData.user_info.note || '顧客尚未填寫備註'}
                                   </div>
                                 `;
                                                 },
@@ -2426,30 +2507,19 @@ export class ShoppingOrderManager {
                                                 view: () => {
                                                     return html `
                                   <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                    <div>商家備註</div>
-                                    <div
-                                      style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                      onclick="${gvc.event(() => {
-                                                        vm.edit_mode = !vm.edit_mode;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    })}"
-                                    >
-                                      ${vm.edit_mode ? `取消編輯` : `編輯`}
-                                    </div>
+                                    訂單備註
                                   </div>
                                   ${BgWidget.mbContainer(18)}
                                   <div style="position: relative;">
-                                    ${vm.edit_mode
-                                                        ? EditorElem.editeText({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            default: orderData.orderData.order_note || '',
-                                                            placeHolder: '',
-                                                            callback: text => {
-                                                                orderData.orderData.order_note = text;
-                                                            },
-                                                        })
-                                                        : orderData.orderData.order_note || '尚未填寫商家備註'}
+                                    ${EditorElem.editeText({
+                                                        gvc: gvc,
+                                                        title: '',
+                                                        default: orderData.orderData.order_note || '',
+                                                        placeHolder: '請輸入備註',
+                                                        callback: text => {
+                                                            orderData.orderData.order_note = text;
+                                                        },
+                                                    })}
                                   </div>
                                 `;
                                                 },
@@ -2617,11 +2687,11 @@ export class ShoppingOrderManager {
                             <div class="d-flex flex-column gap-1 mt-1">
                               ${(() => {
                                             var _a;
-                                            if (orderData.orderData.fbp) {
+                                            if (orderData.orderData.fbc) {
                                                 return html `
                                     <div>FB廣告</div>
                                     ${BgWidget.blueNote(html `複製追蹤碼<i class="fa-regular fa-copy ms-1"></i>`, gvc.event(() => {
-                                                    navigator.clipboard.writeText(`${orderData.orderData.fbp}`);
+                                                    navigator.clipboard.writeText(`${orderData.orderData.fbc}`);
                                                     BgWidget.jumpAlert({
                                                         gvc,
                                                         text: '複製成功',
@@ -2650,7 +2720,7 @@ export class ShoppingOrderManager {
                                 <div class="tx_700">訂購人資料</div>
                                 <div class="flex-fill"></div>
                               </div>
-                              <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
+                              <div class="w-100 d-flex flex-column mt-2" style="gap:6px;">
                                 ${[
                                             html ` <div class="d-flex flex-column" style="gap:8px;">
                                     <div
@@ -2711,7 +2781,7 @@ export class ShoppingOrderManager {
                                       ${(_l = (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _j === void 0 ? void 0 : _j.email) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.email) !== null && _l !== void 0 ? _l : ''}
                                     </div>
                                   </div>`,
-                                            BgWidget.horizontalLine(),
+                                            BgWidget.horizontalLine({ margin: 0.5 }),
                                             gvc.bindView({
                                                 bind: `user_info`,
                                                 view: () => {
@@ -2748,10 +2818,11 @@ export class ShoppingOrderManager {
                                                         </div>
                                                       `;
                                                                         })
-                                                                            .join(BgWidget.mbContainer(4));
+                                                                            .join('');
                                                                     }),
                                                                     divCreate: {
-                                                                        class: `tx_normal`,
+                                                                        class: 'd-flex flex-column tx_normal',
+                                                                        style: 'gap: 8px;',
                                                                     },
                                                                 };
                                                             }),
@@ -2775,33 +2846,28 @@ export class ShoppingOrderManager {
                                                             case 'UNIMARTC2C':
                                                             case 'UNIMARTFREEZE':
                                                             case 'FAMIC2CFREEZE':
-                                                                return [
-                                                                    html ` <div class="d-flex flex-wrap w-100">
-                                                  <span class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                return html ` <div class="tx_700">配送資訊</div>
+                                                <div class="d-flex flex-wrap w-100">
                                                   <div
                                                     class="fw-normal fs-6"
                                                     style="white-space: normal;word-break: break-all;"
                                                   >
-                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
+                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}（${orderData.orderData.user_info.CVSStoreID}）
                                                   </div>
-                                                </div>`,
-                                                                    html ` <div class="fw-normal fs-6">
-                                                  代號: ${orderData.orderData.user_info.CVSStoreID}
-                                                </div>`,
-                                                                    html ` <div
+                                                </div>
+                                                <div
                                                   class="fw-normal fs-6 w-100"
                                                   style="white-space: normal;word-break: break-all;"
                                                 >
-                                                  地址: ${orderData.orderData.user_info.CVSAddress}
-                                                </div>`,
-                                                                ].join('');
+                                                  ${orderData.orderData.user_info.CVSAddress}
+                                                </div>`;
                                                             case 'global_express':
                                                             case 'black_cat_freezing':
                                                             case 'normal':
                                                             default:
                                                                 const mapView = [];
                                                                 if (orderData.orderData.user_info.address) {
-                                                                    mapView.push(html ` <div class="tx_700">配送地址</div>
+                                                                    mapView.push(html `<div class="tx_700">配送資訊</div>
                                                     <div class="fw-normal fs-6" style="white-space: normal;">
                                                       ${[
                                                                         orderData.orderData.user_info.city,
@@ -2865,7 +2931,7 @@ export class ShoppingOrderManager {
                                             `
                                                         : ''}
                                       `);
-                                                    return view.join(`<div class="my-2"></div>`);
+                                                    return view.join(BgWidget.horizontalLine({ margin: 0.5 }));
                                                 },
                                                 divCreate: {
                                                     class: 'd-flex flex-column',
@@ -3421,6 +3487,11 @@ export class ShoppingOrderManager {
                             sale_price: variant.sale_price,
                             sku: variant.sku,
                             deduction_log: {},
+                            rebate: 0,
+                            weight: 0,
+                            is_gift: false,
+                            origin_price: variant.cost || variant.sale_price,
+                            discount_price: 0,
                         });
                         orderDetail.subtotal +=
                             Number(orderDetail.lineItems[index].count) * orderDetail.lineItems[index].sale_price;
@@ -3982,7 +4053,7 @@ export class ShoppingOrderManager {
                 style: 'width: 100%; display: flex; align-items: center; margin: 24px 0;',
             },
         })}
-        ${BgWidget.horizontalLine()} ${showOrderDetail()}
+        ${BgWidget.horizontalLine({ margin: 0.5 })} ${showOrderDetail()}
       </div>
       <!-- 選擇顧客 --- 顧客資料填寫 -->
       <div style="margin-top: 24px"></div>

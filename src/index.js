@@ -199,7 +199,7 @@ async function createAPP(dd) {
                        and page_config ->>'$.seo.type'='custom'
                     `, [appName])).map((d2) => {
                         if (d2.tag === 'index') {
-                            return { url: `https://${domain}`, changefreq: 'weekly' };
+                            return { url: `https://${domain}`, changefreq: 'weekly', priority: 1.0 };
                         }
                         else {
                             return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };

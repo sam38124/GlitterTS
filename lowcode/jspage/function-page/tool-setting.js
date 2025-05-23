@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiPageConfig } from '../../api/pageConfig.js';
-import { FirstBanner } from '../../public-components/banner/first-banner.js';
 import { GlobalWidget } from '../../editor-components/global-widget/global-widget.js';
 export class ToolSetting {
     static main(gvc) {
@@ -173,10 +172,7 @@ export class ToolSetting {
                         const htmlGenerate = new gvc.glitter.htmlGenerate(widget_container, [], {
                             editor_updated_callback: (oWidget) => {
                                 if (dd.tag === '廣告輪播') {
-                                    FirstBanner.main({
-                                        gvc: document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc,
-                                        ed_widget: oWidget,
-                                    });
+                                    console.log(`oWidget==>`, oWidget);
                                 }
                             },
                         }, true);

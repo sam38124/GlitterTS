@@ -213,10 +213,11 @@ export class ToolSetting {
             {
               editor_updated_callback: (oWidget: any) => {
                 if (dd.tag === '廣告輪播') {
-                  FirstBanner.main({
-                    gvc: (document.querySelector('.iframe_view') as any).contentWindow.glitter.pageConfig[0].gvc,
-                    ed_widget: oWidget,
-                  });
+                  console.log(`oWidget==>`,oWidget)
+                  // FirstBanner.main({
+                  //   gvc: (document.querySelector('.iframe_view') as any).contentWindow.glitter.pageConfig[0].gvc,
+                  //   // ed_widget: oWidget,
+                  // });
                 }
               },
             },

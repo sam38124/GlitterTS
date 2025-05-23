@@ -804,12 +804,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                               src: `fa-sharp fa-regular fa-globe guide-user-editor-11-icon`,
                               index: 'color',
                               hint: '全站樣式',
-                            },
-                            {
-                              src: `fa-regular fa-grid-2 design-guide-1-icon`,
-                              index: 'widget',
-                              hint: '設計元件',
-                            },
+                            }
                           ]
                             .filter(dd => {
                               if (gvc.glitter.getUrlParameter('device') === 'mobile') {

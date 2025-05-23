@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const private_config_js_1 = require("../../../services/private_config.js");
-const mime = require('mime');
 class PaymentTransaction {
     constructor(app, payment_select) {
         this.app = app;

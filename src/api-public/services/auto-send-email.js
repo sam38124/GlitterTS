@@ -98,7 +98,7 @@ class AutoSendEmail {
                 tag_name: '訂單成立',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
-                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立，訂單驗證碼為「@{{訂單驗證碼}}」',
                 toggle: true,
             },
             {
@@ -576,7 +576,7 @@ class AutoSendEmail {
     </table>`;
     }
     static async customerOrder(app, tag, order_id, email, language) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         try {
             const customerMail = await this.getDefCompare(app, tag, language);
             const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
@@ -594,7 +594,8 @@ class AutoSendEmail {
                             .replace(/@\{\{姓名\}\}/g, (_a = order_data.customer_info.name) !== null && _a !== void 0 ? _a : '')
                             .replace(/@\{\{電話\}\}/g, (_b = order_data.customer_info.phone) !== null && _b !== void 0 ? _b : '')
                             .replace(/@\{\{地址\}\}/g, (_c = order_data.user_info.address) !== null && _c !== void 0 ? _c : '')
-                            .replace(/@\{\{信箱\}\}/g, (_d = order_data.customer_info.email) !== null && _d !== void 0 ? _d : ''),
+                            .replace(/@\{\{信箱\}\}/g, (_d = order_data.customer_info.email) !== null && _d !== void 0 ? _d : '')
+                            .replace(/@\{\{訂單驗證碼\}\}/g, (_e = order_data.verify_code) !== null && _e !== void 0 ? _e : ''),
                         email: [email],
                         type: tag,
                     });

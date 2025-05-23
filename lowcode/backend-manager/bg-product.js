@@ -361,7 +361,7 @@ export class BgProduct {
                                 }
                             });
                             vm.loading = false;
-                            gvc.notifyDataChange(vm.id);
+                            setTimeout(() => gvc.notifyDataChange(vm.id), 200);
                         });
                     }
                 },

@@ -17,6 +17,7 @@ import { Language } from '../../glitter-base/global/language.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
 const html = String.raw;
 const css = String.raw;
 export class UMOrder {
@@ -172,30 +173,30 @@ export class UMOrder {
         cursor: pointer;
       }
       .customer-btn-text {
-        line-height:normal;
+        line-height: normal;
         text-align: center;
         color: white;
         font-size: 14px;
         font-weight: 400;
         letter-spacing: 0.56px;
       }
-      
+
       .payment-section {
         border: 1px solid #ccc;
         padding: 10px;
         margin-bottom: 20px;
       }
       #repay-button {
-        height:32px;
-        
+        height: 32px;
+
         background-color: #4caf50;
         color: white;
-        border-radius:10px;
+        border-radius: 10px;
         padding: 6px 14px;
         border: none;
         cursor: pointer;
       }
-      
+
       #repay-button:hover {
         background-color: #45a049;
       }
@@ -259,8 +260,8 @@ export class UMOrder {
                 margin: 18px 0;
               }
               .button-text {
-                  color: #fff;
-                  font-size: 16px;
+                color: #fff;
+                font-size: 16px;
               }
             `);
                     return gvc.bindView({
@@ -268,12 +269,17 @@ export class UMOrder {
                         view: () => {
                             return html ` <div class="w-100 h-100 d-flex align-items-center justify-content-center">
                   ${document.body.clientWidth < 800
-                                ? `
-                    <div class="bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;
-                    padding-top:${50 + gvc.glitter.share.top_inset}px;
-                    ">
-                    `
-                                : `<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
+                                ? html `
+                        <div
+                          class="bg-white position-relative vw-100"
+                          style="height: ${window.innerHeight}px;overflow-y: auto; padding-top:${50 +
+                                    gvc.glitter.share.top_inset}px;"
+                        ></div>
+                      `
+                                : html `<div
+                        class="p-3  bg-white position-relative"
+                        style="max-height: calc(100vh - 90px);overflow-y:auto;"
+                      ></div>`}
                   <div
                     style="position: absolute; right: 15px;top:${15 + gvc.glitter.share.top_inset}px;z-index:1;"
                     onclick="${gvc.event(() => {
@@ -282,7 +288,7 @@ export class UMOrder {
                   >
                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                   </div>
-                  <div id="paynow-container"  >
+                  <div id="paynow-container">
                     <div style="width:200px;height:200px;">loading...</div>
                   </div>
                   <div class="px-3 px-sm-0 w-100">
@@ -291,7 +297,6 @@ export class UMOrder {
                       id="checkoutButton"
                       onclick="${gvc.event(() => {
                                 const PayNow = window.PayNow;
-                                const dialog = new ShareDialog(gvc.glitter);
                                 dialog.dataLoading({ visible: true });
                                 PayNow.checkout().then((response) => {
                                     dialog.dataLoading({ visible: false });
@@ -309,8 +314,8 @@ export class UMOrder {
                 </div>`;
                         },
                         divCreate: {
-                            class: ` h-100 d-flex align-items-center justify-content-center`,
-                            style: `max-width:100vw;${document.body.clientWidth < 800 ? 'width:100%;' : 'width:400px;'};`,
+                            class: `h-100 d-flex align-items-center justify-content-center`,
+                            style: `max-width: 100vw; ${document.body.clientWidth < 800 ? 'width: 100%;' : 'width: 400px;'}`,
                         },
                         onCreate: () => {
                             var _a, _b;
@@ -339,7 +344,7 @@ export class UMOrder {
                             });
                         },
                     });
-                }, `paynow`, {
+                }, 'paynow', {
                     animation: document.body.clientWidth > 800 ? Animation.fade : Animation.popup,
                     dismiss: () => {
                         document.body.style.setProperty('overflow-y', 'auto');
@@ -349,7 +354,7 @@ export class UMOrder {
             }
             default: {
                 const id = gvc.glitter.getUUID();
-                $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                $('body').append(html `<div id="${id}" style="display: none;">${res.response.form}</div>`);
                 document.querySelector(`#${id} #submit`).click();
             }
         }
@@ -357,9 +362,12 @@ export class UMOrder {
     static repay(gvc, orderData) {
         const id = orderData.cart_token;
         const dialog = new ShareDialog(gvc.glitter);
-        dialog.dataLoading({ visible: true, text: Language.text('loading') });
         const redirect = gvc.glitter.root_path + 'order_detail' + location.search;
         const url = new URL(redirect, location.href);
+        dialog.dataLoading({
+            visible: true,
+            text: Language.text('loading'),
+        });
         return new Promise(() => {
             ApiShop.repay(id, url.href).then(res => {
                 dialog.dataLoading({ visible: false });
@@ -389,15 +397,8 @@ export class UMOrder {
         });
     }
     static main(gvc, widget, subData) {
-        this.addStyle(gvc);
-        gvc.addMtScript([
-            {
-                src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
-            },
-        ], () => { }, () => { });
-        UmClass.addStyle(gvc);
         const glitter = gvc.glitter;
-        const dialog = new ShareDialog(gvc.glitter);
+        const dialog = new ShareDialog(glitter);
         const ids = {
             view: glitter.getUUID(),
         };
@@ -408,8 +409,59 @@ export class UMOrder {
             data: {},
             type: '',
             formList: [],
+            passport: false,
+            verify_code: '',
         };
+        this.addStyle(gvc);
+        gvc.addMtScript([
+            {
+                src: `https://js.paynow.com.tw/sdk/v2/index.js?v=20250430`,
+            },
+        ], () => { }, () => { });
+        UmClass.addStyle(gvc);
+        let changePage = (index, type, subData) => { };
+        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
+            changePage = cl.changePage;
+        });
         const repayArray = ['ecPay', 'newWebPay', 'paypal', 'jkopay', 'paynow', 'line_pay'];
+        function guestCheckView() {
+            dialog.customCheck({
+                text: BgWidget.editeInput({
+                    gvc,
+                    title: '請輸入訂單驗證碼',
+                    default: vm.verify_code,
+                    placeHolder: '訂單驗證碼於成立訂單時寄出的簡訊/信件',
+                    callback: value => {
+                        vm.verify_code = value;
+                    },
+                }),
+                callback: response => {
+                    if (response) {
+                        function call() {
+                            loadings.view = true;
+                            gvc.notifyDataChange(ids.view);
+                        }
+                        dialog.dataLoading({ visible: true });
+                        ApiShop.verifyOrderCode(vm.verify_code).then(r => {
+                            var _a;
+                            dialog.dataLoading({ visible: false });
+                            vm.passport = Boolean((_a = r.response) === null || _a === void 0 ? void 0 : _a.result);
+                            if (vm.passport) {
+                                dialog.successMessage({ text: '驗證成功' });
+                                setTimeout(() => call(), 1200);
+                            }
+                            else {
+                                dialog.errorMessage({ text: '驗證失敗', callback: () => call() });
+                            }
+                        });
+                    }
+                    else {
+                        glitter.setUrlParameter('cart_token', undefined);
+                        changePage('index', 'home', {});
+                    }
+                },
+            });
+        }
         return html ` <div class="container py-4">
       ${gvc.bindView({
             bind: ids.view,
@@ -423,13 +475,18 @@ export class UMOrder {
                             },
                         });
                     }
+                    if (!vm.passport) {
+                        guestCheckView();
+                        return '';
+                    }
                     if (!vm.data || !vm.data.orderData || !vm.data.cart_token) {
                         return html ` <section class="o-h2">${Language.text('order_not_found')}</section> `;
                     }
                     const orderData = vm.data.orderData;
                     if (window.store_info.pickup_mode) {
                         dialog.infoMessage({
-                            text: `取貨時請核對您的取貨號碼，您的取貨號碼為<br><div class="fw-bold fs-5 text-danger">『 ${vm.data.shipment_number} 號 』</div>`,
+                            text: html `取貨時請核對您的取貨號碼，您的取貨號碼為<br />
+                  <div class="fw-bold fs-5 text-danger">『 ${vm.data.shipment_number} 號 』</div>`,
                         });
                     }
                     const showUploadProof = orderData.method === 'off_line' &&
@@ -507,7 +564,6 @@ export class UMOrder {
                           class="o-title-container ${item.title === Language.text('payment_instructions')
                                         ? 'align-items-start mt-2'
                                         : ''}"
-                          
                         >
                           <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
                           <div class="o-title fr-view">${item.value}</div>
@@ -661,7 +717,7 @@ export class UMOrder {
                 <h3 class="mb-3">${Language.text('order_details')}</h3>
                 ${gvc.map(orderData.lineItems.map(item => {
                         return html `
-                      <div class="o-line-item ${document.body.clientWidth < 800 ? `p-2` : ``}">
+                      <div class="o-line-item ${document.body.clientWidth < 800 ? 'p-2' : ''}">
                         <div class="d-flex gap-3 align-items-center">
                           <div>
                             ${UmClass.validImageBox({
@@ -696,11 +752,8 @@ export class UMOrder {
                             });
                         })}"
                             >
-                              ${(() => {
-                            const title = (item.language_data && item.language_data[Language.getLanguage()].title) ||
-                                item.title;
-                            return title;
-                        })()}
+                              ${(item.language_data && item.language_data[Language.getLanguage()].title) ||
+                            item.title}
                             </p>
                             <p class="o-item-spec">
                               ${item.spec.length > 0
@@ -726,7 +779,7 @@ export class UMOrder {
                             })()}`
                             : Language.text('single_specification')}
                             </p>
-                            <span class="me-3  d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
+                            <span class="me-3 d-sm-none">NT ${item.sale_price.toLocaleString()} × ${item.count}</span>
                           </div>
                         </div>
                         <div class="d-none d-sm-flex">
@@ -890,7 +943,7 @@ export class UMOrder {
                                 value: (() => {
                                     switch (orderData.orderStatus) {
                                         case '-1':
-                                            return `<div class="text-danger">${Language.text('cancelled')}</div>`;
+                                            return html `<div class="text-danger">${Language.text('cancelled')}</div>`;
                                         case '1':
                                             return Language.text('completed');
                                         case '-99':
@@ -1206,33 +1259,42 @@ export class UMOrder {
                 }
                 catch (e) {
                     console.error(e);
-                    return ``;
+                    return '';
                 }
             },
             divCreate: {
                 class: 'd-flex align-items-center justify-content-center gap-3 flex-column',
                 style: 'min-height: 50vh;',
             },
-            onCreate: () => {
+            onCreate: () => __awaiter(this, void 0, void 0, function* () {
                 if (loadings.view) {
-                    ApiShop.getOrder({
-                        limit: 1,
-                        page: 0,
-                        data_from: 'user',
-                        search: glitter.getUrlParameter('cart_token'),
-                        searchType: 'cart_token',
-                    }).then((res) => {
-                        if (res.result && res.response.data) {
-                            vm.data = res.response.data[0];
-                        }
-                        else {
-                            vm.data = {};
-                        }
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
-                    });
+                    vm.passport = glitter.share.GlobalUser.token ? Boolean(yield UmClass.getUserData(gvc)) : vm.passport;
+                    if (vm.passport) {
+                        ApiShop.getOrder({
+                            limit: 1,
+                            page: 0,
+                            data_from: 'user',
+                            search: glitter.getUrlParameter('cart_token'),
+                            searchType: 'cart_token',
+                        }).then((res) => {
+                            if (res.result && res.response.data) {
+                                vm.data = res.response.data[0];
+                            }
+                            else {
+                                vm.data = {};
+                            }
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        });
+                    }
+                    else {
+                        setTimeout(() => {
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        }, 100);
+                    }
                 }
-            },
+            }),
         })}
     </div>`;
     }

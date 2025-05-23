@@ -414,6 +414,7 @@ export class CheckoutEvent {
         fbc: data.fbc as string,
         fbp: data.fbp as string,
         editRecord: [],
+        verify_code: Tool.randomString(6).toUpperCase(),
       };
 
       if (!data.user_info?.name && userData && userData.userData) {
@@ -478,7 +479,7 @@ export class CheckoutEvent {
       }
 
       const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
-
+      const store_manager = (await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' })).list ?? [];
       data.line_items = await Promise.all(
         data.line_items.map(async item => {
           const getProductData = (
@@ -510,7 +511,22 @@ export class CheckoutEvent {
               const isManualType = type === 'manual' || type === 'manual-preview';
 
               if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                variant.stock = variant.stockList?.[data.pos_store!]?.count || 0;
+                variant.stock =
+                  store_manager
+                    .filter((dd: any) => {
+                      return (
+                        dd.id === data.pos_store! ||
+                        (
+                          store_manager.find((dd: any) => {
+                            return dd.id === data.pos_store;
+                          }).support_store ?? []
+                        ).includes(dd.id)
+                      );
+                    })
+                    .map((d1: any) => {
+                      return variant.stockList?.[d1.id!]?.count;
+                    })
+                    .reduce((acc: any, val: any) => acc + val, 0) || 0;
               }
 
               if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
@@ -568,7 +584,6 @@ export class CheckoutEvent {
                   return 0;
                 })();
 
-                console.log(`shipmentValue=>`, shipmentValue);
                 item.shipment_obj = {
                   type: variant.shipment_type,
                   value: shipmentValue,
@@ -584,8 +599,8 @@ export class CheckoutEvent {
                     // 如果之前沒查詢過，才執行查詢 不這樣寫的話 -> 再按自動縮排時會自己打開
                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                     const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                      SELECT *
+                      FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                     `;
                     scheduledData = (await db.query(scheduledDataQuery, []))[0];
                     if (scheduledData) {
@@ -623,8 +638,28 @@ export class CheckoutEvent {
                       await this.shopping.updateExhibitionActiveStock(data.pos_store, variant.variant_id, item.count);
                     }
                   } else {
-                    variant.deduction_log = { [data.pos_store!!]: item.count };
-                    variant.stockList[data.pos_store!!].count -= item.count;
+                    const refer = JSON.parse(JSON.stringify(variant.stockList));
+                    Object.keys(refer).forEach(key => {
+                      if (
+                        key !== data.pos_store &&
+                        !(
+                          store_manager.find((dd: any) => {
+                            return dd.id === data.pos_store;
+                          }).support_store ?? []
+                        ).includes(key)
+                      ) {
+                        delete refer[key];
+                      }
+                    });
+                    const returnData = new Stock(this.app, this.token).allocateStock(refer, item.count);
+                    variant.stockList = {
+                      ...variant.stockList,
+                      ...refer,
+                    };
+                    variant.deduction_log = {
+                      ...variant.deduction_log,
+                      ...returnData.deductionLog,
+                    };
                     item.deduction_log = variant.deduction_log;
                   }
                 } else {
@@ -642,8 +677,8 @@ export class CheckoutEvent {
                             // 如果之前沒查詢過，才執行查詢 ，不這樣寫的話 -> 再按自動縮排時會自己打開
                             const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                             const scheduledDataQuery = `
-                                SELECT *
-                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                              SELECT *
+                              FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                             `;
                             scheduledData = (await db.query(scheduledDataQuery, []))[0];
                           }
@@ -675,13 +710,6 @@ export class CheckoutEvent {
                             }
                           }
                         } else {
-                          if (content.shopee_id) {
-                            await new Shopee(this.app, this.token).asyncStockToShopee({
-                              product: getProductData,
-                              callback: () => {},
-                            });
-                          }
-
                           if (content.product_category === 'kitchen' && variant.spec?.length) {
                             // 餐廳類別的庫存處理方式
                             variant.spec.forEach((d1: any, index: number) => {
@@ -698,16 +726,8 @@ export class CheckoutEvent {
                             });
                             item.deduction_log = { [store_config.list[0].id]: item.count };
                           } else {
-                            await this.shopping.updateVariantsWithSpec(variant, item.id, item.spec);
+                            await this.shopping.postVariantsAndPriceValue(content);
                           }
-
-                          // 更新資料庫
-                          await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE id = ${getProductData.id}`,
-                            [{ content: JSON.stringify(content) }]
-                          );
                         }
                         // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
 
@@ -754,22 +774,22 @@ export class CheckoutEvent {
       if (hasMaxProduct && data.email !== 'no-email') {
         // 查詢歷史訂單 SQL
         const cartTokenSQL = `
-            SELECT cart_token
-            FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
-              .filter(Boolean)
-              .map(item => db.escape(item))
-              .join(',')})
-              AND order_status <> '-1'
+          SELECT cart_token
+          FROM \`${this.app}\`.t_checkout
+          WHERE email IN (${[-99, userData?.userData?.email, userData?.userData?.phone]
+            .filter(Boolean)
+            .map(item => db.escape(item))
+            .join(',')})
+            AND order_status <> '-1'
         `;
 
         // 查詢商品購買紀錄
         const soldHistory = await db.query(
           `
-              SELECT *
-              FROM \`${this.app}\`.t_products_sold_history
-              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-                AND order_id IN (${cartTokenSQL})
+            SELECT *
+            FROM \`${this.app}\`.t_products_sold_history
+            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+              AND order_id IN (${cartTokenSQL})
           `,
           []
         );
@@ -1165,6 +1185,7 @@ export class CheckoutEvent {
               tag: 'order-create',
               order_id: carData.orderID,
               phone_email: email,
+              verify_code: carData.verify_code,
             });
             AutoSendEmail.customerOrder(
               this.app,
@@ -1221,14 +1242,14 @@ export class CheckoutEvent {
             console.error(e);
           }
         }
+        await trans.commit();
+        await trans.release();
+        await Promise.all(saveStockArray.map(dd => dd()));
         await OrderEvent.insertOrder({
           cartData: carData,
           status: data.pay_status as any,
           app: this.app,
         });
-        await trans.commit();
-        await trans.release();
-        await Promise.all(saveStockArray.map(dd => dd()));
         await this.shopping.releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
         checkPoint('release pos checkout');
         for (const email of new Set(
@@ -1242,6 +1263,7 @@ export class CheckoutEvent {
               tag: 'order-create',
               order_id: carData.orderID,
               phone_email: email,
+              verify_code: carData.verify_code,
             });
             AutoSendEmail.customerOrder(
               this.app,
@@ -1393,10 +1415,8 @@ export class CheckoutEvent {
               await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
               console.info('訂單簡訊寄送成功');
             }
-            console.log('carData.customer_info -- ', carData.customer_info);
             if (carData.customer_info.lineID) {
               let line = new LineMessage(this.app);
-              console.log('here -- OK');
               await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
               console.info('訂單line訊息寄送成功');
             }
@@ -1416,6 +1436,7 @@ export class CheckoutEvent {
                   tag: 'order-create',
                   order_id: carData.orderID,
                   phone_email: email,
+                  verify_code: carData.verify_code,
                 });
                 AutoSendEmail.customerOrder(
                   this.app,
@@ -1447,6 +1468,7 @@ export class CheckoutEvent {
    * */
   public async setPaymentSetting(obj: { carData: any; keyData: any; checkoutPayment: string }) {
     let { carData, keyData, checkoutPayment } = obj;
+
     // 線上金流是否可使用判斷，填入付款資訊與方式
     let payment_setting = this.getPaymentSetting().filter((dd: any) => {
       const k = (keyData as any)[dd.key];
@@ -1462,6 +1484,7 @@ export class CheckoutEvent {
       }
       return dd.type !== 'pos';
     });
+
     // 線下金流是否可使用判斷
     (carData as any).off_line_support = keyData.off_line_support ?? {};
     Object.entries((carData as any).off_line_support).map(([key, value]) => {
@@ -1490,34 +1513,30 @@ export class CheckoutEvent {
         }
       }
     });
-    //取得支援付款方式
+
+    // 取得支援付款方式
     (carData as any).payment_setting = payment_setting;
-    //避免初次載入沒有預設金流的BUG
+
+    // 避免初次載入沒有預設金流的BUG
     checkoutPayment =
       checkoutPayment || ((carData as any).payment_setting[0] && (carData as any).payment_setting[0].key);
-    console.log('checkoutPayment', checkoutPayment);
-    console.log('onlinePayArray', onlinePayArray);
+
     // 透過特定金流，取得指定物流
     carData.shipment_support =
       (() => {
         if (checkoutPayment === 'cash_on_delivery') {
-          console.log(`shipment_support-cash-delivery`);
           return (keyData as any).cash_on_delivery;
         } else if (
           this.getPaymentSetting()
             .map((item: any) => item.key)
             .includes(checkoutPayment)
         ) {
-          console.log(`shipment_support-online-pay-${checkoutPayment}`);
           return keyData[checkoutPayment];
         } else if (checkoutPayment === 'atm') {
-          console.log(`shipment_support-atm`);
           return keyData.payment_info_atm;
         } else if (checkoutPayment === 'line') {
-          console.log(`shipment_support-line`);
           return keyData.payment_info_line_pay;
         } else {
-          console.log(`shipment_support-custom`);
           // 自訂線下付款
           const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === checkoutPayment);
           return customPay ?? {};

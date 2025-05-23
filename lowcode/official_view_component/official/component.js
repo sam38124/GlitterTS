@@ -1178,7 +1178,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                         </div>`,
                                                                                                                         ` <div class="mx-n3" style="background: #DDD;height: 1px;"></div>`,
                                                                                                                     ].join(`<div style="height:18px;"></div>`);
-                                                                                                                    if (app_editor || glitter.share.editorViewModel.selectItem.is_customer_header) {
+                                                                                                                    if (app_editor || ((glitter.share.editorViewModel.selectItem) && glitter.share.editorViewModel.selectItem.is_customer_header)) {
                                                                                                                         global_setting_view = ``;
                                                                                                                     }
                                                                                                                     if (vm.page === 'editor') {

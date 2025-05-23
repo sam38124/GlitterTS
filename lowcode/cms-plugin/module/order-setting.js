@@ -47,6 +47,7 @@ export class OrderSetting {
             { title: '部分付款', value: '3' },
             { title: '待核款 / 貨到付款 / 未付款', value: '0' },
             { title: '已退款', value: '-2' },
+            { title: '付款失敗', value: '-1' },
         ].map(item => {
             return {
                 key: item.value,
@@ -1132,6 +1133,43 @@ export class OrderSetting {
             });
         }, 'combineOrders');
     }
+    static allEditDialog(data) {
+        const gvc = data.gvc;
+        const dialog = new ShareDialog(gvc.glitter);
+        const defaultValue = '';
+        let temp = '';
+        BgWidget.settingDialog({
+            gvc: gvc,
+            title: data.title,
+            innerHTML: (innerGVC) => {
+                return html ` <div>
+          <div class="tx_700 mb-2">更改為</div>
+          ${BgWidget.select({
+                    gvc: innerGVC,
+                    callback: (value) => {
+                        temp = value;
+                    },
+                    default: defaultValue,
+                    options: [{ key: '', value: '請選擇狀態' }, ...data.options],
+                })}
+        </div>`;
+            },
+            footer_html: (footerGVC) => {
+                return [
+                    BgWidget.cancel(footerGVC.event(() => footerGVC.closeDialog()), '取消'),
+                    BgWidget.save(footerGVC.event(() => {
+                        if (temp === defaultValue) {
+                            dialog.infoMessage({ text: '請選擇欲更改的選項' });
+                            return;
+                        }
+                        footerGVC.closeDialog();
+                        data.callback(temp);
+                    }), '儲存'),
+                ].join('');
+            },
+            width: 350,
+        });
+    }
     static batchEditOrders(obj) {
         const wp = window.parent;
         const topGVC = wp.glitter.pageConfig[wp.glitter.pageConfig.length - 1].gvc;
@@ -1241,8 +1279,23 @@ export class OrderSetting {
                                     dd.status = value;
                                 },
                                 default: `${dd.status || 0}`,
-                                options: OrderSetting.getPaymentStatusOpt(),
-                                style: 'min-width: 220px;',
+                                options: (() => {
+                                    const paymentOptions = OrderSetting.getPaymentStatusOpt();
+                                    const unpayOption = paymentOptions.find(item => item.key === '0');
+                                    if (unpayOption) {
+                                        if (dd.orderData.proof_purchase) {
+                                            unpayOption.value = '待核款';
+                                        }
+                                        else if (dd.orderData.customer_info.payment_select == 'cash_on_delivery') {
+                                            unpayOption.value = '貨到付款';
+                                        }
+                                        else {
+                                            unpayOption.value = '未付款';
+                                        }
+                                    }
+                                    return paymentOptions;
+                                })(),
+                                style: 'min-width: 150px;',
                             }),
                         },
                         {
@@ -1319,48 +1372,12 @@ export class OrderSetting {
                                         return html ` <div class="d-flex align-items-center gap-2">${htmlArray.join('')}</div>`;
                                     },
                                     divCreate: {
-                                        style: 'min-width: 580px;',
+                                        style: 'min-width: 620px;',
                                     },
                                 };
                             })()),
                         },
                     ];
-                });
-            }
-            function allEditDialog(data) {
-                const defaultValue = '';
-                let temp = '';
-                BgWidget.settingDialog({
-                    gvc: gvc,
-                    title: data.title,
-                    innerHTML: (innerGVC) => {
-                        return html ` <div>
-              <div class="tx_700 mb-2">更改為</div>
-              ${BgWidget.select({
-                            gvc: innerGVC,
-                            callback: (value) => {
-                                temp = value;
-                            },
-                            default: defaultValue,
-                            options: [{ key: '', value: '請選擇狀態' }, ...data.options],
-                        })}
-            </div>`;
-                    },
-                    footer_html: (footerGVC) => {
-                        return [
-                            BgWidget.cancel(footerGVC.event(() => footerGVC.closeDialog()), '取消'),
-                            BgWidget.save(footerGVC.event(() => {
-                                if (temp === defaultValue) {
-                                    dialog.infoMessage({ text: '請選擇欲更改的選項' });
-                                    return;
-                                }
-                                footerGVC.closeDialog();
-                                data.callback(temp);
-                                gvc.notifyDataChange(vm.id);
-                            }), '儲存'),
-                        ].join('');
-                    },
-                    width: 350,
                 });
             }
             function editOrderView() {
@@ -1370,13 +1387,15 @@ export class OrderSetting {
                         {
                             name: '更改付款狀態',
                             event: (checkArray) => {
-                                allEditDialog({
+                                OrderSetting.allEditDialog({
+                                    gvc,
                                     title: '批量更改付款狀態',
                                     options: OrderSetting.getPaymentStatusOpt(),
                                     callback: (value) => {
                                         checkArray.forEach((order) => {
                                             order.status = Number(value);
                                         });
+                                        gvc.notifyDataChange(vm.id);
                                     },
                                 });
                             },
@@ -1384,7 +1403,8 @@ export class OrderSetting {
                         {
                             name: '更改出貨狀態',
                             event: (checkArray) => {
-                                allEditDialog({
+                                OrderSetting.allEditDialog({
+                                    gvc,
                                     title: '批量更改出貨狀態',
                                     options: OrderSetting.getShippmentOpt(),
                                     callback: (value) => {
@@ -1394,6 +1414,7 @@ export class OrderSetting {
                                                 order.orderData.user_info.shipment_number = '';
                                             }
                                         });
+                                        gvc.notifyDataChange(vm.id);
                                     },
                                 });
                             },
@@ -1401,13 +1422,15 @@ export class OrderSetting {
                         {
                             name: '更改訂單狀態',
                             event: (checkArray) => {
-                                allEditDialog({
+                                OrderSetting.allEditDialog({
+                                    gvc,
                                     title: '批量更改訂單狀態',
                                     options: OrderSetting.getOrderStatusOpt(),
                                     callback: (value) => {
                                         checkArray.forEach((order) => {
                                             order.orderData.orderStatus = value;
                                         });
+                                        gvc.notifyDataChange(vm.id);
                                     },
                                 });
                             },
@@ -1467,25 +1490,11 @@ export class OrderSetting {
               <div class="w-100 d-flex justify-content-end" style="padding: 14px 16px; gap: 14px;">
                 ${BgWidget.cancel(gvc.event(() => closeEvent()))}
                 ${BgWidget.save(gvc.event(() => {
-                        for (let i = 0; i < vm.orders.length; i++) {
-                            const order = vm.orders[i];
-                            const cloneOrder = cloneOrders[i];
-                            if (['wait', 'returns', undefined].includes(cloneOrder.orderData.progress) &&
-                                ['arrived', 'finish', 'shipping', 'in_stock'].includes(order.orderData.progress) &&
-                                !order.orderData.user_info.shipment_number) {
-                                dialog.errorMessage({
-                                    text: `訂單編號 #${order.cart_token} 未輸入出貨單號碼`,
-                                });
-                                return;
-                            }
+                        const verify = this.batchUpdateOrderVerify(gvc, cloneOrders, vm.orders);
+                        if (verify) {
+                            obj.callback(vm.orders);
+                            topGVC.glitter.closeDiaLog();
                         }
-                        vm.orders.forEach((order) => {
-                            if (order.orderData.progress === 'in_stock') {
-                                order.orderData.progress = 'wait';
-                            }
-                        });
-                        obj.callback(vm.orders);
-                        topGVC.glitter.closeDiaLog();
                     }))}
               </div>
             </div>
@@ -1493,6 +1502,27 @@ export class OrderSetting {
                 },
             });
         }, 'batchEditOrders');
+    }
+    static batchUpdateOrderVerify(gvc, cloneOrders, updateOrders) {
+        const dialog = new ShareDialog(gvc.glitter);
+        for (let i = 0; i < updateOrders.length; i++) {
+            const order = updateOrders[i];
+            const cloneOrder = cloneOrders[i];
+            if (['wait', 'returns', undefined].includes(cloneOrder.orderData.progress) &&
+                ['arrived', 'finish', 'shipping', 'in_stock'].includes(order.orderData.progress) &&
+                !order.orderData.user_info.shipment_number) {
+                dialog.errorMessage({
+                    text: `訂單編號 #${order.cart_token} 未輸入出貨單號碼`,
+                });
+                return false;
+            }
+        }
+        updateOrders.forEach((order) => {
+            if (order.orderData.progress === 'in_stock') {
+                order.orderData.progress = 'wait';
+            }
+        });
+        return true;
     }
     static splitOrder(topGVC, origOrderData, callback) {
         var _a, _b;

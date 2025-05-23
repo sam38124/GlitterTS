@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { init } from '../GVController.js';
 import { TriggerEvent } from './trigger-event.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { FirstBanner } from '../../public-components/banner/first-banner.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { ApplicationConfig } from '../../application-config.js';
 const html = String.raw;
@@ -91,7 +90,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             var _a, _b, _c, _d, _e, _f, _g, _h;
-            FirstBanner.main({ gvc: gvc });
             if (gBundle.page_config.seo && gBundle.page_config.seo.type === 'custom' && gBundle.page_config.seo.title) {
                 glitter.setUrlParameter('', undefined, [
                     (_a = gBundle.page_config.seo.title_prefix) !== null && _a !== void 0 ? _a : '',

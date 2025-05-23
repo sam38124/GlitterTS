@@ -92,7 +92,7 @@ export class AutoSendEmail {
         tag_name: '訂單成立',
         name: '@{{app_name}}',
         title: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
-        content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+        content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立，訂單驗證碼為「@{{訂單驗證碼}}」',
         toggle: true,
       },
       {
@@ -596,7 +596,8 @@ export class AutoSendEmail {
               .replace(/@\{\{姓名\}\}/g, order_data.customer_info.name ?? '')
               .replace(/@\{\{電話\}\}/g, order_data.customer_info.phone ?? '')
               .replace(/@\{\{地址\}\}/g, order_data.user_info.address ?? '')
-              .replace(/@\{\{信箱\}\}/g, order_data.customer_info.email ?? ''),
+              .replace(/@\{\{信箱\}\}/g, order_data.customer_info.email ?? '')
+              .replace(/@\{\{訂單驗證碼\}\}/g, order_data.verify_code ?? ''),
             email: [email],
             type: tag,
           });

@@ -269,6 +269,7 @@ router.post('/login', async (req, resp) => {
             default: async () => user.login(account, pwd),
         };
         const result = await (loginMethods[login_type] || loginMethods.default)();
+        result.create_user_success = req.body.create_user_success;
         return response_1.default.succ(resp, result);
     }
     catch (err) {

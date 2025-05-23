@@ -579,6 +579,19 @@ export class ApiShop {
             },
         });
     }
+    static verifyOrderCode(verify_code) {
+        const glitter = window.glitter;
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/verifyCode?order_id=${glitter.getUrlParameter('cart_token')}`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+            data: JSON.stringify({ verify_code }),
+        });
+    }
     static getSearchReturnOrder(json) {
         const filterString = this.returnOrderListFilterString(json.filter);
         return BaseApi.create({

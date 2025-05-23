@@ -1420,6 +1420,7 @@ class Shopping {
                 fbc: sqlData.fbc,
                 fbp: sqlData.fbp,
                 editRecord: [],
+                verify_code: orderData.verify_code,
             };
             await redis_js_1.default.setValue(newOrderID, `${orderData.orderID}`);
             const strategyFactory = new payment_strategy_factory_js_1.PaymentStrategyFactory(keyData);
@@ -1961,10 +1962,10 @@ class Shopping {
             const disValue = parseFloat(voucher.value) / (voucher.method === 'percent' ? 100 : 1);
             if (voucher.conditionType === 'order') {
                 if (voucher.method === 'fixed') {
-                    voucher.discount_total = disValue * voucher.times;
+                    voucher.discount_total = Math.floor(disValue * voucher.times);
                 }
                 if (voucher.method === 'percent') {
-                    voucher.discount_total = voucher.bind_subtotal * disValue;
+                    voucher.discount_total = Math.floor(voucher.bind_subtotal * disValue);
                 }
                 if (voucher.bind_subtotal >= voucher.discount_total) {
                     let remain = parseInt(`${voucher.discount_total}`, 10);
@@ -2038,6 +2039,7 @@ class Shopping {
                     });
                 }
             }
+            voucher.discount_total = Math.floor(voucher.discount_total);
             return voucher.bind.length > 0;
         }
         function countingBindDiscount(voucher) {
@@ -2208,23 +2210,6 @@ class Shopping {
             if (Array.isArray(update.orderData.tags)) {
                 await this.setOrderCustomizeTagConifg(update.orderData.tags);
             }
-            await Promise.all(origin.orderData.lineItems.map(async (lineItem) => {
-                var _a;
-                const shopping = new Shopping(this.app, this.token);
-                const shopee = new shopee_1.Shopee(this.app, this.token);
-                const pd = await shopping.getProduct({
-                    id: lineItem.id,
-                    page: 0,
-                    limit: 10,
-                    skip_shopee_check: true,
-                });
-                if ((_a = pd.data) === null || _a === void 0 ? void 0 : _a.shopee_id) {
-                    await shopee.asyncStockToShopee({
-                        product: pd.data,
-                        callback: () => { },
-                    });
-                }
-            }));
             await checkout_js_1.CheckoutService.updateAndMigrateToTableColumn({
                 id: origin.id,
                 orderData: update.orderData,
@@ -2394,6 +2379,7 @@ class Shopping {
                     tag: type,
                     order_id: orderData.orderID,
                     phone_email: email,
+                    verify_code: orderData.verify_code,
                 });
                 messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
             }
@@ -2517,6 +2503,7 @@ class Shopping {
                         tag: 'proof-purchase',
                         order_id: order_id,
                         phone_email: email,
+                        verify_code: orderData.verify_code,
                     });
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
                 }
@@ -2610,17 +2597,13 @@ class Shopping {
                         search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
                     }
                     else if (status === 'pending_offset') {
-                        search.push(`(total_received < total)  &&  (offset_amount IS NULL)`);
+                        search.push(`(total_received < total) && (offset_amount IS NULL)`);
                     }
                     else if (status === 'pending_refund') {
-                        search.push(`(total_received > total)   &&  (offset_amount IS NULL)`);
+                        search.push(`(total_received > total) && (offset_amount IS NULL)`);
                     }
                 });
-                querySql.push(`(${search
-                    .map(dd => {
-                    return `(${dd})`;
-                })
-                    .join(' or ')})`);
+                querySql.push(`(${search.map(dd => `(${dd})`).join(' OR ')})`);
             }
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
@@ -2989,6 +2972,7 @@ class Shopping {
                             tag: 'payment-successful',
                             order_id: order_id,
                             phone_email: email,
+                            verify_code: order_data.orderData.verify_code,
                         });
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
                     }
@@ -3226,6 +3210,12 @@ class Shopping {
             if (null_variant_id_array.length > 0) {
                 await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE id IN (${null_variant_id_array.join(',')})
           `, []);
+            }
+            if (content.shopee_id) {
+                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                    product: { content },
+                    callback: () => { },
+                });
             }
         }
         catch (error) {
@@ -3942,12 +3932,6 @@ class Shopping {
                 content.id,
             ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
-            if (content.shopee_id) {
-                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                    product: { content },
-                    callback: () => { },
-                });
-            }
             return content.insertId;
         }
         catch (e) {
@@ -4369,8 +4353,8 @@ class Shopping {
     async batchPostCustomerInvoice(dataArray) {
         let result = [];
         const chunk = 10;
-        const chunksCount = Math.ceil(dataArray.length / chunk);
-        for (let i = 0; i < chunksCount; i++) {
+        const chunkLength = Math.ceil(dataArray.length / chunk);
+        for (let i = 0; i < chunkLength; i++) {
             const arr = dataArray.slice(i * chunk, (i + 1) * chunk);
             const res = await Promise.all(arr.map(item => {
                 return this.postCustomerInvoice(item);

@@ -1067,7 +1067,7 @@ h6 {
 }
 
 .sel_option:hover {
-  background: var(--background-1);
+  background: var(--background-2);
   border-radius: 5px;
 }
 

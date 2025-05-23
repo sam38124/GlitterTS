@@ -385,6 +385,7 @@ export class POSSetting {
     const data = obj.defaultData;
     const orderDetail = obj.orderDetail;
     let selectVariant = obj.selectVariant;
+
     let count = 1;
 
     function arraysEqual(arr1: any[], arr2: any[]) {
@@ -399,7 +400,13 @@ export class POSSetting {
       });
       return product.content.variants.find((variant: any) => arraysEqual(variant.spec, emptyArray));
     }
-
+    data.content.specs.map((dd:any,index:number)=>{
+      dd.option.map((d1:any,index:number)=>{
+        d1.select = index===0;
+      })
+    });
+    selectVariant = changeSelectVariant(data);
+    obj.callback(selectVariant);
     gvc.glitter.innerDialog(
       gvc => {
         return gvc.bindView({
@@ -407,10 +414,16 @@ export class POSSetting {
           view: () => {
             try {
               selectVariant.preview_image = selectVariant.preview_image || [];
-              selectVariant.stock =
-                (selectVariant.stockList[POSSetting.config.where_store] &&
-                  parseInt(selectVariant.stockList[POSSetting.config.where_store].count, 10)) ||
-                0;
+              selectVariant.stock = gvc.glitter.share.store_list.filter((dd:any)=>{
+                return (dd.id===POSSetting.config.where_store) || (
+                  gvc.glitter.share.store_list.find((dd:any)=>{
+                    return dd.id === POSSetting.config.where_store;
+                  }).support_store ?? []
+                ).includes(dd.id);
+              }).map((d1:any)=>{
+                 return  selectVariant.stockList[d1.id].count
+                }).reduce((acc: any, val: any) => acc + val,0)
+
 
               return html` <div
                 class="w-100 h-100 d-flex align-items-center justify-content-center"
@@ -453,7 +466,7 @@ export class POSSetting {
                               'zh-TW': string;
                             };
                           }[] = data.content.specs;
-
+                       
                           return productSpecs
                             .map((spec, index1) => {
                               return html` <div>
@@ -577,7 +590,7 @@ export class POSSetting {
                                 ${selectVariant.show_understocking === 'false'
                                   ? ''
                                   : BgWidget.blueNote(
-                                      '查看其他庫存點',
+                                      '查看各庫存點數量',
                                       gvc.event(() => {
                                         BgWidget.settingDialog({
                                           gvc,
@@ -588,7 +601,6 @@ export class POSSetting {
                                               filter: [],
                                               getData: vmi => {
                                                 const dataList: { name: string; count: number }[] = [];
-
                                                 function callback() {
                                                   vmi.pageSize = 1;
                                                   vmi.originalData = dataList;
@@ -596,12 +608,11 @@ export class POSSetting {
                                                   vmi.loading = false;
                                                   vmi.callback();
                                                 }
-
                                                 function getDatalist() {
                                                   return dataList.map((dd: any) => {
                                                     return [
                                                       {
-                                                        key: '門市名稱',
+                                                        key: '門市/庫存點',
                                                         value: `<span class="fs-7">${dd.name}</span>`,
                                                       },
                                                       {
@@ -613,6 +624,7 @@ export class POSSetting {
                                                 }
 
                                                 ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                  console.log(`selectVariant===>`,selectVariant)
                                                   if (dd.result && Array.isArray(dd.response.value?.list)) {
                                                     dd.response.value.list.map((store: any) => {
                                                       const n = selectVariant.stockList?.[store.id]?.count ?? 0;

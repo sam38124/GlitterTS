@@ -22,6 +22,13 @@ export class OrderDetail {
     }
     initUserInfo() {
         return {
+            country: '',
+            postal_code: '',
+            invoice_type: '',
+            shipment_date: '',
+            shipment_refer: '',
+            state: '',
+            company: '',
             CVSAddress: '',
             CVSStoreID: '',
             CVSStoreName: '',

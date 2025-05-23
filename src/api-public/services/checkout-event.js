@@ -35,7 +35,6 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const private_config_js_1 = require("../../services/private_config.js");
 const shipment_config_js_1 = require("../config/shipment-config.js");
 const stock_js_1 = require("./stock.js");
-const shopee_js_1 = require("./shopee.js");
 const recommend_js_1 = require("./recommend.js");
 const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
@@ -59,7 +58,7 @@ class CheckoutEvent {
         return JSON.parse(JSON.stringify((0, glitter_finance_js_1.onlinePayArray)()));
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17;
         try {
             const utTimer = new ut_timer_js_1.UtTimer('TO-CHECKOUT');
             const checkPoint = utTimer.checkPoint;
@@ -257,6 +256,7 @@ class CheckoutEvent {
                 fbc: data.fbc,
                 fbp: data.fbp,
                 editRecord: [],
+                verify_code: tool_js_1.default.randomString(6).toUpperCase(),
             };
             if (!((_y = data.user_info) === null || _y === void 0 ? void 0 : _y.name) && userData && userData.userData) {
                 const { name, phone } = userData.userData;
@@ -314,8 +314,9 @@ class CheckoutEvent {
                 }
             }
             const store_info = await userClass.getConfigV2({ key: 'store-information', user_id: 'manager' });
+            const store_manager = (_z = (await userClass.getConfigV2({ key: 'store_manager', user_id: 'manager' })).list) !== null && _z !== void 0 ? _z : [];
             data.line_items = await Promise.all(data.line_items.map(async (item) => {
-                var _a, _b, _c, _d, _e;
+                var _a, _b, _c;
                 const getProductData = (await this.shopping.getProduct({
                     page: 0,
                     limit: 1,
@@ -337,7 +338,20 @@ class CheckoutEvent {
                         const isUnderstockingVisible = variant.show_understocking !== 'false';
                         const isManualType = type === 'manual' || type === 'manual-preview';
                         if (isPOS && isUnderstockingVisible && !data.isExhibition) {
-                            variant.stock = ((_b = (_a = variant.stockList) === null || _a === void 0 ? void 0 : _a[data.pos_store]) === null || _b === void 0 ? void 0 : _b.count) || 0;
+                            variant.stock =
+                                store_manager
+                                    .filter((dd) => {
+                                    var _a;
+                                    return (dd.id === data.pos_store ||
+                                        ((_a = store_manager.find((dd) => {
+                                            return dd.id === data.pos_store;
+                                        }).support_store) !== null && _a !== void 0 ? _a : []).includes(dd.id));
+                                })
+                                    .map((d1) => {
+                                    var _a, _b;
+                                    return (_b = (_a = variant.stockList) === null || _a === void 0 ? void 0 : _a[d1.id]) === null || _b === void 0 ? void 0 : _b.count;
+                                })
+                                    .reduce((acc, val) => acc + val, 0) || 0;
                         }
                         if (variant.stock < item.count && isUnderstockingVisible && !isManualType) {
                             if (isPOS || isPreOrderStore) {
@@ -379,7 +393,7 @@ class CheckoutEvent {
                                 show_understocking: variant.show_understocking,
                                 stockList: variant.stockList,
                                 weight: parseInt(variant.weight || '0', 10),
-                                designated_logistics: (_c = content.designated_logistics) !== null && _c !== void 0 ? _c : { type: 'all', list: [] },
+                                designated_logistics: (_a = content.designated_logistics) !== null && _a !== void 0 ? _a : { type: 'all', list: [] },
                                 product_customize_tag: content.product_customize_tag || [],
                             });
                             const shipmentValue = (() => {
@@ -393,7 +407,6 @@ class CheckoutEvent {
                                 }
                                 return 0;
                             })();
-                            console.log(`shipmentValue=>`, shipmentValue);
                             item.shipment_obj = {
                                 type: variant.shipment_type,
                                 value: shipmentValue,
@@ -404,8 +417,8 @@ class CheckoutEvent {
                                 if (!scheduledData) {
                                     const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                                     const scheduledDataQuery = `
-                        SELECT *
-                        FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                      SELECT *
+                      FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                     `;
                                     scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
                                     if (scheduledData) {
@@ -440,8 +453,19 @@ class CheckoutEvent {
                                     }
                                 }
                                 else {
-                                    variant.deduction_log = { [data.pos_store]: item.count };
-                                    variant.stockList[data.pos_store].count -= item.count;
+                                    const refer = JSON.parse(JSON.stringify(variant.stockList));
+                                    Object.keys(refer).forEach(key => {
+                                        var _a;
+                                        if (key !== data.pos_store &&
+                                            !((_a = store_manager.find((dd) => {
+                                                return dd.id === data.pos_store;
+                                            }).support_store) !== null && _a !== void 0 ? _a : []).includes(key)) {
+                                            delete refer[key];
+                                        }
+                                    });
+                                    const returnData = new stock_js_1.Stock(this.app, this.token).allocateStock(refer, item.count);
+                                    variant.stockList = Object.assign(Object.assign({}, variant.stockList), refer);
+                                    variant.deduction_log = Object.assign(Object.assign({}, variant.deduction_log), returnData.deductionLog);
                                     item.deduction_log = variant.deduction_log;
                                 }
                             }
@@ -457,8 +481,8 @@ class CheckoutEvent {
                                         if (!scheduledData) {
                                             const sql = `WHERE JSON_CONTAINS(content->'$.pending_order', '"${data.temp_cart_id}"'`;
                                             const scheduledDataQuery = `
-                                SELECT *
-                                FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
+                              SELECT *
+                              FROM \`${this.app}\`.\`t_live_purchase_interactions\` ${sql});
                             `;
                                             scheduledData = (await database_js_1.default.query(scheduledDataQuery, []))[0];
                                         }
@@ -479,12 +503,6 @@ class CheckoutEvent {
                                         }
                                     }
                                     else {
-                                        if (content.shopee_id) {
-                                            await new shopee_js_1.Shopee(this.app, this.token).asyncStockToShopee({
-                                                product: getProductData,
-                                                callback: () => { },
-                                            });
-                                        }
                                         if (content.product_category === 'kitchen' && ((_a = variant.spec) === null || _a === void 0 ? void 0 : _a.length)) {
                                             variant.spec.forEach((d1, index) => {
                                                 const option = content.specs[index].option.find((d2) => d2.title === d1);
@@ -499,11 +517,8 @@ class CheckoutEvent {
                                             item.deduction_log = { [store_config.list[0].id]: item.count };
                                         }
                                         else {
-                                            await this.shopping.updateVariantsWithSpec(variant, item.id, item.spec);
+                                            await this.shopping.postVariantsAndPriceValue(content);
                                         }
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE id = ${getProductData.id}`, [{ content: JSON.stringify(content) }]);
                                     }
                                     resolve(true);
                                 }
@@ -518,8 +533,8 @@ class CheckoutEvent {
                         is_hidden: content.visible === 'false',
                         is_gift: content.productType.giveaway,
                         sale_price: content.productType.giveaway ? 0 : item.sale_price,
-                        min_qty: (_d = content.min_qty) !== null && _d !== void 0 ? _d : item.min_qty,
-                        max_qty: (_e = content.max_qty) !== null && _e !== void 0 ? _e : item.max_qty,
+                        min_qty: (_b = content.min_qty) !== null && _b !== void 0 ? _b : item.min_qty,
+                        max_qty: (_c = content.max_qty) !== null && _c !== void 0 ? _c : item.max_qty,
                     });
                     item.is_add_on_items && add_on_items.push(item);
                     item.is_gift && gift_product.push(item);
@@ -537,24 +552,24 @@ class CheckoutEvent {
             }
             if (hasMaxProduct && data.email !== 'no-email') {
                 const cartTokenSQL = `
-            SELECT cart_token
-            FROM \`${this.app}\`.t_checkout
-            WHERE email IN (${[-99, (_z = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _z === void 0 ? void 0 : _z.email, (_0 = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _0 === void 0 ? void 0 : _0.phone]
+          SELECT cart_token
+          FROM \`${this.app}\`.t_checkout
+          WHERE email IN (${[-99, (_0 = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _0 === void 0 ? void 0 : _0.email, (_1 = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _1 === void 0 ? void 0 : _1.phone]
                     .filter(Boolean)
                     .map(item => database_js_1.default.escape(item))
                     .join(',')})
-              AND order_status <> '-1'
+            AND order_status <> '-1'
         `;
                 const soldHistory = await database_js_1.default.query(`
-              SELECT *
-              FROM \`${this.app}\`.t_products_sold_history
-              WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
-                AND order_id IN (${cartTokenSQL})
+            SELECT *
+            FROM \`${this.app}\`.t_products_sold_history
+            WHERE product_id IN (${[...maxProductMap.keys()].join(',')})
+              AND order_id IN (${cartTokenSQL})
           `, []);
                 const purchaseHistory = new Map();
                 for (const history of soldHistory) {
                     const pid = Number(history.product_id);
-                    purchaseHistory.set(pid, ((_1 = purchaseHistory.get(pid)) !== null && _1 !== void 0 ? _1 : 0) + history.count);
+                    purchaseHistory.set(pid, ((_2 = purchaseHistory.get(pid)) !== null && _2 !== void 0 ? _2 : 0) + history.count);
                 }
                 for (const item of data.line_items) {
                     if (maxProductMap.has(item.id)) {
@@ -563,13 +578,13 @@ class CheckoutEvent {
                 }
             }
             checkPoint('set max product');
-            carData.select_shipment_setting = ((_2 = data === null || data === void 0 ? void 0 : data.user_info) === null || _2 === void 0 ? void 0 : _2.shipment)
+            carData.select_shipment_setting = ((_3 = data === null || data === void 0 ? void 0 : data.user_info) === null || _3 === void 0 ? void 0 : _3.shipment)
                 ? await userClass.getConfigV2({
                     key: 'shipment_config_' + data.user_info.shipment,
                     user_id: 'manager',
                 })
                 : {};
-            const freeShipmnetNum = (_5 = (_4 = (_3 = carData.select_shipment_setting) === null || _3 === void 0 ? void 0 : _3.cartSetting) === null || _4 === void 0 ? void 0 : _4.freeShipmnetTarget) !== null && _5 !== void 0 ? _5 : 0;
+            const freeShipmnetNum = (_6 = (_5 = (_4 = carData.select_shipment_setting) === null || _4 === void 0 ? void 0 : _4.cartSetting) === null || _5 === void 0 ? void 0 : _5.freeShipmnetTarget) !== null && _6 !== void 0 ? _6 : 0;
             const isFreeShipment = freeShipmnetNum > 0 && carData.total >= freeShipmnetNum;
             carData.shipment_fee = isFreeShipment
                 ? 0
@@ -627,7 +642,7 @@ class CheckoutEvent {
                 await this.shopping.checkVoucher(carData);
                 checkPoint('check voucher');
                 let can_add_gift = [];
-                (_6 = carData.voucherList) === null || _6 === void 0 ? void 0 : _6.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
+                (_7 = carData.voucherList) === null || _7 === void 0 ? void 0 : _7.filter(dd => dd.reBackType === 'giveaway').forEach(dd => can_add_gift.push(dd.add_on_products));
                 gift_product.forEach(dd => {
                     const max_count = can_add_gift.filter(d1 => d1.includes(dd.id)).length;
                     if (max_count) {
@@ -639,7 +654,7 @@ class CheckoutEvent {
                     }
                 });
                 for (const giveawayData of carData.voucherList.filter(dd => dd.reBackType === 'giveaway')) {
-                    if (!((_7 = giveawayData.add_on_products) === null || _7 === void 0 ? void 0 : _7.length))
+                    if (!((_8 = giveawayData.add_on_products) === null || _8 === void 0 ? void 0 : _8.length))
                         continue;
                     const productPromises = giveawayData.add_on_products
                         .map(async (id) => {
@@ -667,7 +682,7 @@ class CheckoutEvent {
                 appName: this.app,
                 key: 'glitter_finance',
             });
-            const keyData = (_8 = configData[0]) === null || _8 === void 0 ? void 0 : _8.value;
+            const keyData = (_9 = configData[0]) === null || _9 === void 0 ? void 0 : _9.value;
             if (keyData) {
                 carData.payment_info_custom = keyData.payment_info_custom;
             }
@@ -697,10 +712,10 @@ class CheckoutEvent {
                 }
             });
             checkPoint('set payment');
-            keyData.cash_on_delivery = (_9 = keyData.cash_on_delivery) !== null && _9 !== void 0 ? _9 : { shipmentSupport: [] };
+            keyData.cash_on_delivery = (_10 = keyData.cash_on_delivery) !== null && _10 !== void 0 ? _10 : { shipmentSupport: [] };
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
-            keyData.cash_on_delivery.shipmentSupport = (_10 = keyData.cash_on_delivery.shipmentSupport) !== null && _10 !== void 0 ? _10 : [];
+            keyData.cash_on_delivery.shipmentSupport = (_11 = keyData.cash_on_delivery.shipmentSupport) !== null && _11 !== void 0 ? _11 : [];
             await this.setPaymentSetting({ carData: carData, checkoutPayment: checkoutPayment, keyData: keyData });
             let subtotal = 0;
             carData.lineItems.map(item => {
@@ -722,7 +737,7 @@ class CheckoutEvent {
             const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
             const excludedValuesByWeight = new Set(['normal', 'black_cat']);
             const logisticsGroupResult = await userClass.getConfig({ key: 'logistics_group', user_id: 'manager' });
-            const logisticsGroup = (_12 = (_11 = logisticsGroupResult[0]) === null || _11 === void 0 ? void 0 : _11.value) !== null && _12 !== void 0 ? _12 : [];
+            const logisticsGroup = (_13 = (_12 = logisticsGroupResult[0]) === null || _12 === void 0 ? void 0 : _12.value) !== null && _13 !== void 0 ? _13 : [];
             const isExcludedByTotal = (dd) => {
                 return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
             };
@@ -829,7 +844,7 @@ class CheckoutEvent {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_13 = data.total) !== null && _13 !== void 0 ? _13 : 0;
+                carData.total = (_14 = data.total) !== null && _14 !== void 0 ? _14 : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free' || type == 'split') {
                     carData.shipment_fee = 0;
@@ -860,6 +875,7 @@ class CheckoutEvent {
                             tag: 'order-create',
                             order_id: carData.orderID,
                             phone_email: email,
+                            verify_code: carData.verify_code,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -874,7 +890,7 @@ class CheckoutEvent {
                 if (checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = (_14 = manualVoucher.discount_total) !== null && _14 !== void 0 ? _14 : 0;
+                        manualVoucher.discount = (_15 = manualVoucher.discount_total) !== null && _15 !== void 0 ? _15 : 0;
                         carData.total -= manualVoucher.discount;
                         carData.discount += manualVoucher.discount;
                         carData.voucherList.push(manualVoucher);
@@ -906,15 +922,15 @@ class CheckoutEvent {
                         console.error(e);
                     }
                 }
+                await trans.commit();
+                await trans.release();
+                await Promise.all(saveStockArray.map(dd => dd()));
                 await order_event_js_1.OrderEvent.insertOrder({
                     cartData: carData,
                     status: data.pay_status,
                     app: this.app,
                 });
-                await trans.commit();
-                await trans.release();
-                await Promise.all(saveStockArray.map(dd => dd()));
-                await this.shopping.releaseCheckout((_15 = data.pay_status) !== null && _15 !== void 0 ? _15 : 0, carData.orderID);
+                await this.shopping.releaseCheckout((_16 = data.pay_status) !== null && _16 !== void 0 ? _16 : 0, carData.orderID);
                 checkPoint('release pos checkout');
                 for (const email of new Set([carData.customer_info, carData.user_info].map(dd => {
                     return dd && dd.email;
@@ -925,6 +941,7 @@ class CheckoutEvent {
                             tag: 'order-create',
                             order_id: carData.orderID,
                             phone_email: email,
+                            verify_code: carData.verify_code,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -968,7 +985,7 @@ class CheckoutEvent {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_16 = keyData[carData.customer_info.payment_select]) !== null && _16 !== void 0 ? _16 : {
+                let kd = (_17 = keyData[carData.customer_info.payment_select]) !== null && _17 !== void 0 ? _17 : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };
@@ -1043,10 +1060,8 @@ class CheckoutEvent {
                             await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.info('訂單簡訊寄送成功');
                         }
-                        console.log('carData.customer_info -- ', carData.customer_info);
                         if (carData.customer_info.lineID) {
                             let line = new line_message_js_1.LineMessage(this.app);
-                            console.log('here -- OK');
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.info('訂單line訊息寄送成功');
                         }
@@ -1059,6 +1074,7 @@ class CheckoutEvent {
                                     tag: 'order-create',
                                     order_id: carData.orderID,
                                     phone_email: email,
+                                    verify_code: carData.verify_code,
                                 });
                                 auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                             }
@@ -1126,30 +1142,23 @@ class CheckoutEvent {
         carData.payment_setting = payment_setting;
         checkoutPayment =
             checkoutPayment || (carData.payment_setting[0] && carData.payment_setting[0].key);
-        console.log('checkoutPayment', checkoutPayment);
-        console.log('onlinePayArray', glitter_finance_js_1.onlinePayArray);
         carData.shipment_support =
             (_b = (() => {
                 if (checkoutPayment === 'cash_on_delivery') {
-                    console.log(`shipment_support-cash-delivery`);
                     return keyData.cash_on_delivery;
                 }
                 else if (this.getPaymentSetting()
                     .map((item) => item.key)
                     .includes(checkoutPayment)) {
-                    console.log(`shipment_support-online-pay-${checkoutPayment}`);
                     return keyData[checkoutPayment];
                 }
                 else if (checkoutPayment === 'atm') {
-                    console.log(`shipment_support-atm`);
                     return keyData.payment_info_atm;
                 }
                 else if (checkoutPayment === 'line') {
-                    console.log(`shipment_support-line`);
                     return keyData.payment_info_line_pay;
                 }
                 else {
-                    console.log(`shipment_support-custom`);
                     const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
                     return customPay !== null && customPay !== void 0 ? customPay : {};
                 }

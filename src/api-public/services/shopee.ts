@@ -654,7 +654,9 @@ export class Shopee {
     shop_id?: string;
     callback: (response?: any) => void;
   }) {
-    console.log(`asyncStockToShopee===>`);
+    function callback(response?: any){
+      obj.callback(response);
+    }
     if (!obj.access_token || !obj.shop_id) {
       const access = await new Shopee(this.app, this.token).fetchShopeeAccessToken();
       obj.access_token = access.access_token;
@@ -662,7 +664,7 @@ export class Shopee {
     }
     if (!obj.product.content.shopee_id) {
       //沒有shopee_id的話直接回去
-      obj.callback();
+      callback();
       return;
     }
     let basicData: {
@@ -691,7 +693,7 @@ export class Shopee {
     try {
       const response = await axios(config);
       if (!response.data?.response?.model) {
-        obj.callback(response.data);
+        callback(response.data);
       }
       //找到兩個名字相同的 把儲存model_id 還有庫存
       obj.product.content.variants.map((variant: any) => {
@@ -737,7 +739,7 @@ export class Shopee {
         const response = await axios(updateConfig);
         console.log(`update_stock`, JSON.stringify(basicData));
         console.log(`update_stock`, response.data);
-        obj.callback(response.data);
+        callback(response.data);
       } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
           console.error('Error Response:', error.response.data);
@@ -752,6 +754,11 @@ export class Shopee {
         console.error('Unexpected Error:', error.message);
       }
     }
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 500);
+    });
   }
 
   public async asyncStockFromShopnex(): Promise<any> {

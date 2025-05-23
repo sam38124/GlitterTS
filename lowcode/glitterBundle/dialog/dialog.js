@@ -126,7 +126,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     var _a, _b;
                                     (_b = (_a = gBundle.obj) === null || _a === void 0 ? void 0 : _a.callback) === null || _b === void 0 ? void 0 : _b.call(_a, true);
                                     gvc.closeDialog();
-                                }
+                                },
                             },
                             width: 420,
                         });
@@ -170,7 +170,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 title: (_q = gBundle.notString) !== null && _q !== void 0 ? _q : Language.text('cancel'),
                                 event: () => { var _a; return (_a = gBundle.callback) === null || _a === void 0 ? void 0 : _a.call(gBundle, false); },
                             },
-                            width: (_r = gBundle.width) !== null && _r !== void 0 ? _r : 600
+                            width: (_r = gBundle.width) !== null && _r !== void 0 ? _r : 600,
                         });
                     default:
                         return '';

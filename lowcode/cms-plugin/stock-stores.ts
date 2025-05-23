@@ -20,6 +20,7 @@ export type StoreData = {
   manager_phone: string;
   note: string;
   is_shop: boolean;
+  support_store: string[];
 };
 
 type VM = {
@@ -83,6 +84,7 @@ export class StockStores {
       manager_phone: '',
       note: '',
       is_shop: is_shop,
+      support_store:[]
     };
   }
   static list(gvc: GVC, vm: VM, isShop: boolean) {
@@ -208,6 +210,7 @@ export class StockStores {
                               manager_phone: '',
                               note: '',
                               is_shop: false,
+                              support_store:[]
                             },
                           ];
                           ApiUser.setPublicConfig({
@@ -347,6 +350,62 @@ export class StockStores {
                       })}
                     </div>
                   </div>`,
+                  (()=>{
+                    if(vm.data.is_shop){
+                      return  gvc.bindView(() => {
+
+                        const id = gvc.glitter.getUUID();
+
+                        vm.data.support_store = vm.data.support_store ?? [];
+                        let manager: any = undefined;
+                        ApiUser.getPublicConfig('store_manager', 'manager').then(res => {
+                          manager = res;
+                          gvc.notifyDataChange(id);
+                        });
+                        return {
+                          bind: id,
+                          view: () => {
+                            if (!manager) {
+                              return BgWidget.spinner();
+                            }
+                            if (
+                              !manager.response.value.list.filter((dd: any) => {
+                                return !dd.is_shop;
+                              }).length
+                            ) {
+                              return ``;
+                            }
+                            return BgWidget.inlineCheckBox({
+                              title: '門市相關庫存點',
+                              gvc: gvc,
+                              def: vm.data.support_store!,
+                              type: 'multiple',
+                              array: manager.response.value.list
+                                .filter((dd: any) => {
+                                  return !dd.is_shop;
+                                })
+                                .map((dd: any) => {
+                                  return {
+                                    title: dd.name,
+                                    value: dd.id,
+                                  };
+                                }),
+                              callback: text => {
+                                vm.data.support_store = text as any;
+                                gvc.notifyDataChange(id);
+                              },
+                            });
+                          },
+                          divCreate: {
+                            class: `col-12`,
+                          },
+                        };
+                      })
+                    }else{
+                      return ``
+                    }
+                  })()
+                 ,
                   html` <div class="tx_normal">備註</div>
                     ${EditorElem.editeText({
                       gvc: gvc,

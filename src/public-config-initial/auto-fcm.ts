@@ -27,7 +27,7 @@ export class AutoFcm {
       'order-create': {
         name: '@{{app_name}}',
         title: '訂單狀態已更新',
-        content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
+        content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立，訂單驗證碼為「@{{訂單驗證碼}}」',
         toggle: true,
       },
       'payment-successful': {
@@ -65,16 +65,20 @@ export class AutoFcm {
     return obj;
   }
 
-  public static async orderChangeInfo(obj: { app: string; tag: string; order_id: string; phone_email: string }) {
+  public static async orderChangeInfo(obj: {
+    app: string;
+    tag: string;
+    order_id: string;
+    phone_email: string;
+    verify_code: string;
+  }) {
     const userData = await new User(obj.app).getUserData(obj.phone_email, 'email_or_phone');
     if (userData) {
       //
-      const data = (
-        await new User(obj.app).getConfigV2({
-          key: 'auto_fcm',
-          user_id: 'manager',
-        })
-      )
+      const data = await new User(obj.app).getConfigV2({
+        key: 'auto_fcm',
+        user_id: 'manager',
+      });
       const orderChangeInfo = (
         await new User(obj.app).getConfigV2({
           key: 'auto_fcm',
@@ -94,7 +98,8 @@ export class AutoFcm {
         link: `/order_detail?cart_token=${obj.order_id}`,
         body: orderChangeInfo.content
           .replace(/@\{\{app_name\}\}/g, (appData && appData.shop_name) || '商店名稱')
-          .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`),
+          .replace(/@\{\{訂單號碼\}\}/g, `#${obj.order_id}`)
+          .replace(/@\{\{訂單驗證碼\}\}/g, obj.verify_code ?? ''),
       });
     }
   }

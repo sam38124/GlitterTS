@@ -2,14 +2,13 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { CartData, OrderData } from './data.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { PaymentConfig } from '../../glitter-base/global/payment-config.js';
 import { OrderExcel } from './order-excel.js';
 
 const html = String.raw;
 
-type PrintType = 'shipment' | 'pick' | 'address' | 'shipAddr';
+export type PrintType = 'shipment' | 'pick' | 'address' | 'shipAddr';
 
 type InfoObject = {
   title: string;

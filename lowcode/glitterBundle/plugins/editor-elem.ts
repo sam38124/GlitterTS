@@ -43,7 +43,7 @@ export class EditorElem {
               onclick="${obj.gvc.event(() => {
                 glitter.ut.chooseMediaCallback({
                   single: true,
-                  accept: 'json,image/*',
+                  accept: '*',
                   callback(data: any) {
                     const saasConfig: { config: any; api: any } = (window as any).saasConfig;
                     const dialog = new ShareDialog(obj.gvc.glitter);

@@ -474,14 +474,16 @@ class Shopee {
     }
     async asyncStockToShopee(obj) {
         var _a, _b, _c;
-        console.log(`asyncStockToShopee===>`);
+        function callback(response) {
+            obj.callback(response);
+        }
         if (!obj.access_token || !obj.shop_id) {
             const access = await new Shopee(this.app, this.token).fetchShopeeAccessToken();
             obj.access_token = access.access_token;
             obj.shop_id = access.shop_id;
         }
         if (!obj.product.content.shopee_id) {
-            obj.callback();
+            callback();
             return;
         }
         let basicData = {
@@ -506,7 +508,7 @@ class Shopee {
         try {
             const response = await (0, axios_1.default)(config);
             if (!((_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.response) === null || _c === void 0 ? void 0 : _c.model)) {
-                obj.callback(response.data);
+                callback(response.data);
             }
             obj.product.content.variants.map((variant) => {
                 let basicStock = {
@@ -543,7 +545,7 @@ class Shopee {
                 const response = await (0, axios_1.default)(updateConfig);
                 console.log(`update_stock`, JSON.stringify(basicData));
                 console.log(`update_stock`, response.data);
-                obj.callback(response.data);
+                callback(response.data);
             }
             catch (error) {
                 if (axios_1.default.isAxiosError(error) && error.response) {
@@ -562,6 +564,11 @@ class Shopee {
                 console.error('Unexpected Error:', error.message);
             }
         }
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(true);
+            }, 500);
+        });
     }
     async asyncStockFromShopnex() {
         let origData = {};

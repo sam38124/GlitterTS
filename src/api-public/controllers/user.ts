@@ -284,8 +284,9 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
       pin: async () => user.loginWithPin(user_id, pin),
       default: async () => user.login(account, pwd),
     };
-
     const result = await (loginMethods[login_type] || loginMethods.default)();
+    //當如果是註冊事件返回，通知前端敲擊GA事件
+    result.create_user_success=req.body.create_user_success;
     return response.succ(resp, result);
   } catch (err) {
     return response.fail(resp, err);

@@ -1,9 +1,23 @@
 import { GlobalUser } from "../global/global-user.js";
 import { BaseApi } from "../../glitterBundle/api/base.js";
+import { Ad } from '../../public-components/public/ad.js';
 export class ApiPost {
     constructor() {
     }
     static post(json) {
+        if (json.postData && json.postData.type === 'post-form-config') {
+            Ad.gtagEvent('generate_lead', {
+                event_category: 'form',
+                event_label: json.postData.form_title || 'contact_form',
+                value: 1
+            });
+            Ad.gtagEvent('lead_form_submitted', {
+                event_category: 'form',
+                event_label: json.postData.form_title || 'contact_form',
+                value: 1
+            });
+            Ad.fbqEvent('Lead', {});
+        }
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/post`,
             "type": "POST",

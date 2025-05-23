@@ -12,7 +12,7 @@ interface DialogConfig {
   cancel?: ButtonConfig;
   confirm?: ButtonConfig;
   width?: number;
-  auto?:boolean;
+  auto?: boolean;
 }
 
 interface Bundle {
@@ -156,8 +156,8 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
                 title: Language.text('okay'),
                 event: () => {
                   gBundle.obj?.callback?.(true);
-                  gvc.closeDialog()
-                }
+                  gvc.closeDialog();
+                },
               },
               width: 420,
             });
@@ -165,7 +165,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
           case 'checkYesOrNot':
           case 'warningMessage':
             return createDialogBox({
-              icon:  icons.question,
+              icon: icons.question,
               content: gBundle.title ?? '',
               confirm: {
                 title: gBundle.yesString ?? Language.text('okay'),
@@ -204,7 +204,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
                 title: gBundle.notString ?? Language.text('cancel'),
                 event: () => gBundle.callback?.(false),
               },
-              width:gBundle.width??600
+              width: gBundle.width ?? 600,
             });
 
           default:
