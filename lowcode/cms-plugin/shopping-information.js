@@ -171,7 +171,6 @@ export class ShoppingInformation {
                 }
                 function createRow(title, description, elem) {
                     return html `
-            ${BgWidget.horizontalLine({ margin: 0.5 })}
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex flex-column" style="gap:4px;">${createSection(title, description)}</div>
               ${elem}
@@ -532,8 +531,8 @@ export class ShoppingInformation {
                             BgWidget.mbContainer(24)
                             +
                                 BgWidget.mainCard(html `
-              <div class="d-flex flex-column gap-2">
-                ${createSection('網站功能', '系統將根據您勾選的項目，開放相對應的功能')}
+              <div class="d-flex flex-column " style="gap:18px;">
+                <div class="tx_700">商店功能</div>
                 ${createToggle('啟用 AI 選品', '透過 AI 選品功能，用戶可以使用自然語言描述找到所需商品', 'ai_search')}
                 ${GlobalUser.getPlan().id > 0
                                     ? createToggle('啟用聊聊功能', '啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容', 'chat_toggle')
