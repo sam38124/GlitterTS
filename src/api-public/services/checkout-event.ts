@@ -414,6 +414,7 @@ export class CheckoutEvent {
         fbc: data.fbc as string,
         fbp: data.fbp as string,
         editRecord: [],
+        verify_code: Tool.randomString(6).toUpperCase(),
       };
 
       if (!data.user_info?.name && userData && userData.userData) {
@@ -583,7 +584,6 @@ export class CheckoutEvent {
                   return 0;
                 })();
 
-                console.log(`shipmentValue=>`, shipmentValue);
                 item.shipment_obj = {
                   type: variant.shipment_type,
                   value: shipmentValue,
@@ -641,40 +641,31 @@ export class CheckoutEvent {
                     const refer = JSON.parse(JSON.stringify(variant.stockList));
                     Object.keys(refer).forEach(key => {
                       if (
-                        (key !== data.pos_store) &&
-                        (!(
+                        key !== data.pos_store &&
+                        !(
                           store_manager.find((dd: any) => {
                             return dd.id === data.pos_store;
                           }).support_store ?? []
-                        ).includes(key))
+                        ).includes(key)
                       ) {
                         delete refer[key];
                       }
                     });
                     const returnData = new Stock(this.app, this.token).allocateStock(refer, item.count);
-                    variant.stockList={
+                    variant.stockList = {
                       ...variant.stockList,
-                        ...refer
-                    }
+                      ...refer,
+                    };
                     variant.deduction_log = {
                       ...variant.deduction_log,
                       ...returnData.deductionLog,
                     };
                     item.deduction_log = variant.deduction_log;
-                    console.log(`item.deduction_log===>`,item.deduction_log);
-                    console.log(`variant.stockList===>`,variant.stockList);
-                    console.log(`variant.deduction_log===>`,variant.deduction_log);
-                    content.variants.forEach((d1: any, index: number) => {
-                      console.log(`update-content-pos->`,d1.stockList)
-                    })
                   }
                 } else {
                   const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
                   variant.deduction_log = returnData.deductionLog;
                   item.deduction_log = returnData.deductionLog;
-                  content.variants.forEach((d1: any, index: number) => {
-                    console.log(`update-content-web->`,d1.stockList)
-                  })
                 }
 
                 saveStockArray.push(
@@ -735,23 +726,8 @@ export class CheckoutEvent {
                             });
                             item.deduction_log = { [store_config.list[0].id]: item.count };
                           } else {
-
-                            // await this.shopping.updateVariantsWithSpec(variant, item.id, item.spec);
-
-                            content.variants.forEach((d1: any, index: number) => {
-                              console.log(`update-content->`,d1.stockList)
-                            })
-                            await this.shopping.postVariantsAndPriceValue(content)
+                            await this.shopping.postVariantsAndPriceValue(content);
                           }
-                          console.log(`post-variants===>`,content);
-                          //
-                          // // 更新資料庫
-                          // await db.query(
-                          //   `UPDATE \`${this.app}\`.\`t_manager_post\`
-                          //    SET ?
-                          //    WHERE id = ${getProductData.id}`,
-                          //   [{ content: JSON.stringify(content) }]
-                          // );
                         }
                         // 如果有 shopee_id，則同步庫存至蝦皮（Todo: 需要新增是否同步的選項）
 
@@ -1209,6 +1185,7 @@ export class CheckoutEvent {
               tag: 'order-create',
               order_id: carData.orderID,
               phone_email: email,
+              verify_code: carData.verify_code,
             });
             AutoSendEmail.customerOrder(
               this.app,
@@ -1286,6 +1263,7 @@ export class CheckoutEvent {
               tag: 'order-create',
               order_id: carData.orderID,
               phone_email: email,
+              verify_code: carData.verify_code,
             });
             AutoSendEmail.customerOrder(
               this.app,
@@ -1437,10 +1415,8 @@ export class CheckoutEvent {
               await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
               console.info('訂單簡訊寄送成功');
             }
-            console.log('carData.customer_info -- ', carData.customer_info);
             if (carData.customer_info.lineID) {
               let line = new LineMessage(this.app);
-              console.log('here -- OK');
               await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
               console.info('訂單line訊息寄送成功');
             }
@@ -1460,6 +1436,7 @@ export class CheckoutEvent {
                   tag: 'order-create',
                   order_id: carData.orderID,
                   phone_email: email,
+                  verify_code: carData.verify_code,
                 });
                 AutoSendEmail.customerOrder(
                   this.app,
@@ -1491,6 +1468,7 @@ export class CheckoutEvent {
    * */
   public async setPaymentSetting(obj: { carData: any; keyData: any; checkoutPayment: string }) {
     let { carData, keyData, checkoutPayment } = obj;
+
     // 線上金流是否可使用判斷，填入付款資訊與方式
     let payment_setting = this.getPaymentSetting().filter((dd: any) => {
       const k = (keyData as any)[dd.key];
@@ -1506,6 +1484,7 @@ export class CheckoutEvent {
       }
       return dd.type !== 'pos';
     });
+
     // 線下金流是否可使用判斷
     (carData as any).off_line_support = keyData.off_line_support ?? {};
     Object.entries((carData as any).off_line_support).map(([key, value]) => {
@@ -1534,34 +1513,30 @@ export class CheckoutEvent {
         }
       }
     });
-    //取得支援付款方式
+
+    // 取得支援付款方式
     (carData as any).payment_setting = payment_setting;
-    //避免初次載入沒有預設金流的BUG
+
+    // 避免初次載入沒有預設金流的BUG
     checkoutPayment =
       checkoutPayment || ((carData as any).payment_setting[0] && (carData as any).payment_setting[0].key);
-    console.log('checkoutPayment', checkoutPayment);
-    console.log('onlinePayArray', onlinePayArray);
+
     // 透過特定金流，取得指定物流
     carData.shipment_support =
       (() => {
         if (checkoutPayment === 'cash_on_delivery') {
-          console.log(`shipment_support-cash-delivery`);
           return (keyData as any).cash_on_delivery;
         } else if (
           this.getPaymentSetting()
             .map((item: any) => item.key)
             .includes(checkoutPayment)
         ) {
-          console.log(`shipment_support-online-pay-${checkoutPayment}`);
           return keyData[checkoutPayment];
         } else if (checkoutPayment === 'atm') {
-          console.log(`shipment_support-atm`);
           return keyData.payment_info_atm;
         } else if (checkoutPayment === 'line') {
-          console.log(`shipment_support-line`);
           return keyData.payment_info_line_pay;
         } else {
-          console.log(`shipment_support-custom`);
           // 自訂線下付款
           const customPay = keyData.payment_info_custom.find((c: { id: string }) => c.id === checkoutPayment);
           return customPay ?? {};

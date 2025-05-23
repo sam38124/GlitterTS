@@ -251,6 +251,7 @@ export type Cart = {
     splitOrders?: string[];
     parentOrder?: string;
     select_shipment_setting?: ShipmentSetting;
+    verify_code: string;
 };
 export type Order = {
     id: number;

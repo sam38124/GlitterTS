@@ -378,6 +378,7 @@ export type Cart = {
   splitOrders?: string[];
   parentOrder?: string;
   select_shipment_setting?: ShipmentSetting;
+  verify_code: string;
 };
 
 export type Order = {
@@ -1958,46 +1959,7 @@ export class Shopping {
     const sqlData: any = await getOrder(orderID);
 
     if (sqlData) {
-      const orderData: {
-        lineItems: CartItem[];
-        customer_info?: any; //顧客資訊 訂單人
-        email?: string;
-        return_url: string;
-        orderID?: string;
-        user_info: any; //取貨人資訊
-        code?: string;
-        use_rebate?: number;
-        use_wallet?: number;
-        checkOutType?: 'manual' | 'auto' | 'POS' | 'group_buy';
-        pos_store?: string;
-        voucher?: any; //自定義的voucher
-        discount?: number; //自定義金額
-        total?: number; //自定義總額
-        pay_status?: number; //自定義訂單狀態
-        custom_form_format?: any; //自定義表單格式
-        custom_form_data?: any; //自定義表單資料
-        custom_receipt_form?: any; //自定義配送表單格式
-        distribution_code?: string; //分銷連結代碼
-        code_array: string[]; // 優惠券代碼列表
-        give_away?: {
-          id: number;
-          spec: string[];
-          count: number;
-          voucher_id: string;
-        }[];
-        language?: LanguageLocation;
-        pos_info?: any; //POS結帳資訊;
-        invoice_select?: string;
-        pre_order?: boolean;
-        voucherList?: any;
-        isExhibition?: boolean;
-        client_ip_address?: string;
-        fbc?: string;
-        fbp?: string;
-        temp_cart_id?: string;
-        shipment_fee?: number;
-        rebate?: number;
-      } = sqlData.orderData;
+      const orderData: Cart = sqlData.orderData;
       if (!orderData) {
         throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error: Cannot find this orderID', null);
       }
@@ -2079,6 +2041,7 @@ export class Shopping {
         fbc: sqlData.fbc as string,
         fbp: sqlData.fbp as string,
         editRecord: [],
+        verify_code: orderData.verify_code,
       };
       // 紀錄新舊訂單
       await redis.setValue(newOrderID, `${orderData.orderID}`);
@@ -3354,6 +3317,7 @@ export class Shopping {
           tag: type,
           order_id: orderData.orderID,
           phone_email: email,
+          verify_code: orderData.verify_code,
         });
         messages.push(
           AutoSendEmail.customerOrder(
@@ -3518,6 +3482,7 @@ export class Shopping {
             tag: 'proof-purchase',
             order_id: order_id,
             phone_email: email,
+            verify_code: orderData.verify_code,
           });
           await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
         }
@@ -4117,6 +4082,7 @@ export class Shopping {
               tag: 'payment-successful',
               order_id: order_id,
               phone_email: email,
+              verify_code: order_data.orderData.verify_code,
             });
             await AutoSendEmail.customerOrder(
               this.app,

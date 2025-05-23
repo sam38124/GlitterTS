@@ -5,5 +5,6 @@ export declare class AutoFcm {
         tag: string;
         order_id: string;
         phone_email: string;
+        verify_code: string;
     }): Promise<void>;
 }

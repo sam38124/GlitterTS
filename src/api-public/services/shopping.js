@@ -1420,6 +1420,7 @@ class Shopping {
                 fbc: sqlData.fbc,
                 fbp: sqlData.fbp,
                 editRecord: [],
+                verify_code: orderData.verify_code,
             };
             await redis_js_1.default.setValue(newOrderID, `${orderData.orderID}`);
             const strategyFactory = new payment_strategy_factory_js_1.PaymentStrategyFactory(keyData);
@@ -2378,6 +2379,7 @@ class Shopping {
                     tag: type,
                     order_id: orderData.orderID,
                     phone_email: email,
+                    verify_code: orderData.verify_code,
                 });
                 messages.push(auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, `auto-email-${typeMap[type]}`, orderData.orderID, email, orderData.language));
             }
@@ -2501,6 +2503,7 @@ class Shopping {
                         tag: 'proof-purchase',
                         order_id: order_id,
                         phone_email: email,
+                        verify_code: orderData.verify_code,
                     });
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, email, orderData.language);
                 }
@@ -2594,17 +2597,13 @@ class Shopping {
                         search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
                     }
                     else if (status === 'pending_offset') {
-                        search.push(`(total_received < total)  &&  (offset_amount IS NULL)`);
+                        search.push(`(total_received < total) && (offset_amount IS NULL)`);
                     }
                     else if (status === 'pending_refund') {
-                        search.push(`(total_received > total)   &&  (offset_amount IS NULL)`);
+                        search.push(`(total_received > total) && (offset_amount IS NULL)`);
                     }
                 });
-                querySql.push(`(${search
-                    .map(dd => {
-                    return `(${dd})`;
-                })
-                    .join(' or ')})`);
+                querySql.push(`(${search.map(dd => `(${dd})`).join(' OR ')})`);
             }
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
@@ -2973,6 +2972,7 @@ class Shopping {
                             tag: 'payment-successful',
                             order_id: order_id,
                             phone_email: email,
+                            verify_code: order_data.orderData.verify_code,
                         });
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, email, cartData.orderData.language);
                     }

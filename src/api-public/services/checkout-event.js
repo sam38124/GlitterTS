@@ -266,6 +266,7 @@ class CheckoutEvent {
                 fbc: data.fbc,
                 fbp: data.fbp,
                 editRecord: [],
+                verify_code: tool_js_1.default.randomString(6).toUpperCase(),
             };
             if (!((_y = data.user_info) === null || _y === void 0 ? void 0 : _y.name) && userData && userData.userData) {
                 const { name, phone } = userData.userData;
@@ -416,7 +417,6 @@ class CheckoutEvent {
                                 }
                                 return 0;
                             })();
-                            console.log(`shipmentValue=>`, shipmentValue);
                             item.shipment_obj = {
                                 type: variant.shipment_type,
                                 value: shipmentValue,
@@ -466,10 +466,10 @@ class CheckoutEvent {
                                     const refer = JSON.parse(JSON.stringify(variant.stockList));
                                     Object.keys(refer).forEach(key => {
                                         var _a;
-                                        if ((key !== data.pos_store) &&
-                                            (!((_a = store_manager.find((dd) => {
+                                        if (key !== data.pos_store &&
+                                            !((_a = store_manager.find((dd) => {
                                                 return dd.id === data.pos_store;
-                                            }).support_store) !== null && _a !== void 0 ? _a : []).includes(key))) {
+                                            }).support_store) !== null && _a !== void 0 ? _a : []).includes(key)) {
                                             delete refer[key];
                                         }
                                     });
@@ -477,21 +477,12 @@ class CheckoutEvent {
                                     variant.stockList = Object.assign(Object.assign({}, variant.stockList), refer);
                                     variant.deduction_log = Object.assign(Object.assign({}, variant.deduction_log), returnData.deductionLog);
                                     item.deduction_log = variant.deduction_log;
-                                    console.log(`item.deduction_log===>`, item.deduction_log);
-                                    console.log(`variant.stockList===>`, variant.stockList);
-                                    console.log(`variant.deduction_log===>`, variant.deduction_log);
-                                    content.variants.forEach((d1, index) => {
-                                        console.log(`update-content-pos->`, d1.stockList);
-                                    });
                                 }
                             }
                             else {
                                 const returnData = new stock_js_1.Stock(this.app, this.token).allocateStock(variant.stockList, item.count);
                                 variant.deduction_log = returnData.deductionLog;
                                 item.deduction_log = returnData.deductionLog;
-                                content.variants.forEach((d1, index) => {
-                                    console.log(`update-content-web->`, d1.stockList);
-                                });
                             }
                             saveStockArray.push(() => new Promise(async (resolve, reject) => {
                                 var _a;
@@ -536,12 +527,8 @@ class CheckoutEvent {
                                             item.deduction_log = { [store_config.list[0].id]: item.count };
                                         }
                                         else {
-                                            content.variants.forEach((d1, index) => {
-                                                console.log(`update-content->`, d1.stockList);
-                                            });
                                             await this.shopping.postVariantsAndPriceValue(content);
                                         }
-                                        console.log(`post-variants===>`, content);
                                     }
                                     resolve(true);
                                 }
@@ -898,6 +885,7 @@ class CheckoutEvent {
                             tag: 'order-create',
                             order_id: carData.orderID,
                             phone_email: email,
+                            verify_code: carData.verify_code,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -963,6 +951,7 @@ class CheckoutEvent {
                             tag: 'order-create',
                             order_id: carData.orderID,
                             phone_email: email,
+                            verify_code: carData.verify_code,
                         });
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                     }
@@ -1081,10 +1070,8 @@ class CheckoutEvent {
                             await sns.sendCustomerSns('auto-sns-order-create', carData.orderID, phone);
                             console.info('訂單簡訊寄送成功');
                         }
-                        console.log('carData.customer_info -- ', carData.customer_info);
                         if (carData.customer_info.lineID) {
                             let line = new line_message_js_1.LineMessage(this.app);
-                            console.log('here -- OK');
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.info('訂單line訊息寄送成功');
                         }
@@ -1097,6 +1084,7 @@ class CheckoutEvent {
                                     tag: 'order-create',
                                     order_id: carData.orderID,
                                     phone_email: email,
+                                    verify_code: carData.verify_code,
                                 });
                                 auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, email, carData.language);
                             }
@@ -1164,30 +1152,23 @@ class CheckoutEvent {
         carData.payment_setting = payment_setting;
         checkoutPayment =
             checkoutPayment || (carData.payment_setting[0] && carData.payment_setting[0].key);
-        console.log('checkoutPayment', checkoutPayment);
-        console.log('onlinePayArray', glitter_finance_js_1.onlinePayArray);
         carData.shipment_support =
             (_b = (() => {
                 if (checkoutPayment === 'cash_on_delivery') {
-                    console.log(`shipment_support-cash-delivery`);
                     return keyData.cash_on_delivery;
                 }
                 else if (this.getPaymentSetting()
                     .map((item) => item.key)
                     .includes(checkoutPayment)) {
-                    console.log(`shipment_support-online-pay-${checkoutPayment}`);
                     return keyData[checkoutPayment];
                 }
                 else if (checkoutPayment === 'atm') {
-                    console.log(`shipment_support-atm`);
                     return keyData.payment_info_atm;
                 }
                 else if (checkoutPayment === 'line') {
-                    console.log(`shipment_support-line`);
                     return keyData.payment_info_line_pay;
                 }
                 else {
-                    console.log(`shipment_support-custom`);
                     const customPay = keyData.payment_info_custom.find((c) => c.id === checkoutPayment);
                     return customPay !== null && customPay !== void 0 ? customPay : {};
                 }

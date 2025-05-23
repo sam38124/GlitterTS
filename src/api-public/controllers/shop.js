@@ -347,12 +347,11 @@ router.post('/order/verifyCode', async (req, resp) => {
             });
             if (Array.isArray(orders.data)) {
                 const order = orders.data[0];
-                const order_email = order.email;
-                const userData = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(order_email, 'email_or_phone');
+                const userData = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(order.email, 'email_or_phone');
                 if (userData) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
                 }
-                const code = 123;
+                const code = order.orderData.verify_code;
                 return response_1.default.succ(resp, { result: `${code}` === `${req.body.verify_code}` });
             }
         }
