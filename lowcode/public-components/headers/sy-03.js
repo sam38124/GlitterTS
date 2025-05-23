@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
@@ -21,7 +30,8 @@ export class Sy03 {
                     changePage = cl.changePage;
                 });
                 const colors = Color.getTheme(gvc, widget.formData);
-                return html ` <div class="d-sm-none" style="height: 76px;"></div>
+                return html ` <!--Header Sy03-->
+          <div class="d-sm-none" style="height: 76px;"></div>
           <nav
             class="navbar navbar-expand-lg vw-100 header header-place shadow   top-0 left-0  py-0 position-fixed position-sm-relative"
             style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;z-index:9999;
@@ -229,7 +239,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                   </div>
                 </div>
                 <!--選單列表顯示區塊-->
-                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky" >
+                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky">
                   ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
@@ -241,11 +251,15 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                     });
                     return {
                         bind: id,
-                        view: () => {
+                        view: () => __awaiter(this, void 0, void 0, function* () {
+                            const userData = yield ApiUser.getUserData(gvc.glitter.share.GlobalUser.token, 'me');
                             function loopItems(data) {
                                 return data
                                     .map((dd) => {
                                     var _a, _b;
+                                    if (!PdClass.menuVisibleVerify(userData, dd)) {
+                                        return '';
+                                    }
                                     return html ` <li class="nav-item dropdown">
                                 <a
                                   class="nav-link header-link "
@@ -268,7 +282,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                     .join('');
                             }
                             return loopItems(vm.data);
-                        },
+                        }),
                         divCreate: {
                             class: `navbar-nav ms-3 me-auto mt-3`,
                             style: `flex-direction: row; gap: 15px;`,

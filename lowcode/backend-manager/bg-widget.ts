@@ -931,28 +931,30 @@ export class BgWidget {
           return html`
             ${obj.title
               ? html` <div class="tx_normal fw-normal" style="${obj.titleStyle ?? ''}">${obj.title}</div>`
-              : ``}
+              : ''}
             <div
               class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}"
               style="margin: 8px 0;overflow: hidden;"
             >
               ${obj.global_language
-                ? `
-                 <div class="bg-white  d-flex align-items-center justify-content-center p-3 border-end" style="cursor: pointer;" onclick="${obj.gvc.event(
-                   () => {
-                     BgWidget.selectLanguage({
-                       selectable: true,
-                       callback: tag => {
-                         obj.default += `#{{${tag}}}`;
-                         obj.callback(obj.default);
-                         obj.gvc.notifyDataChange(id);
-                       },
-                     });
-                   }
-                 )}">
-<i class="fa-sharp fa-regular fa-earth-americas"></i>
-</div>
-                    `
+                ? html`
+                    <div
+                      class="bg-white  d-flex align-items-center justify-content-center p-3 border-end"
+                      style="cursor: pointer;"
+                      onclick="${obj.gvc.event(() => {
+                        BgWidget.selectLanguage({
+                          selectable: true,
+                          callback: tag => {
+                            obj.default += `#{{${tag}}}`;
+                            obj.callback(obj.default);
+                            obj.gvc.notifyDataChange(id);
+                          },
+                        });
+                      })}"
+                    >
+                      <i class="fa-sharp fa-regular fa-earth-americas"></i>
+                    </div>
+                  `
                 : ``}
               ${obj.startText ? html` <div class="py-2 ps-3" style="white-space: nowrap">${obj.startText}</div>` : ''}
               <input
@@ -1023,14 +1025,21 @@ ${obj.default ?? ''}</textarea
       </div>`;
   }
 
-  static searchPlace(event: string, value: string, placeholder: string, margin?: string, padding?: string) {
+  static searchPlace(
+    event: string,
+    value: string,
+    placeholder: string,
+    margin?: string,
+    padding?: string,
+    style?: string
+  ) {
     const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
     const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
     return html`
-      <div style="margin: ${margin ?? defMargin}; padding: ${padding ?? defPadding}">
+      <div style="margin: ${margin ?? defMargin}; padding: ${padding ?? defPadding}; ${style ?? ''}">
         <div class="w-100 position-relative">
           <i
-            class=" fa-regular fa-magnifying-glass"
+            class="fa-regular fa-magnifying-glass"
             style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);"
             aria-hidden="true"
           ></i>
@@ -1210,7 +1219,7 @@ ${obj.default ?? ''}</textarea
                     return html` <div
                       class="bgw-input border rounded-3"
                       style="${linkComp.text.length > 0
-                        ? 'padding: 8px 18px; height: 41.75px'
+                        ? 'padding: 8px 18px; height: 43.75px'
                         : 'padding: 9.5px 12px;'} ${obj.style ?? ''}"
                       id="${dropMenu.elementClass}"
                       onclick="${obj.gvc.event(() => {

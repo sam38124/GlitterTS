@@ -412,8 +412,9 @@ export class PdClass {
     }
     static isShoppingPage() {
         const glitter = window.glitter;
-        return ['hidden/', 'shop/'].find((dd) => {
-            return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd));
+        return ['hidden/', 'shop/'].find(dd => {
+            return ((glitter.getUrlParameter('page') || '').startsWith(dd) ||
+                (glitter.getUrlParameter('page_refer') || '').startsWith(dd));
         });
     }
     static changePage(prod, gvc) {
@@ -1006,9 +1007,9 @@ export class PdClass {
                 </button>`);
                         if (!PdClass.isShoppingPage()) {
                             viewMap.push(html `<button
-                  class="add-cart-imd-btn fw-bold fs-sm"
-                  style="cursor: pointer; flex: 1;height:44px;"
-                  onclick="${gvc.event(() => {
+                    class="add-cart-imd-btn fw-bold fs-sm"
+                    style="cursor: pointer; flex: 1;height:44px;"
+                    onclick="${gvc.event(() => {
                                 if (document.body.clientWidth < 800) {
                                     this.addProductPopUp(obj, 'buyNow', () => {
                                         refreshAll();
@@ -1031,9 +1032,9 @@ export class PdClass {
                                     },
                                 });
                             })}"
-                >
-                  ${Language.text('buy_it_now')}
-                </button>`);
+                  >
+                    ${Language.text('buy_it_now')}
+                  </button>`);
                         }
                         return viewMap.join('');
                     },
@@ -1495,5 +1496,23 @@ export class PdClass {
     }
     static isPad() {
         return document.body.clientWidth >= 768 && document.body.clientWidth <= 960;
+    }
+    static menuVisibleVerify(userData, linkData) {
+        var _a;
+        const { visible_type, visible_data_array = [] } = linkData;
+        if (!visible_type || visible_type === 'all')
+            return true;
+        if (!userData.result)
+            return false;
+        const user = userData.response;
+        if (linkData.visible_type === 'user') {
+            const user_id = user.userID;
+            return visible_data_array.includes(user_id);
+        }
+        if (linkData.visible_type === 'level') {
+            const user_level = (_a = user.member.find((d) => d.trigger)) === null || _a === void 0 ? void 0 : _a.id;
+            return visible_data_array.includes(user_level || 'default');
+        }
+        return true;
     }
 }

@@ -737,7 +737,7 @@ export class BgProduct {
                     </div>
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
-                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 8px; gap: 0;">
                           ${vm.dataList.length > 0
                             ? checkboxList()
                             : '尚未建立會員等級，請至「顧客管理」>「會員等級」新增'}
@@ -843,7 +843,7 @@ export class BgProduct {
                     </div>
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
-                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 8px; gap: 0;">
                           ${vm.dataList.length > 0
                             ? checkboxList()
                             : '尚未建立門市，請至「庫存管理」>「庫存點管理」新增'}
@@ -940,7 +940,7 @@ export class BgProduct {
                     </div>
                     <div class="c_dialog h-100">
                       <div class="c_dialog_body h-100">
-                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                        <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 8px; gap: 0;">
                           ${vm.dataList.length > 0
                             ? checkboxList()
                             : '尚未建立顧客標籤，請編輯任一顧客的「顧客標籤」欄位'}

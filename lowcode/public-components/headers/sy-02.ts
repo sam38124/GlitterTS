@@ -16,7 +16,7 @@ const html = String.raw;
 export class Sy02 {
   public static main(gvc: GVC, widget: any, subData: any) {
     return HeadInitial.initial({
-      widget:widget,
+      widget: widget,
       browser: () => {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
@@ -24,6 +24,7 @@ export class Sy02 {
         });
         const colors = Color.getTheme(gvc, widget.formData);
         return html`
+         <!--Header Sy02-->
             <div style="height: 76px;"></div>
             <nav
                 class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
@@ -115,7 +116,7 @@ export class Sy02 {
                                             const vm = {
                                               data: [],
                                             };
-                                          
+
                                             ApiUser.getPublicConfig(
                                               widget.formData.menu_refer || 'menu-setting',
                                               'manager',
@@ -262,16 +263,26 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                               const vm = {
                                 data: [],
                               };
-                              ApiUser.getPublicConfig(widget.formData.menu_refer || 'menu-setting', 'manager', (window as any).appName).then(res => {
+                              ApiUser.getPublicConfig(
+                                widget.formData.menu_refer || 'menu-setting',
+                                'manager',
+                                (window as any).appName
+                              ).then(res => {
                                 vm.data = res.response.value[Language.getLanguage()];
                                 gvc.notifyDataChange(id);
                               });
                               return {
                                 bind: id,
-                                view: () => {
+                                view: async () => {
+                                  const userData = await ApiUser.getUserData(gvc.glitter.share.GlobalUser.token, 'me');
+
                                   function loopItems(data: any) {
                                     return data
                                       .map((dd: any) => {
+                                        if (!PdClass.menuVisibleVerify(userData, dd)) {
+                                          return '';
+                                        }
+
                                         return html` <li class="nav-item dropdown">
                                           <a
                                             class="nav-link header-link "
@@ -298,6 +309,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                             : ``}
                                         </li>`;
                                       })
+                                      .filter(Boolean)
                                       .join('');
                                   }
 
@@ -370,8 +382,8 @@ padding-bottom: 2px;
                                       return {
                                         bind: vm.id,
                                         view: () => {
-                                          if(PdClass.isShoppingPage()){
-                                            return  ``
+                                          if (PdClass.isShoppingPage()) {
+                                            return ``;
                                           }
                                           if (!vm.toggle) {
                                             return html`<i

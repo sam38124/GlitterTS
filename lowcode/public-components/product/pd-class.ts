@@ -575,13 +575,16 @@ export class PdClass {
     });
   }
 
-  static isShoppingPage(){
+  static isShoppingPage() {
     const glitter = (window as any).glitter;
-   return ['hidden/','shop/'].find((dd)=>{
-     return (glitter.getUrlParameter('page') || '').startsWith(dd) || ((glitter.getUrlParameter('page_refer') || '').startsWith(dd))
-   });
+    return ['hidden/', 'shop/'].find(dd => {
+      return (
+        (glitter.getUrlParameter('page') || '').startsWith(dd) ||
+        (glitter.getUrlParameter('page_refer') || '').startsWith(dd)
+      );
+    });
   }
-  // document.querySelector('.check_out_cart_data').scrollIntoView()
+
   static changePage(prod: any, gvc: GVC) {
     const glitter = gvc.glitter;
     let path = '';
@@ -1185,7 +1188,7 @@ export class PdClass {
               }
               viewMap.push(
                 html`<button
-                  class="${PdClass.isShoppingPage() ? `add-cart-imd-btn`:`add-cart-btn`} fw-bold fs-sm"
+                  class="${PdClass.isShoppingPage() ? `add-cart-imd-btn` : `add-cart-btn`} fw-bold fs-sm"
                   style="flex: 1;height:44px;"
                   onclick="${gvc.event(() => {
                     if (document.body.clientWidth < 800) {
@@ -1222,40 +1225,40 @@ export class PdClass {
                   ${isOutOfStock ? Language.text('preorder_item') : Language.text('add_to_cart')}
                 </button>`
               );
-              if(!PdClass.isShoppingPage()){
+              if (!PdClass.isShoppingPage()) {
                 viewMap.push(
                   html`<button
-                  class="add-cart-imd-btn fw-bold fs-sm"
-                  style="cursor: pointer; flex: 1;height:44px;"
-                  onclick="${gvc.event(() => {
-                    if (document.body.clientWidth < 800) {
-                      this.addProductPopUp(obj, 'buyNow', () => {
-                        refreshAll();
+                    class="add-cart-imd-btn fw-bold fs-sm"
+                    style="cursor: pointer; flex: 1;height:44px;"
+                    onclick="${gvc.event(() => {
+                      if (document.body.clientWidth < 800) {
+                        this.addProductPopUp(obj, 'buyNow', () => {
+                          refreshAll();
+                        });
+                        return;
+                      }
+                      const buy_it = new ApiCart(ApiCart.buyItNow);
+                      buy_it.clearCart();
+                      buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
+                      ApiCart.toCheckOutPage(ApiCart.buyItNow);
+                      gvc.closeDialog();
+                      ApiTrack.track({
+                        event_name: 'AddToCart',
+                        custom_data: {
+                          currency: 'TWD',
+                          value: variant.sale_price,
+                          content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                          content_name: prod.title,
+                          content_type: 'product',
+                        },
                       });
-                      return;
-                    }
-                    const buy_it = new ApiCart(ApiCart.buyItNow);
-                    buy_it.clearCart();
-                    buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
-                    ApiCart.toCheckOutPage(ApiCart.buyItNow);
-                    gvc.closeDialog();
-                    ApiTrack.track({
-                      event_name: 'AddToCart',
-                      custom_data: {
-                        currency: 'TWD',
-                        value: variant.sale_price,
-                        content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
-                        content_name: prod.title,
-                        content_type: 'product',
-                      },
-                    });
-                  })}"
-                >
-                  ${Language.text('buy_it_now')}
-                </button>`
+                    })}"
+                  >
+                    ${Language.text('buy_it_now')}
+                  </button>`
                 );
               }
-             
+
               return viewMap.join('');
             },
             divCreate: {
@@ -1807,5 +1810,27 @@ export class PdClass {
 
   static isPad() {
     return document.body.clientWidth >= 768 && document.body.clientWidth <= 960;
+  }
+
+  static menuVisibleVerify(userData: any, linkData: any): Boolean {
+    const { visible_type, visible_data_array = [] } = linkData;
+
+    if (!visible_type || visible_type === 'all') return true;
+
+    if (!userData.result) return false;
+
+    const user = userData.response;
+
+    if (linkData.visible_type === 'user') {
+      const user_id = user.userID;
+      return visible_data_array.includes(user_id);
+    }
+
+    if (linkData.visible_type === 'level') {
+      const user_level = user.member.find((d: { trigger: boolean }) => d.trigger)?.id;
+      return visible_data_array.includes(user_level || 'default');
+    }
+
+    return true; // type = 'loggedIn'
   }
 }

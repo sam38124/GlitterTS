@@ -722,14 +722,17 @@ export class BgWidget {
                     return html `
             ${obj.title
                         ? html ` <div class="tx_normal fw-normal" style="${(_b = obj.titleStyle) !== null && _b !== void 0 ? _b : ''}">${obj.title}</div>`
-                        : ``}
+                        : ''}
             <div
               class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}"
               style="margin: 8px 0;overflow: hidden;"
             >
               ${obj.global_language
-                        ? `
-                 <div class="bg-white  d-flex align-items-center justify-content-center p-3 border-end" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
+                        ? html `
+                    <div
+                      class="bg-white  d-flex align-items-center justify-content-center p-3 border-end"
+                      style="cursor: pointer;"
+                      onclick="${obj.gvc.event(() => {
                             BgWidget.selectLanguage({
                                 selectable: true,
                                 callback: tag => {
@@ -738,10 +741,11 @@ export class BgWidget {
                                     obj.gvc.notifyDataChange(id);
                                 },
                             });
-                        })}">
-<i class="fa-sharp fa-regular fa-earth-americas"></i>
-</div>
-                    `
+                        })}"
+                    >
+                      <i class="fa-sharp fa-regular fa-earth-americas"></i>
+                    </div>
+                  `
                         : ``}
               ${obj.startText ? html ` <div class="py-2 ps-3" style="white-space: nowrap">${obj.startText}</div>` : ''}
               <input
@@ -800,14 +804,14 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
         >
       </div>`;
     }
-    static searchPlace(event, value, placeholder, margin, padding) {
+    static searchPlace(event, value, placeholder, margin, padding, style) {
         const defMargin = document.body.clientWidth > 768 ? '16px 0' : '8px 0';
         const defPadding = document.body.clientWidth > 768 ? '0 16px' : '0';
         return html `
-      <div style="margin: ${margin !== null && margin !== void 0 ? margin : defMargin}; padding: ${padding !== null && padding !== void 0 ? padding : defPadding}">
+      <div style="margin: ${margin !== null && margin !== void 0 ? margin : defMargin}; padding: ${padding !== null && padding !== void 0 ? padding : defPadding}; ${style !== null && style !== void 0 ? style : ''}">
         <div class="w-100 position-relative">
           <i
-            class=" fa-regular fa-magnifying-glass"
+            class="fa-regular fa-magnifying-glass"
             style="font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);"
             aria-hidden="true"
           ></i>
@@ -955,7 +959,7 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                                 return html ` <div
                       class="bgw-input border rounded-3"
                       style="${linkComp.text.length > 0
-                                    ? 'padding: 8px 18px; height: 41.75px'
+                                    ? 'padding: 8px 18px; height: 43.75px'
                                     : 'padding: 9.5px 12px;'} ${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
                       id="${dropMenu.elementClass}"
                       onclick="${obj.gvc.event(() => {
