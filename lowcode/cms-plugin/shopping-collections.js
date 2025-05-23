@@ -1,8 +1,8 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { FilterOptions } from './filter-options.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Language } from '../glitter-base/global/language.js';
 function getEmptyLanguageData() {
@@ -734,48 +734,15 @@ export class ShoppingCollections {
                                   <div class="tx_normal">商品名稱</div>
                                 </div>
                                 ${BgWidget.grayButton('選擇商品', gvc.event(() => {
-                                        BgWidget.selectDropDialog({
+                                        BgProduct.productsDialog({
                                             gvc: gvc,
-                                            title: '搜尋商品',
-                                            tag: 'select_users',
-                                            updownOptions: FilterOptions.productOrderBy,
+                                            default: vm.data.product_id,
                                             callback: value => {
                                                 pvm.dataList = value;
                                                 vm.data.product_id = value;
                                                 pvm.loading = true;
                                                 gvc.notifyDataChange(pvm.id);
                                             },
-                                            default: vm.data.product_id.map(id => `${id}`),
-                                            api: (data) => {
-                                                return new Promise(resolve => {
-                                                    ApiShop.getProduct({
-                                                        page: 0,
-                                                        limit: 99999,
-                                                        productType: 'product',
-                                                        filter_visible: 'true',
-                                                        search: data.query,
-                                                        orderBy: (() => {
-                                                            switch (data.orderString) {
-                                                                case 'max_price':
-                                                                case 'min_price':
-                                                                    return data.orderString;
-                                                                default:
-                                                                    return '';
-                                                            }
-                                                        })(),
-                                                    }).then(data => {
-                                                        resolve(data.response.data.map((product) => {
-                                                            var _a;
-                                                            return {
-                                                                key: product.content.id + '',
-                                                                value: product.content.title,
-                                                                image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
-                                                            };
-                                                        }));
-                                                    });
-                                                });
-                                            },
-                                            style: 'width: 100%;',
                                         });
                                     }))}
                               </div>
@@ -853,7 +820,7 @@ export class ShoppingCollections {
                                         },
                                     })}`,
                                     ,
-                                    html ` <div class="tx_normal fw-normal" >SEO 描述</div>
+                                    html ` <div class="tx_normal fw-normal">SEO 描述</div>
                           ${EditorElem.editeText({
                                         gvc: gvc,
                                         title: '',
@@ -864,7 +831,7 @@ export class ShoppingCollections {
                                         },
                                     })}`,
                                     ,
-                                    html ` <div class="tx_normal fw-normal" >SEO 圖片</div>
+                                    html ` <div class="tx_normal fw-normal">SEO 圖片</div>
                           ${EditorElem.uploadImageContainer({
                                         gvc: gvc,
                                         title: '',
