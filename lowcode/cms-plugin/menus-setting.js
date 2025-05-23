@@ -816,7 +816,7 @@ export class MenusSetting {
         const view = [
             BgWidget.editeInput({
                 gvc: gvc,
-                title: '選單名稱wwww',
+                title: '選單名稱',
                 default: data.title || '',
                 placeHolder: '請輸入選單名稱',
                 callback: text => {

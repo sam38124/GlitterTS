@@ -23,7 +23,7 @@ class AutoFcm {
             }, 'order-create': {
                 name: '@{{app_name}}',
                 title: '訂單狀態已更新',
-                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立，訂單驗證碼為「@{{訂單驗證碼}}」',
+                content: '[@{{app_name}}] 您的訂單 #@{{訂單號碼}} 已成立',
                 toggle: true,
             }, 'payment-successful': {
                 name: '@{{app_name}}',
