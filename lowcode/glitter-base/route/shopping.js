@@ -551,6 +551,8 @@ export class ApiShop {
                 `/api-public/v1/ec/order?${(() => {
                     var _a;
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.buyer_name && par.push(`buyer_name=${json.buyer_name}`);
+                    json.buyer_phone && par.push(`buyer_phone=${json.buyer_phone}`);
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);

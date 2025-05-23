@@ -648,6 +648,8 @@ export class ApiShop {
     valid?: boolean;
     is_shipment?: boolean;
     is_reconciliation?: boolean;
+    buyer_name?:string,
+    buyer_phone?:string
   }) {
     const filterString = this.orderListFilterString(json.filter);
     return BaseApi.create({
@@ -655,6 +657,8 @@ export class ApiShop {
         getBaseUrl() +
         `/api-public/v1/ec/order?${(() => {
           let par = [`limit=${json.limit}`, `page=${json.page}`];
+          json.buyer_name && par.push(`buyer_name=${json.buyer_name}`);
+          json.buyer_phone && par.push(`buyer_phone=${json.buyer_phone}`);
           json.search && par.push(`search=${json.search}`);
           json.id && par.push(`id=${json.id}`);
           json.id_list && par.push(`id_list=${json.id_list}`);

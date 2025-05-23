@@ -124,6 +124,8 @@ export class Language {
                 cn: '请问确定要取消此订单吗?',
                 en: `Are you sure you want to cancel this order?`,
             },
+            { key: 'order_number', tw: '訂單號碼', en: 'Order number', cn: '訂單號碼' },
+            { key: 'find_order', tw: '訂單查詢', en: 'Order inquiry', cn: '訂單查詢' },
             { key: 's_cancel_order', tw: '取消訂單成功', cn: '取消订单成功', en: `Order canceled successfully` },
             { key: 'newWebPay', tw: '藍新金流', cn: '蓝新金流', en: `NewebPay` },
             { key: 'ecPay', tw: '綠界金流', cn: '绿界金流', en: `EcPay` },
@@ -141,6 +143,10 @@ export class Language {
             { key: 'login_in_to_checkout', tw: '登入後結帳', cn: '登入后结帐', en: `Log in and checkout` },
             { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
             { key: 'select', tw: '選取', cn: '选择', en: 'Select' },
+            { key: 'if_buyer_no_account', tw: '若你購買時未註冊會員，請從此查詢訂單，或者<span class="mx-2" style="color: #0a53be;cursor:pointer;" onclick="#login">登入</span>會員進行查詢',
+                cn: `若你购买时未注册会员，请从此查询订单，或者<span class="mx-2" style="color: #0a53be;cursor:pointer;" onclick="#login">登入</span>会员进行查询`,
+                en: `If you did not register as a member when you purchased, please check your order here, or <span class="mx-2" style="color: #0a53be;cursor:pointer;" onclick="#login">log in</span> as a member to check.`
+            },
             {
                 key: 'disable_ship',
                 tw: '無配送方式',

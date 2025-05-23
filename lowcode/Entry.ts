@@ -12,10 +12,15 @@ import { ApiCart } from './glitter-base/route/api-cart.js';
 import { ApiUser } from './glitter-base/route/user.js';
 import { ApplicationConfig } from './application-config.js';
 import { TriggerEvent } from './glitterBundle/plugins/trigger-event.js';
+import { Ad } from './public-components/public/ad.js';
 
 export class Entry {
   // 建立初始函式
   public static onCreate(glitter: Glitter) {
+    //設定GA和Pixel的橋接
+    glitter.share.ad=Ad;
+    glitter.share.TriggerEvent=TriggerEvent;
+    glitter.share.PayConfig=PayConfig;
     //設定後端路徑API
     config.url=location.origin;
     (window as any).glitterBackend=location.origin;
@@ -150,7 +155,7 @@ export class Entry {
       }
       (window as any).renderClock = (window as any).renderClock ?? createClock();
       console.log(`Entry-time:`, (window as any).renderClock.stop());
-      glitter.share.editerVersion = 'V_21.9.0';
+      glitter.share.editerVersion = 'V_21.9.4';
       glitter.share.start = new Date();
       const vm = { appConfig: [] };
       (window as any).saasConfig = {

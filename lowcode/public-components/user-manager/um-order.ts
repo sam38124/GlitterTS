@@ -10,6 +10,7 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { ShipmentConfig } from '../../glitter-base/global/shipment-config.js';
 import { Animation } from '../../glitterBundle/module/Animation.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 
 const html = String.raw;
 const css = String.raw;
@@ -507,6 +508,7 @@ export class UMOrder {
                 padding: 0 24px;
                 margin: 18px 0;
               }
+
               .button-text {
                 color: #fff;
                 font-size: 16px;
@@ -524,7 +526,7 @@ export class UMOrder {
                           gvc.glitter.share.top_inset}px;"
                         ></div>
                       `
-                    : html`<div
+                    : html` <div
                         class="p-3  bg-white position-relative"
                         style="max-height: calc(100vh - 90px);overflow-y:auto;"
                       ></div>`}
@@ -606,7 +608,7 @@ export class UMOrder {
       }
       default: {
         const id = gvc.glitter.getUUID();
-        $('body').append(html`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+        $('body').append(html` <div id="${id}" style="display: none;">${res.response.form}</div>`);
         (document.querySelector(`#${id} #submit`) as any).click();
       }
     }
@@ -880,6 +882,8 @@ export class UMOrder {
       formList: [] as any,
       passport: false,
       verify_code: '',
+      buyer_name: '',
+      buyer_phone: '',
     };
 
     this.addStyle(gvc);
@@ -893,7 +897,6 @@ export class UMOrder {
       () => {}
     );
     UmClass.addStyle(gvc);
-
     let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
     gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
       changePage = cl.changePage;
@@ -902,50 +905,157 @@ export class UMOrder {
     // 判定可以重新付款的付款方式
     const repayArray = ['ecPay', 'newWebPay', 'paypal', 'jkopay', 'paynow', 'line_pay'];
 
+    //加載訂單資料
+    function loadOrderData() {
+      ApiShop.getOrder({
+        limit: 1,
+        page: 0,
+        data_from: 'user',
+        search: glitter.getUrlParameter('cart_token'),
+        searchType: 'cart_token',
+        buyer_name:vm.buyer_name,
+        buyer_phone:vm.buyer_phone
+      }).then((res: any) => {
+        if (res.result && res.response.data && res.response.data[0]) {
+          vm.data = res.response.data[0];
+          loadings.view = false;
+          gvc.notifyDataChange(ids.view);
+        } else {
+          dialog.errorMessage({
+            text:Language.text('order_not_found'),
+          })
+          guestCheckView()
+        }
+      });
+    }
+
     // 訪客驗證訂單是否可見彈窗
     function guestCheckView() {
-      dialog.customCheck({
-        text: BgWidget.editeInput({
-          gvc,
-          title: '請輸入訂單驗證碼',
-          default: vm.verify_code,
-          placeHolder: '訂單驗證碼於成立訂單時寄出的簡訊/信件',
-          callback: value => {
-            vm.verify_code = value;
-          },
-        }),
-        callback: response => {
-          if (response) {
-            function call() {
-              loadings.view = true;
-              gvc.notifyDataChange(ids.view);
-            }
-
-            dialog.dataLoading({ visible: true });
-            ApiShop.verifyOrderCode(vm.verify_code).then(r => {
-              dialog.dataLoading({ visible: false });
-              vm.passport = Boolean(r.response?.result);
-
-              if (vm.passport) {
-                dialog.successMessage({ text: '驗證成功' });
-                setTimeout(() => call(), 1200);
-              } else {
-                dialog.errorMessage({ text: '驗證失敗', callback: () => call() });
-              }
-            });
-          } else {
-            glitter.setUrlParameter('cart_token', undefined);
-            changePage('index', 'home', {});
-          }
+      BgWidget.settingDialog({
+        gvc: gvc,
+        title: Language.text('find_order'),
+        innerHTML: () => {
+          return html` <div class="p-3">
+            ${[
+              Language.text('if_buyer_no_account').replace(
+                '#login',
+                gvc.event(() => {
+                  gvc.closeDialog();
+                  gvc.glitter.href = '/login';
+                })
+              ),
+              `<div class="border-top w-100 my-3"></div>`,
+              BgWidget.editeInput({
+                gvc,
+                title: Language.text('order_number'),
+                default: glitter.getUrlParameter('cart_token'),
+                placeHolder: `${Language.text('please_enter')} ${Language.text('order_number')}`,
+                callback: value => {
+                  glitter.setUrlParameter('cart_token',value)
+                },
+              }),
+              BgWidget.editeInput({
+                gvc,
+                title: Language.text('customer_name'),
+                default: vm.buyer_name,
+                placeHolder: `${Language.text('please_enter')} ${Language.text('customer_name')}`,
+                callback: value => {
+                  vm.buyer_name = value;
+                },
+              }),
+              BgWidget.editeInput({
+                gvc,
+                title: Language.text('customer_phone'),
+                default: vm.buyer_phone,
+                placeHolder: `${Language.text('please_enter')} ${Language.text('customer_phone')}`,
+                callback: value => {
+                  vm.buyer_phone = value;
+                },
+              }),
+            ].join('')}
+          </div>`;
+        },
+        footer_html: (gvc: GVC) => {
+          return `<div class="w-100 d-flex border-top mt-0 py-2 px-3">
+<div class="flex-fill"></div>
+${[
+  `  <button
+                                class="customer-btn-text "
+                                style=" height: 32px;
+        padding: 6px 14px;
+        background: #393939;
+        border-radius: 10px;
+        justify-content: center;
+        align-items: center;
+        display: inline-flex;
+        cursor: pointer;"
+                                id=""
+                                onclick="${gvc.event(() => {
+    loadOrderData()
+    gvc.closeDialog();
+  })}"
+                              >
+                                查詢
+                              </button>`,
+].join('')}
+</div>`;
         },
       });
+      // dialog.customCheck({
+      //   text: [
+      //     Language.text('if_buyer_no_account'),
+      //     BgWidget.title(''),
+      //     BgWidget.editeInput({
+      //       gvc,
+      //       title: '',
+      //       default: vm.buyer_name,
+      //       placeHolder: '請輸入購買人姓名',
+      //       callback: value => {
+      //         vm.buyer_name = value;
+      //       },
+      //     }),
+      //     BgWidget.editeInput({
+      //       gvc,
+      //       title: '',
+      //       default: vm.buyer_name,
+      //       placeHolder: '請輸入購買人手機號碼',
+      //       callback: value => {
+      //         vm.buyer_name = value;
+      //       },
+      //     })
+      //   ].join(''),
+      //   callback: response => {
+      //     if (response) {
+      //       function call() {
+      //         loadings.view = true;
+      //         gvc.notifyDataChange(ids.view);
+      //       }
+      //
+      //       dialog.dataLoading({ visible: true });
+      //       ApiShop.verifyOrderCode(vm.verify_code).then(r => {
+      //         dialog.dataLoading({ visible: false });
+      //         vm.passport = Boolean(r.response?.result);
+      //
+      //         if (vm.passport) {
+      //           dialog.successMessage({ text: '驗證成功' });
+      //           setTimeout(() => call(), 1200);
+      //         } else {
+      //           dialog.errorMessage({ text: '驗證失敗', callback: () => call() });
+      //         }
+      //       });
+      //     } else {
+      //       glitter.setUrlParameter('cart_token', undefined);
+      //       changePage('index', 'home', {});
+      //     }
+      //   },
+      // });
     }
 
     return html` <div class="container py-4">
       ${gvc.bindView({
         bind: ids.view,
         dataList: [{ obj: vm, key: 'type' }],
-        view: () => {
+        view: async () => {
           try {
             if (loadings.view) {
               return UmClass.spinner({
@@ -953,11 +1063,6 @@ export class UMOrder {
                   style: 'height: 100%;',
                 },
               });
-            }
-
-            if (!vm.passport) {
-              guestCheckView();
-              return '';
             }
 
             if (!vm.data || !vm.data.orderData || !vm.data.cart_token) {
@@ -1366,7 +1471,7 @@ export class UMOrder {
                             text: `您已完成訂單，請於「付款資訊」了解付款說明後，儘速上傳結帳證明，以完成付款程序`,
                           });
                         }
-                        
+
                         Ad.fbqEvent('Purchase', {
                           value: orderData.total,
                           currency: 'TWD',
@@ -1463,7 +1568,7 @@ export class UMOrder {
                         value: (() => {
                           switch (orderData.orderStatus) {
                             case '-1':
-                              return html`<div class="text-danger">${Language.text('cancelled')}</div>`;
+                              return html` <div class="text-danger">${Language.text('cancelled')}</div>`;
                             case '1':
                               return Language.text('completed');
                             case '-99':
@@ -1806,28 +1911,10 @@ export class UMOrder {
         onCreate: async () => {
           if (loadings.view) {
             vm.passport = glitter.share.GlobalUser.token ? Boolean(await UmClass.getUserData(gvc)) : vm.passport;
-
-            if (vm.passport) {
-              ApiShop.getOrder({
-                limit: 1,
-                page: 0,
-                data_from: 'user',
-                search: glitter.getUrlParameter('cart_token'),
-                searchType: 'cart_token',
-              }).then((res: any) => {
-                if (res.result && res.response.data) {
-                  vm.data = res.response.data[0];
-                } else {
-                  vm.data = {} as any;
-                }
-                loadings.view = false;
-                gvc.notifyDataChange(ids.view);
-              });
+            if (GlobalUser.token) {
+              loadOrderData();
             } else {
-              setTimeout(() => {
-                loadings.view = false;
-                gvc.notifyDataChange(ids.view);
-              }, 100);
+              guestCheckView();
             }
           }
         },

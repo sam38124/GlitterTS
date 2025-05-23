@@ -363,17 +363,9 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
         searchType: req.query.searchType as string,
       });
 
-      if (user_data.account && Array.isArray(orders.data)) {
-        const user_account = user_data.account;
-        const order_email = orders.data[0].email;
-
-        if (user_account !== order_email) {
-          throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        }
-      }
-
       return response.succ(resp, orders);
     } else if (req.query.search) {
+      // req.query.verify_code=
       // 未登入訪客
       const orders = await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
         page: (req.query.page ?? 0) as number,
@@ -384,7 +376,9 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
         searchType: req.query.searchType as string,
         progress: req.query.progress as string,
       });
-
+      orders.data = orders.data.filter((dd:any) => {
+        return (dd.orderData.customer_info.phone===req.query.buyer_phone) && (dd.orderData.customer_info.name===req.query.buyer_name)
+      })
       return response.succ(resp, orders);
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);

@@ -19,8 +19,13 @@ import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
 import { ApiUser } from './glitter-base/route/user.js';
 import { ApplicationConfig } from './application-config.js';
+import { TriggerEvent } from './glitterBundle/plugins/trigger-event.js';
+import { Ad } from './public-components/public/ad.js';
 export class Entry {
     static onCreate(glitter) {
+        glitter.share.ad = Ad;
+        glitter.share.TriggerEvent = TriggerEvent;
+        glitter.share.PayConfig = PayConfig;
         config.url = location.origin;
         window.glitterBackend = location.origin;
         const originalReplaceState = history.replaceState;
@@ -146,7 +151,7 @@ export class Entry {
             }
             window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
             console.log(`Entry-time:`, window.renderClock.stop());
-            glitter.share.editerVersion = 'V_21.9.0';
+            glitter.share.editerVersion = 'V_21.9.4';
             glitter.share.start = new Date();
             const vm = { appConfig: [] };
             window.saasConfig = {

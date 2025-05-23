@@ -306,13 +306,6 @@ router.get('/order', async (req, resp) => {
                 progress: req.query.progress,
                 searchType: req.query.searchType,
             });
-            if (user_data.account && Array.isArray(orders.data)) {
-                const user_account = user_data.account;
-                const order_email = orders.data[0].email;
-                if (user_account !== order_email) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
-                }
-            }
             return response_1.default.succ(resp, orders);
         }
         else if (req.query.search) {
@@ -324,6 +317,9 @@ router.get('/order', async (req, resp) => {
                 status: req.query.status,
                 searchType: req.query.searchType,
                 progress: req.query.progress,
+            });
+            orders.data = orders.data.filter((dd) => {
+                return (dd.orderData.customer_info.phone === req.query.buyer_phone) && (dd.orderData.customer_info.name === req.query.buyer_name);
             });
             return response_1.default.succ(resp, orders);
         }

@@ -1195,7 +1195,7 @@ export class Main_editor {
             frame.style.height = `${frame_height}px`;
             frame.style.transform = `scale(${(container_width / frame_width).toFixed(2)})`;
             frame.style.left = document.body.clientWidth > 800 && Storage.view_type === ViewType.mobile ? '25%' : '0';
-            frame.style.top = `${tool_box + (gvc.glitter.share.top_inset ? parseInt(gvc.glitter.share.top_inset, 10) + 10 : 0)}px`;
+            frame.style.top = `${tool_box + (gvc.glitter.share.top_inset ? parseInt(gvc.glitter.share.top_inset, 10) : 0)}px`;
         };
         return gvc.bindView(() => {
             return {
@@ -1213,7 +1213,7 @@ export class Main_editor {
                         return html ` <div
               class="position-relative w-100 h-100"
               style="${parseInt(gvc.glitter.share.top_inset, 10)
-                            ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10) + 10}px;`
+                            ? `padding-top:${parseInt(gvc.glitter.share.top_inset, 10)}px;`
                             : ``}"
               id="editerCenter"
             >
