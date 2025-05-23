@@ -312,76 +312,115 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
 router.get('/order', async (req: express.Request, resp: express.Response) => {
   try {
     if (await UtPermission.isManager(req)) {
-      //管理員
-      return response.succ(
-        resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
-          page: (req.query.page ?? 0) as number,
-          limit: (req.query.limit ?? 50) as number,
-          search: req.query.search as string,
-          phone: req.query.phone as string,
-          id: req.query.id as string,
-          id_list: req.query.id_list as string,
-          email: req.query.email as string,
-          status: req.query.status as string,
-          searchType: req.query.searchType as string,
-          shipment: req.query.shipment as string,
-          is_pos: req.query.is_pos as string,
-          progress: req.query.progress as string,
-          orderStatus: req.query.orderStatus as string,
-          created_time: req.query.created_time as string,
-          orderString: req.query.orderString as string,
-          archived: req.query.archived as string,
-          distribution_code: req.query.distribution_code as string,
-          returnSearch: req.query.returnSearch as string,
-          valid: req.query.valid === 'true',
-          shipment_time: req.query.shipment_time as string,
-          is_shipment: req.query.is_shipment === 'true',
-          is_reconciliation: req.query.is_reconciliation === 'true',
-          payment_select: req.query.payment_select as string,
-          reconciliation_status:
-            req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
-          manager_tag: req.query.manager_tag as string,
-          member_levels: req.query.member_levels as string,
-        })
-      );
+      // 管理員
+      const orders = await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
+        page: (req.query.page ?? 0) as number,
+        limit: (req.query.limit ?? 50) as number,
+        search: req.query.search as string,
+        phone: req.query.phone as string,
+        id: req.query.id as string,
+        id_list: req.query.id_list as string,
+        email: req.query.email as string,
+        status: req.query.status as string,
+        searchType: req.query.searchType as string,
+        shipment: req.query.shipment as string,
+        is_pos: req.query.is_pos as string,
+        progress: req.query.progress as string,
+        orderStatus: req.query.orderStatus as string,
+        created_time: req.query.created_time as string,
+        orderString: req.query.orderString as string,
+        archived: req.query.archived as string,
+        distribution_code: req.query.distribution_code as string,
+        returnSearch: req.query.returnSearch as string,
+        valid: req.query.valid === 'true',
+        shipment_time: req.query.shipment_time as string,
+        is_shipment: req.query.is_shipment === 'true',
+        is_reconciliation: req.query.is_reconciliation === 'true',
+        payment_select: req.query.payment_select as string,
+        reconciliation_status:
+          req.query.reconciliation_status && ((req.query.reconciliation_status as string).split(',') as any),
+        manager_tag: req.query.manager_tag as string,
+        member_levels: req.query.member_levels as string,
+      });
+
+      return response.succ(resp, orders);
     } else if (await UtPermission.isAppUser(req)) {
-      //已登入用戶
+      // 已登入用戶
       const user_data = await new User(req.get('g-app') as string, req.body.token).getUserData(
         req.body.token.userID as any,
         'userID'
       );
-      return response.succ(
-        resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
-          page: (req.query.page ?? 0) as number,
-          limit: (req.query.limit ?? 50) as number,
-          search: req.query.search as string,
-          id: req.query.id as string,
-          email: user_data.userData.email,
-          phone: user_data.userData.phone,
-          status: req.query.status as string,
-          progress: req.query.progress as string,
-          searchType: req.query.searchType as string,
-        })
-      );
+
+      const orders = await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
+        page: (req.query.page ?? 0) as number,
+        limit: (req.query.limit ?? 50) as number,
+        search: req.query.search as string,
+        id: req.query.id as string,
+        email: user_data.userData.email,
+        phone: user_data.userData.phone,
+        status: req.query.status as string,
+        progress: req.query.progress as string,
+        searchType: req.query.searchType as string,
+      });
+
+      if (user_data.account && Array.isArray(orders.data)) {
+        const user_account = user_data.account;
+        const order_email = orders.data[0].email;
+
+        if (user_account !== order_email) {
+          throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+      }
+
+      return response.succ(resp, orders);
     } else if (req.query.search) {
-      //未登入訪客
-      return response.succ(
-        resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
-          page: (req.query.page ?? 0) as number,
-          limit: (req.query.limit ?? 50) as number,
-          search: req.query.search as string,
-          id: req.query.id as string,
-          status: req.query.status as string,
-          searchType: req.query.searchType as string,
-          progress: req.query.progress as string,
-        })
-      );
+      // 未登入訪客
+      const orders = await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
+        page: (req.query.page ?? 0) as number,
+        limit: (req.query.limit ?? 50) as number,
+        search: req.query.search as string,
+        id: req.query.id as string,
+        status: req.query.status as string,
+        searchType: req.query.searchType as string,
+        progress: req.query.progress as string,
+      });
+
+      return response.succ(resp, orders);
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
     }
+  } catch (err) {
+    return response.fail(resp, err);
+  }
+});
+router.post('/order/verifyCode', async (req: express.Request, resp: express.Response) => {
+  try {
+    if (req.query.order_id) {
+      const orders = await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
+        page: (req.query.page ?? 0) as number,
+        limit: (req.query.limit ?? 50) as number,
+        search: req.query.order_id as string,
+        searchType: 'cart_token',
+      });
+
+      if (Array.isArray(orders.data)) {
+        const order = orders.data[0];
+
+        const userData = await new User(req.get('g-app') as string, req.body.token).getUserData(
+          order.email,
+          'email_or_phone'
+        );
+
+        if (userData) {
+          throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+
+        const code = order.orderData.verify_code;
+        return response.succ(resp, { result: `${code}` === `${req.body.verify_code}` });
+      }
+    }
+
+    return response.succ(resp, { result: false });
   } catch (err) {
     return response.fail(resp, err);
   }

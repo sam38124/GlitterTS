@@ -197,7 +197,7 @@ export class ApiShop {
     });
   }
 
-  public static postMultiProduct(cf: { data: any; token?: string }) {
+  static postMultiProduct(cf: { data: any; token?: string }) {
     return BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/ec/product/multiple`,
       type: 'POST',
@@ -210,7 +210,7 @@ export class ApiShop {
     });
   }
 
-  public static putProduct(cf: { data: any; token?: string }) {
+  static putProduct(cf: { data: any; token?: string }) {
     return BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/ec/product`,
       type: 'PUT',
@@ -684,6 +684,21 @@ export class ApiShop {
     });
   }
 
+  static verifyOrderCode(verify_code: string) {
+    const glitter = (window as any).glitter;
+
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/ec/order/verifyCode?order_id=${glitter.getUrlParameter('cart_token')}`,
+      type: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: GlobalUser.token,
+      },
+      data: JSON.stringify({ verify_code }),
+    });
+  }
+
   static getSearchReturnOrder(json: {
     limit: number;
     page: number;
@@ -735,7 +750,7 @@ export class ApiShop {
     });
   }
 
-  public static putVoucher(json: { postData: any; token?: string; type?: 'normal' | 'manager' }) {
+  static putVoucher(json: { postData: any; token?: string; type?: 'normal' | 'manager' }) {
     return BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/voucher`,
       type: 'PUT',
@@ -748,7 +763,7 @@ export class ApiShop {
     });
   }
 
-  public static postVoucher(json: { postData: any; token?: string; type: 'normal' | 'manager' }) {
+  static postVoucher(json: { postData: any; token?: string; type: 'normal' | 'manager' }) {
     return BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/voucher`,
       type: 'POST',
@@ -1250,7 +1265,7 @@ export class ApiShop {
     });
   }
 
-  public static app_subscription(receipt: string, app_name: string) {
+  static app_subscription(receipt: string, app_name: string) {
     return BaseApi.create({
       url: getBaseUrl() + `/api-public/v1/ec/apple-webhook`,
       type: 'POST',

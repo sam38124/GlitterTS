@@ -263,7 +263,7 @@ router.get('/order', async (req, resp) => {
     var _a, _b, _c, _d, _e, _f;
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
+            const orders = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
                 limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
                 search: req.query.search,
@@ -290,11 +290,12 @@ router.get('/order', async (req, resp) => {
                 reconciliation_status: req.query.reconciliation_status && req.query.reconciliation_status.split(','),
                 manager_tag: req.query.manager_tag,
                 member_levels: req.query.member_levels,
-            }));
+            });
+            return response_1.default.succ(resp, orders);
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
             const user_data = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(req.body.token.userID, 'userID');
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
+            const orders = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_c = req.query.page) !== null && _c !== void 0 ? _c : 0),
                 limit: ((_d = req.query.limit) !== null && _d !== void 0 ? _d : 50),
                 search: req.query.search,
@@ -304,10 +305,18 @@ router.get('/order', async (req, resp) => {
                 status: req.query.status,
                 progress: req.query.progress,
                 searchType: req.query.searchType,
-            }));
+            });
+            if (user_data.account && Array.isArray(orders.data)) {
+                const user_account = user_data.account;
+                const order_email = orders.data[0].email;
+                if (user_account !== order_email) {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                }
+            }
+            return response_1.default.succ(resp, orders);
         }
         else if (req.query.search) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
+            const orders = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_e = req.query.page) !== null && _e !== void 0 ? _e : 0),
                 limit: ((_f = req.query.limit) !== null && _f !== void 0 ? _f : 50),
                 search: req.query.search,
@@ -315,11 +324,39 @@ router.get('/order', async (req, resp) => {
                 status: req.query.status,
                 searchType: req.query.searchType,
                 progress: req.query.progress,
-            }));
+            });
+            return response_1.default.succ(resp, orders);
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/order/verifyCode', async (req, resp) => {
+    var _a, _b;
+    try {
+        if (req.query.order_id) {
+            const orders = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
+                page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
+                limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
+                search: req.query.order_id,
+                searchType: 'cart_token',
+            });
+            if (Array.isArray(orders.data)) {
+                const order = orders.data[0];
+                const order_email = order.email;
+                const userData = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(order_email, 'email_or_phone');
+                if (userData) {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                }
+                const code = 123;
+                return response_1.default.succ(resp, { result: `${code}` === `${req.body.verify_code}` });
+            }
+        }
+        return response_1.default.succ(resp, { result: false });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

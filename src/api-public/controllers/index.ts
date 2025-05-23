@@ -128,6 +128,7 @@ const whiteList: {}[] = [
   { url: config.getRoute(config.public_route.ec + '/repay_redirect', 'public'), method: 'POST' },
   { url: config.getRoute(config.public_route.ec + '/logistics/redirect', 'public'), method: 'POST' },
   { url: config.getRoute(config.public_route.ec + '/order', 'public'), method: 'GET' },
+  { url: config.getRoute(config.public_route.ec + '/order/verifyCode', 'public'), method: 'POST' },
   { url: config.getRoute(config.public_route.ec + '/order/cancel', 'public'), method: 'PUT' },
   { url: config.getRoute(config.public_route.ec + '/order/proof-purchase', 'public'), method: 'PUT' },
   { url: config.getRoute(config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },

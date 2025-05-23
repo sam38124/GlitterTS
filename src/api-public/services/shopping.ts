@@ -3131,7 +3131,6 @@ export class Shopping {
         await this.setOrderCustomizeTagConifg(update.orderData.tags);
       }
 
-
       // 加入到索引欄位
       await CheckoutService.updateAndMigrateToTableColumn({
         id: origin.id,
@@ -3652,18 +3651,12 @@ export class Shopping {
           } else if (status === 'completed_offset') {
             search.push(`(total_received < total) && ((total_received + offset_amount) = total)`);
           } else if (status === 'pending_offset') {
-            search.push(`(total_received < total)  &&  (offset_amount IS NULL)`);
+            search.push(`(total_received < total) && (offset_amount IS NULL)`);
           } else if (status === 'pending_refund') {
-            search.push(`(total_received > total)   &&  (offset_amount IS NULL)`);
+            search.push(`(total_received > total) && (offset_amount IS NULL)`);
           }
         });
-        querySql.push(
-          `(${search
-            .map(dd => {
-              return `(${dd})`;
-            })
-            .join(' or ')})`
-        );
+        querySql.push(`(${search.map(dd => `(${dd})`).join(' OR ')})`);
       }
 
       if (query.orderStatus) {
@@ -3678,7 +3671,6 @@ export class Shopping {
 
       if (query.valid) {
         const countingSQL = await new User(this.app).getCheckoutCountingModeSQL('o');
-
         querySql.push(countingSQL);
       }
 
@@ -4454,12 +4446,12 @@ export class Shopping {
           []
         );
       }
-        // 同步更新蝦皮
-        if (content.shopee_id) {
-          await new Shopee(this.app, this.token).asyncStockToShopee({
-            product: { content },
-            callback: () => {},
-          });
+      // 同步更新蝦皮
+      if (content.shopee_id) {
+        await new Shopee(this.app, this.token).asyncStockToShopee({
+          product: { content },
+          callback: () => {},
+        });
       }
     } catch (error) {
       console.error(error);
@@ -5369,8 +5361,6 @@ export class Shopping {
 
       // 更新商品 Variant
       await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
-
-
 
       return content.insertId;
     } catch (e) {
