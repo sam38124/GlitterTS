@@ -5,7 +5,6 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { LanguageLocation } from '../glitter-base/global/language.js';
 import { LanguageBackend } from './language-backend.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { AiChat } from '../glitter-base/route/ai-chat.js';
 
 const html = String.raw;
 
@@ -16,30 +15,29 @@ interface MenuItem {
 }
 
 export class MenusSetting {
-  public static main(gvc: GVC, widget: any,def:'menu'|'footer') {
+  public static main(gvc: GVC, widget: any, def: 'menu' | 'footer') {
     const html = String.raw;
     const glitter = gvc.glitter;
+    const dialog = new ShareDialog(glitter);
 
     const vm: {
       type: 'list' | 'add' | 'replace' | 'select';
       index: number;
       dataList: any;
       query?: string;
-      select:{title:string,tag:string}
-      tab:'menu'|'footer'
+      select: { title: string; tag: string };
+      tab: 'menu' | 'footer';
     } = {
       type: 'list',
       index: 0,
       dataList: undefined,
       query: '',
-      tab:def || 'menu',
-      select:{title:'',tag:''}
+      tab: def || 'menu',
+      select: { title: '', tag: '' },
     };
-    const filterID = gvc.glitter.getUUID();
-    let vmi: any = undefined;
 
     function getDatalist() {
-      return vm.dataList.map((dd: any, index: number) => {
+      return vm.dataList.map((dd: any) => {
         return [
           {
             key: '選單名稱',
@@ -51,44 +49,39 @@ export class MenusSetting {
 
     return gvc.bindView(() => {
       const id = glitter.getUUID();
-      function refresh() {
-        gvc.notifyDataChange(id);
-      }
 
       return {
         bind: id,
         dataList: [{ obj: vm, key: 'type' }],
         view: () => {
           if (vm.type === 'list') {
-
             return BgWidget.container(html`
               <div class="title-container">
                 ${BgWidget.title('選單管理')}
                 <div class="flex-fill"></div>
                 ${BgWidget.darkButton(
-                  `新增${vm.tab==='menu' ? `頁首選單`:`頁腳選單`}`,
+                  `新增${vm.tab === 'menu' ? `頁首選單` : `頁腳選單`}`,
                   gvc.event(async () => {
-                    let title=''
-                    async function next(){
-                      const dialog=new ShareDialog(gvc.glitter)
-                      dialog.dataLoading({visible:true})
-                      const tab=vm.tab==='menu' ? `頁首選單`:`頁腳選單`
-                      let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
-                      menu_all.list=menu_all.list ?? [];
-                      menu_all.list=[
+                    let title = '';
+                    async function next() {
+                      dialog.dataLoading({ visible: true });
+                      const tab = vm.tab === 'menu' ? `頁首選單` : `頁腳選單`;
+                      let menu_all = (await ApiUser.getPublicConfig('menu-setting-list', 'manager')).response.value;
+                      menu_all.list = menu_all.list ?? [];
+                      menu_all.list = [
                         {
-                          tag:gvc.glitter.getUUID(),
-                          title:title || [tab,`${(menu_all.list.length+1)}`].join(''),
-                          tab:vm.tab==='menu' ? 'menu-setting':'footer-setting'
-                        }
+                          tag: gvc.glitter.getUUID(),
+                          title: title || [tab, `${menu_all.list.length + 1}`].join(''),
+                          tab: vm.tab === 'menu' ? 'menu-setting' : 'footer-setting',
+                        },
                       ].concat(menu_all.list);
                       await ApiUser.setPublicConfig({
-                        key:'menu-setting-list',
-                        value:menu_all,
-                        user_id:'manager'
+                        key: 'menu-setting-list',
+                        value: menu_all,
+                        user_id: 'manager',
                       });
-                      dialog.dataLoading({visible:false});
-                      gvc.notifyDataChange(id)
+                      dialog.dataLoading({ visible: false });
+                      gvc.notifyDataChange(id);
                     }
                     BgWidget.settingDialog({
                       gvc: gvc,
@@ -96,69 +89,75 @@ export class MenusSetting {
                       innerHTML: (gvc: GVC) => {
                         return [
                           BgWidget.editeInput({
-                            title:'',
-                            callback:(text)=>{
-                              title=text
+                            title: '',
+                            callback: text => {
+                              title = text;
                             },
-                            default:title,
-                            gvc:gvc,
-                            placeHolder:'請輸入選單名稱'
-                          })
-                        ].join('')
+                            default: title,
+                            gvc: gvc,
+                            placeHolder: '請輸入選單名稱',
+                          }),
+                        ].join('');
                       },
                       footer_html: (gvc: GVC) => {
-                        return BgWidget.save(gvc.event(()=>{
-                         next()
-                          gvc.closeDialog()
-                        }),'儲存')
+                        return BgWidget.save(
+                          gvc.event(() => {
+                            next();
+                            gvc.closeDialog();
+                          }),
+                          '儲存'
+                        );
                       },
-                      width: 300
-                    })
-                 
-                    // vm.index = index;
-                    // vm.type = 'replace';
+                      width: 300,
+                    });
                   })
                 )}
               </div>
-              ${def ? ``:BgWidget.tab(
-                [
-                  { title: '主選單', key: 'menu' },
-                  { title: '頁腳', key: 'footer' }
-                ],
-                gvc,
-                vm.tab,
-                (text) => {
-                  vm.tab=text as any
-                  gvc.notifyDataChange(id);
-                },
-                `${document.body.clientWidth<800 ? ``:`margin-bottom:0px !important;`}
+              ${def
+                ? ''
+                : BgWidget.tab(
+                    [
+                      { title: '主選單', key: 'menu' },
+                      { title: '頁腳', key: 'footer' },
+                    ],
+                    gvc,
+                    vm.tab,
+                    text => {
+                      vm.tab = text as any;
+                      gvc.notifyDataChange(id);
+                    },
+                    `${document.body.clientWidth < 800 ? '' : `margin-bottom:0px !important;`}
                 `
-              )}
+                  )}
               ${BgWidget.container(
                 BgWidget.mainCard(
                   BgWidget.tableV3({
                     gvc: gvc,
-                    getData: async (vmi) => {
-                      const tag=vm.tab==='menu' ? 'menu-setting':'footer-setting'
-                      let menu_all= (await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
+                    getData: async vmi => {
+                      const tag = vm.tab === 'menu' ? 'menu-setting' : 'footer-setting';
+                      let menu_all = (await ApiUser.getPublicConfig('menu-setting-list', 'manager')).response.value;
                       menu_all.list = menu_all.list ?? [];
                       vm.dataList = [
-                        { tag: tag, title: `
-                       <div> ${vm.tab==='menu' ? `頁首選單`:`頁腳選單`} <span style="font-size:12px;color:#36B;">系統預設</span></div>
-                        ` },
-                        ...menu_all.list.filter((d1:any)=>{
-                          return d1.tab===tag
-                        })
+                        {
+                          tag: tag,
+                          title: html`
+                            <div>
+                              ${vm.tab === 'menu' ? '頁首選單' : '頁腳選單'}
+                              <span style="font-size: 12px; color: #36B;">系統預設</span>
+                            </div>
+                          `,
+                        },
+                        ...menu_all.list.filter((d1: any) => d1.tab === tag),
                       ];
-                      
+
                       vmi.pageSize = 1;
                       vmi.originalData = vm.dataList;
                       vmi.tableData = getDatalist();
                       vmi.loading = false;
                       vmi.callback();
                     },
-                    rowClick: (data, index) => {
-                      vm.select=vm.dataList[index]
+                    rowClick: (_, index) => {
+                      vm.select = vm.dataList[index];
                       vm.type = 'replace';
                     },
                     filter: [],
@@ -192,20 +191,14 @@ export class MenusSetting {
           }
         },
         divCreate: {
-          class: `w-100 `,
-          style: `max-width:100%;`,
+          class: 'w-100',
+          style: 'max-width: 100%;',
         },
       };
     });
   }
 
-  public static setMenu(cf: {
-    goBack: () => void;
-    gvc: GVC;
-    widget: any;
-    key: string;
-    title: string;
-  }) {
+  public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: string; title: string }) {
     const vm: {
       id: string;
       link: {
@@ -215,7 +208,7 @@ export class MenusSetting {
       };
       loading: boolean;
       selected: boolean;
-      language: LanguageLocation
+      language: LanguageLocation;
     } = {
       id: cf.gvc.glitter.getUUID(),
       link: {
@@ -225,8 +218,10 @@ export class MenusSetting {
       },
       selected: false,
       loading: true,
-      language: (window.parent as any).store_info.language_setting.def
+      language: (window.parent as any).store_info.language_setting.def,
     };
+    const gvc = cf.gvc;
+    const dialog = new ShareDialog(gvc.glitter);
 
     ApiUser.getPublicConfig(cf.key, 'manager').then((data: any) => {
       if (data.response.value) {
@@ -241,22 +236,24 @@ export class MenusSetting {
         clearNoNeedData(dd.items || []);
       });
     }
+
     async function save() {
       for (const a of ['en-US', 'zh-CN', 'zh-TW']) {
-        (vm.link as any)[a]=(vm.link as any)[a]??[]
+        (vm.link as any)[a] = (vm.link as any)[a] ?? [];
         clearNoNeedData((vm.link as any)[a]);
       }
 
-     const dialog=new ShareDialog(gvc.glitter)
-      dialog.dataLoading({visible:true})
-      let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
-      menu_all.list=menu_all.list ?? []
-      const find_=menu_all.list.find((d1:any)=>{return d1.tag===cf.key});
-      find_ &&( find_.title=cf.title)
+      dialog.dataLoading({ visible: true });
+      let menu_all = (await ApiUser.getPublicConfig('menu-setting-list', 'manager')).response.value;
+      menu_all.list = menu_all.list ?? [];
+      const find_ = menu_all.list.find((d1: any) => {
+        return d1.tag === cf.key;
+      });
+      find_ && (find_.title = cf.title);
       await ApiUser.setPublicConfig({
-        key:'menu-setting-list',
-        value:menu_all,
-        user_id:'manager'
+        key: 'menu-setting-list',
+        value: menu_all,
+        user_id: 'manager',
       });
       ApiUser.setPublicConfig({
         key: cf.key,
@@ -264,11 +261,12 @@ export class MenusSetting {
         user_id: 'manager',
       }).then(data => {
         setTimeout(() => {
-          dialog.dataLoading({visible:false})
-          dialog.successMessage({text:'儲存成功'})
+          dialog.dataLoading({ visible: false });
+          dialog.successMessage({ text: '儲存成功' });
         }, 1000);
       });
     }
+
     function selectAll(array: MenuItem) {
       (array as any).selected = true;
       array.items.map(dd => {
@@ -276,6 +274,7 @@ export class MenusSetting {
         selectAll(dd);
       });
     }
+
     function clearAll(array: MenuItem) {
       (array as any).selected = false;
       array.items.map(dd => {
@@ -283,6 +282,7 @@ export class MenusSetting {
         clearAll(dd);
       });
     }
+
     function allSelect(dd: any) {
       return (
         !dd.items.find((d1: any) => {
@@ -290,6 +290,7 @@ export class MenusSetting {
         }) && (dd as any).selected
       );
     }
+
     function getSelectCount(dd: any) {
       let count = 0;
       if (dd.selected) {
@@ -300,6 +301,7 @@ export class MenusSetting {
       });
       return count;
     }
+
     function deleteSelect(items: MenuItem[]) {
       return items.filter(d1 => {
         d1.items = deleteSelect(d1.items || []);
@@ -307,15 +309,15 @@ export class MenusSetting {
       });
     }
 
-    const gvc = cf.gvc;
     function refresh() {
       gvc.notifyDataChange(vm.id);
     }
+
     return gvc.bindView(() => {
       return {
         bind: vm.id,
         view: () => {
-          vm.link[vm.language]=vm.link[vm.language] ?? []
+          vm.link[vm.language] = vm.link[vm.language] ?? [];
           const link = vm.link[vm.language];
 
           return html`<div class="title-container" style="width: 100%; max-width: 100%;">
@@ -324,37 +326,41 @@ export class MenusSetting {
                   cf.goBack();
                 })
               )}${BgWidget.title(cf.title ?? '選單設定')}
-            <div class="mx-2 ${ ['menu-setting' , 'footer-setting' , 'text-manager'].includes(cf.key) ? `d-none`:``}">
-              ${BgWidget.grayButton('重新命名',gvc.event(()=>{
-                BgWidget.settingDialog({
-                  gvc: gvc,
-                  title: '重新命名',
-                  innerHTML: (gvc: GVC) => {
-                   return [
-                     BgWidget.editeInput({
-                       title:'',
-                       callback:(text)=>{
-                         cf.title=text
-                       },
-                       default:cf.title,
-                       gvc:gvc,
-                       placeHolder:''
-                     })
-                   ].join('')
-                  },
-                  footer_html: (gvc: GVC) => {
-                    return BgWidget.save(gvc.event(()=>{
-                      gvc.closeDialog()
-                      refresh()
-                    }),'儲存')
-                  },
-                  width: 500
-                })
-              }))}
-            </div>
-           
+              <div class="mx-2 ${['menu-setting', 'footer-setting', 'text-manager'].includes(cf.key) ? 'd-none' : ''}">
+                ${BgWidget.grayButton(
+                  '重新命名',
+                  gvc.event(() => {
+                    BgWidget.settingDialog({
+                      gvc: gvc,
+                      title: '重新命名',
+                      innerHTML: (gvc: GVC) => {
+                        return [
+                          BgWidget.editeInput({
+                            title: '',
+                            callback: text => {
+                              cf.title = text;
+                            },
+                            default: cf.title,
+                            gvc: gvc,
+                            placeHolder: '',
+                          }),
+                        ].join('');
+                      },
+                      footer_html: (gvc: GVC) => {
+                        return BgWidget.save(
+                          gvc.event(() => {
+                            gvc.closeDialog();
+                            refresh();
+                          }),
+                          '儲存'
+                        );
+                      },
+                      width: 500,
+                    });
+                  })
+                )}
+              </div>
               <div class="flex-fill"></div>
-          
               ${LanguageBackend.switchBtn({
                 gvc: gvc,
                 language: vm.language,
@@ -373,19 +379,13 @@ export class MenusSetting {
                     style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex"
                   >
                     <div
-                      class="w-100  ${getSelectCount({
-                        items: link,
-                      }) > 0
-                        ? ``
-                        : `d-none`}"
+                      class="w-100  ${getSelectCount({ items: link }) > 0 ? '' : 'd-none'}"
                       style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
                     >
                       <div
                         style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word"
                       >
-                        已選取${getSelectCount({
-                          items: link,
-                        })}項
+                        已選取${getSelectCount({ items: link })}項
                       </div>
                       <div
                         style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
@@ -408,28 +408,18 @@ export class MenusSetting {
                       <div
                         class="${allSelect({
                           items: link,
-                          selected: !link.find(dd => {
-                            return !(dd as any).selected;
-                          }),
+                          selected: !link.find(dd => !(dd as any).selected),
                         })
-                          ? `fa-solid fa-square-check`
-                          : `fa-regular fa-square`}"
-                        style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
+                          ? 'fa-solid fa-square-check'
+                          : 'fa-regular fa-square'}"
+                        style="color: #393939; width: 16px; height: 16px; cursor: pointer;"
                         onclick="${cf.gvc.event((e, event) => {
                           event.stopPropagation();
 
-                          if (
-                            link.find(dd => {
-                              return !(dd as any).selected;
-                            })
-                          ) {
-                            selectAll({
-                              items: link,
-                            } as any);
+                          if (link.find(dd => !(dd as any).selected)) {
+                            selectAll({ items: link } as any);
                           } else {
-                            clearAll({
-                              items: link,
-                            } as any);
+                            clearAll({ items: link } as any);
                           }
                           gvc.notifyDataChange(vm.id);
                         })}"
@@ -455,7 +445,7 @@ export class MenusSetting {
                                     .map((dd, index) => {
                                       const list = html`
                                         <div
-                                          class=" w-100 "
+                                          class="w-100"
                                           style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
                                           onclick="${cf.gvc.event(() => {
                                             if (dd.items && dd.items.length > 0) {
@@ -469,7 +459,7 @@ export class MenusSetting {
                                               ? `fa-solid fa-square-check`
                                               : `fa-regular fa-square`}"
                                             style="color:#393939;width: 16px; height: 16px;"
-                                            onclick="${cf.gvc.event((e, event) => {
+                                            onclick="${cf.gvc.event((_, event) => {
                                               event.stopPropagation();
                                               (dd as any).selected = !(dd as any).selected;
                                               if ((dd as any).selected) {
@@ -501,9 +491,9 @@ export class MenusSetting {
                                                 </div>
                                                 ${dd.items && dd.items.length > 0
                                                   ? !(dd as any).toggle
-                                                    ? `<i class="fa-solid fa-angle-down color39"></i>`
-                                                    : `<i class="fa-solid fa-angle-up color39"></i>`
-                                                  : ``}
+                                                    ? html`<i class="fa-solid fa-angle-down color39"></i>`
+                                                    : html`<i class="fa-solid fa-angle-up color39"></i>`
+                                                  : ''}
                                               </div>
                                               <div
                                                 style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;white-space: normal;word-break: break-all;"
@@ -523,7 +513,7 @@ export class MenusSetting {
                                             <div class="flex-fill"></div>
                                             <div
                                               class="child me-2"
-                                              onclick="${cf.gvc.event((e, event) => {
+                                              onclick="${cf.gvc.event((_, event) => {
                                                 event.stopPropagation();
                                                 MenusSetting.editEvent(
                                                   {
@@ -558,13 +548,13 @@ export class MenusSetting {
                                         ${dd.items && dd.items.length > 0
                                           ? html`
                                               <div
-                                                class=" w-100 ${(dd as any).toggle ? `` : `d-none`}"
+                                                class=" w-100 ${(dd as any).toggle ? '' : 'd-none'}"
                                                 style="padding-left: 35px;"
                                               >
                                                 ${renderItems(dd.items as MenuItem[]) as any}
                                               </div>
                                             `
-                                          : ``}
+                                          : ''}
                                       `;
                                       return html`<li class="w-100 ">${list}</li>`;
                                     })
@@ -572,8 +562,8 @@ export class MenusSetting {
                                 },
                                 divCreate: {
                                   elem: 'ul',
-                                  class: `w-100 my-2`,
-                                  style: `display:flex;flex-direction: column;gap:18px;`,
+                                  class: 'w-100 my-2',
+                                  style: 'display:flex; flex-direction: column; gap: 18px;',
                                 },
                                 onCreate: () => {
                                   gvc.glitter.addMtScript(
@@ -590,11 +580,11 @@ export class MenusSetting {
                                     if (window.Sortable) {
                                       try {
                                         gvc.addStyle(`
-                                                                                ul {
-                                                                                    list-style: none;
-                                                                                    padding: 0;
-                                                                                }
-                                                                            `);
+                                          ul {
+                                            list-style: none;
+                                            padding: 0;
+                                          }
+                                        `);
                                         function swapArr(arr: any, index1: number, index2: number) {
                                           const data = arr[index1];
                                           arr.splice(index1, 1);
@@ -660,29 +650,30 @@ export class MenusSetting {
               </div>`
             )}
             <div class="update-bar-container">
-              ${
-            ['menu-setting' , 'footer-setting' , 'text-manager'].includes(cf.key) ? ``:BgWidget.danger(gvc.event(async () => {
-              const dialog=new ShareDialog(gvc.glitter);
-              dialog.checkYesOrNot({
-                text:'是否確認刪除?',
-                callback:async (response)=>{
-                 if(response){
-                   dialog.dataLoading({visible:true});
-                   let menu_all=(await ApiUser.getPublicConfig('menu-setting-list','manager')).response.value;
-                   menu_all.list=menu_all.list.filter((d1:any)=>d1.tag!=cf.key);
-                   await ApiUser.setPublicConfig({
-                     key:'menu-setting-list',
-                     value:menu_all,
-                     user_id:'manager'
-                   });
-                   dialog.dataLoading({visible:false});
-                   cf.goBack();
-                 }
-                }
-              })
-              
-            }))
-              }
+              ${['menu-setting', 'footer-setting', 'text-manager'].includes(cf.key)
+                ? ''
+                : BgWidget.danger(
+                    gvc.event(async () => {
+                      dialog.checkYesOrNot({
+                        text: '是否確認刪除?',
+                        callback: async response => {
+                          if (response) {
+                            dialog.dataLoading({ visible: true });
+                            let menu_all = (await ApiUser.getPublicConfig('menu-setting-list', 'manager')).response
+                              .value;
+                            menu_all.list = menu_all.list.filter((d1: any) => d1.tag != cf.key);
+                            await ApiUser.setPublicConfig({
+                              key: 'menu-setting-list',
+                              value: menu_all,
+                              user_id: 'manager',
+                            });
+                            dialog.dataLoading({ visible: false });
+                            cf.goBack();
+                          }
+                        },
+                      });
+                    })
+                  )}
               ${BgWidget.cancel(
                 gvc.event(() => {
                   cf.goBack();
@@ -742,7 +733,7 @@ export class MenusSetting {
               ].join('');
             },
             divCreate: {
-              style: `padding:20px;`,
+              style: 'padding:20px;',
             },
           };
         }),
@@ -761,6 +752,7 @@ export class MenusSetting {
         save(data);
       }
     };
+
     rightMenu.toggle({
       visible: true,
       title: '新增分類',
@@ -791,7 +783,7 @@ export class MenusSetting {
               ].join('');
             },
             divCreate: {
-              style: `padding:20px;`,
+              style: 'padding: 20px;',
             },
           };
         }),
