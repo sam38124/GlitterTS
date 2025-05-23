@@ -615,6 +615,16 @@ export class FilterOptions {
     // { key: 'stock_asc', value: '庫存數量少 > 多' },
   ];
 
+  static appMarketOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'popularity_desc', value: '熱門程度高>低' },
+    { key: 'popularity_asc', value: '熱門程度低>高' },
+    { key: 'price_desc', value: '定價高>低' },
+    { key: 'price_asc', value: '定價高>低' },
+    // { key: 'stock_desc', value: '庫存數量多 > 少' },
+    // { key: 'stock_asc', value: '庫存數量少 > 多' },
+  ];
+
   static productSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '庫存單位(SKU)' },

@@ -5486,7 +5486,6 @@ ${obj.default ?? ''}</textarea
                               gvc,
                               urlArray => {
                                 if (urlArray.length > 0) {
-                                  urlArray[0].data
                                   callback(urlArray[0].data);
                                   image = urlArray[0].data;
                                   gvc.notifyDataChange(id);

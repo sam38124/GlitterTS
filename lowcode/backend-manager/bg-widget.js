@@ -4609,7 +4609,6 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                           onclick="${gvc.event(() => {
                             imageLibrary.selectImageLibrary(gvc, urlArray => {
                                 if (urlArray.length > 0) {
-                                    urlArray[0].data;
                                     callback(urlArray[0].data);
                                     image = urlArray[0].data;
                                     gvc.notifyDataChange(id);

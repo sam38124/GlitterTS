@@ -3223,7 +3223,6 @@ class Shopping {
           FROM \`${this.app}\`.t_variants v
           LEFT JOIN \`${this.app}\`.t_manager_post p ON v.product_id = p.id
           WHERE p.content->>'$.type' <> 'product' OR p.id IS NULL`, [])).map((item) => item.id);
-            console.log(null_variant_id_array);
             if (null_variant_id_array.length > 0) {
                 await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE id IN (${null_variant_id_array.join(',')})
           `, []);

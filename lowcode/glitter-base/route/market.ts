@@ -13,6 +13,28 @@ export class ApiMarket {
       },
     });
   }
+  static getInstallAppList() {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/app_market/install`,
+      type: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: getConfig().config.token,
+      },
+    });
+  }
+  static getPublishedAppList() {
+    return BaseApi.create({
+      url: getBaseUrl() + `/api-public/v1/app_market/published`,
+      type: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'g-app': getConfig().config.appName,
+        Authorization: getConfig().config.token,
+      },
+    });
+  }
 }
 
 function getConfig() {

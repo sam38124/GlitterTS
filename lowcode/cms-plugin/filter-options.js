@@ -583,6 +583,13 @@ FilterOptions.imageLibraryOrderBy = [
     { key: 'name_AtoZ', value: '圖片名稱A>Z' },
     { key: 'name_ZtoA', value: '圖片名稱Z>A' },
 ];
+FilterOptions.appMarketOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'popularity_desc', value: '熱門程度高>低' },
+    { key: 'popularity_asc', value: '熱門程度低>高' },
+    { key: 'price_desc', value: '定價高>低' },
+    { key: 'price_asc', value: '定價高>低' },
+];
 FilterOptions.productSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '庫存單位(SKU)' },

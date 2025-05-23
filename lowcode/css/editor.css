@@ -427,6 +427,12 @@ h6 {
   font-weight: 400;
 }
 
+.tx_yellow_14 {
+  font-size: 14px;
+  color: var(--main-yellow);
+  font-weight: 400;
+}
+
 .c_card {
   border-radius: 10px;
   background: var(--main-white);
