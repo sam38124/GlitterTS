@@ -319,6 +319,7 @@ export class BgBlog {
                                                     link: '',
                                                     title: '',
                                                     items: [],
+                                                    visible_type: 'all',
                                                 }, data => {
                                                     dd.items = dd.items || [];
                                                     dd.items.push(data);
@@ -427,6 +428,7 @@ export class BgBlog {
                                         link: '',
                                         title: '',
                                         items: [],
+                                        visible_type: 'all',
                                     }, data => {
                                         array.push(data);
                                         if (checkLinkExists(data, vm.link)) {

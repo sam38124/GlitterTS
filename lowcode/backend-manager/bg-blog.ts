@@ -19,6 +19,8 @@ import { Language } from '../glitter-base/global/language.js';
 interface MenuItem {
   link: string;
   title: string;
+  visible_type: 'all' | 'loggedIn' | 'user' | 'level';
+  visible_data_array?: string[];
   items: MenuItem[];
 }
 
@@ -363,6 +365,7 @@ export class BgBlog {
                                                     link: '',
                                                     title: '',
                                                     items: [],
+                                                    visible_type: 'all',
                                                   },
                                                   data => {
                                                     dd.items = dd.items || [];
@@ -480,6 +483,7 @@ export class BgBlog {
                                     link: '',
                                     title: '',
                                     items: [],
+                                    visible_type: 'all',
                                   },
                                   data => {
                                     array.push(data);
