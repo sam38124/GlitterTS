@@ -240,10 +240,10 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
       }
 
       // 建立顧客資料陣列，開始批次新增
-      const createUserPromises = checks.map(async check => {
+      const createUserPromises = checks.map( (check:any) => {
         const passUser = check.postUser;
         tempTags = tempTags.concat(passUser.userData.tags ?? []);
-        return user.createUser(passUser.account, Tool.randomString(8), passUser.userData, {}, true);
+        return user.createUser(passUser.account, Tool.randomString(8), passUser.userData, req, true);
       });
 
       const createResults = await Promise.allSettled(createUserPromises);
@@ -265,7 +265,6 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
       user_id: 'manager',
       value: userTags,
     });
-
     return response.succ(resp, responseList[0] || {});
   } catch (err) {
     return response.fail(resp, err);

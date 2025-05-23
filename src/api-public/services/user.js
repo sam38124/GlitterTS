@@ -247,7 +247,7 @@ class User {
         }
     }
     async createUserHook(userID, req) {
-        req.body.create_user_success = true;
+        req.body && (req.body.create_user_success = true);
         const usData = await this.getUserData(userID, 'userID');
         usData.userData.repeatPwd = undefined;
         await database_1.default.query(`update \`${this.app}\`.t_user
@@ -272,8 +272,8 @@ class User {
                 deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
             });
         }
-        new notify_js_1.ManagerNotify(this.app).userRegister({ user_id: userID });
         await user_update_js_1.UserUpdate.update(this.app, userID);
+        new notify_js_1.ManagerNotify(this.app).userRegister({ user_id: userID });
         await new fb_api_js_1.FbApi(this.app).register(usData, req);
     }
     async updateAccount(account, userID) {

@@ -318,7 +318,7 @@ export class User {
 
   // 用戶初次建立的initial函式
   async createUserHook(userID: string, req: express.Request) {
-    req.body.create_user_success = true;
+    req.body && (req.body.create_user_success = true);
     // 發送歡迎信件
     const usData: any = await this.getUserData(userID, 'userID');
     usData.userData.repeatPwd = undefined;
@@ -350,9 +350,9 @@ export class User {
         deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
       });
     }
+    await UserUpdate.update(this.app, userID);
     //發送用戶註冊通知
     new ManagerNotify(this.app).userRegister({ user_id: userID });
-    await UserUpdate.update(this.app, userID);
     //註冊事件
     await new FbApi(this.app).register(usData, req);
   }
