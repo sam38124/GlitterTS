@@ -4,9 +4,10 @@ import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { FilterOptions } from './filter-options.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Language, LanguageLocation } from '../glitter-base/global/language.js';
+
+const html = String.raw;
 
 type ViewModel = {
   id: string;
@@ -64,7 +65,7 @@ function getEmptyLanguageData() {
 }
 
 export class ShoppingCollections {
-  public static main(gvc: GVC) {
+  static main(gvc: GVC) {
     const glitter = gvc.glitter;
     const vm: ViewModel = {
       id: glitter.getUUID(),
@@ -92,7 +93,6 @@ export class ShoppingCollections {
       query: '',
       allParents: [],
     };
-    const html = String.raw;
     const dialog = new ShareDialog(gvc.glitter);
 
     const updateCollections = (data: { products: Product[]; collections: Collection[] }): Collection[] => {
@@ -198,51 +198,7 @@ export class ShoppingCollections {
                               bind: id,
                               view: () => {
                                 if (loading) {
-                                  gvc.addStyle(`
-                                    .parent-container,
-                                    .child-container {
-                                      flex: 1;
-                                      margin-right: 20px;
-                                    }
-
-                                    .parent-container:last-child,
-                                    .child-container:last-child {
-                                      margin-right: 0;
-                                    }
-
-                                    .ul-style {
-                                      list-style-type: none;
-                                      padding: 0;
-                                      margin: 0;
-                                      min-height: 200px;
-                                      border: 1px solid #ccc;
-                                    }
-
-                                    .li-style {
-                                      padding: 6px 10px;
-                                      margin-bottom: 5px;
-                                      background-color: #eee;
-                                      cursor: move;
-                                      border: 1px solid #ccc;
-                                      display: flex;
-                                      align-items: center;
-                                    }
-
-                                    .drag-icon {
-                                      margin-right: 10px;
-                                      cursor: move;
-                                    }
-
-                                    .drag-icon::before {
-                                      content: '↕';
-                                      font-size: 18px;
-                                      margin-right: 10px;
-                                    }
-
-                                    .selectCol {
-                                      background-color: #dcdcdc;
-                                    }
-                                  `);
+                                  this.addStyle(gvc);
                                   return '';
                                 } else {
                                   return html` <div class="d-flex">
@@ -502,7 +458,7 @@ export class ShoppingCollections {
                           }
                         });
                       },
-                      rowClick: (data, index) => {
+                      rowClick: (_, index) => {
                         vm.data = vm.dataList[index];
                         vm.type = 'replace';
                       },
@@ -559,9 +515,57 @@ export class ShoppingCollections {
     });
   }
 
-  public static editorDetail(obj: { vm: ViewModel; gvc: GVC; type?: 'add' | 'replace' }) {
-    const html = String.raw;
+  static addStyle(gvc: GVC) {
+    gvc.addStyle(`
+      .parent-container,
+      .child-container {
+        flex: 1;
+        margin-right: 20px;
+      }
+
+      .parent-container:last-child,
+      .child-container:last-child {
+        margin-right: 0;
+      }
+
+      .ul-style {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        min-height: 200px;
+        border: 1px solid #ccc;
+      }
+
+      .li-style {
+        padding: 6px 10px;
+        margin-bottom: 5px;
+        background-color: #eee;
+        cursor: move;
+        border: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+      }
+
+      .drag-icon {
+        margin-right: 10px;
+        cursor: move;
+      }
+
+      .drag-icon::before {
+        content: '↕';
+        font-size: 18px;
+        margin-right: 10px;
+      }
+
+      .selectCol {
+        background-color: #dcdcdc;
+      }
+    `);
+  }
+
+  static editorDetail(obj: { vm: ViewModel; gvc: GVC; type?: 'add' | 'replace' }) {
     const gvc = obj.gvc;
+    const glitter = gvc.glitter;
     const vm = obj.vm;
     const original = JSON.parse(JSON.stringify(vm.data));
     const dialog = new ShareDialog(gvc.glitter);
@@ -657,8 +661,6 @@ export class ShoppingCollections {
                           return gvc.bindView(
                             (() => {
                               const id = gvc.glitter.getUUID();
-                              const glitter = gvc.glitter;
-                              const html = String.raw;
                               return {
                                 bind: id,
                                 view: () => {
@@ -667,7 +669,6 @@ export class ShoppingCollections {
                                   >
                                     ${BgWidget.grayNote('前往商店設定->商店訊息中，設定支援的語言。')}
                                     ${gvc.bindView(() => {
-                                      const html = String.raw;
                                       return {
                                         bind: glitter.getUUID(),
                                         view: () => {
@@ -738,7 +739,7 @@ export class ShoppingCollections {
                         },
                         title: '切換語系',
                         footer_html: gvc => {
-                          return ``;
+                          return '';
                         },
                         width: 300,
                       });
@@ -818,7 +819,6 @@ export class ShoppingCollections {
                                       onchange="${gvc.event(e => {
                                         let text = e.value;
                                         if (text.length > 0 && !CheckInput.isChineseEnglishNumberHyphen(text)) {
-                                          const dialog = new ShareDialog(gvc.glitter);
                                           dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                         } else {
                                           language_data.seo.domain = text;
@@ -829,9 +829,7 @@ export class ShoppingCollections {
                                 },
                                 divCreate: {
                                   style: `width: 100%; justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${
-                                    document.body.clientWidth > 768
-                                      ? 'gap: 18px; '
-                                      : 'flex-direction: column; gap: 0px; '
+                                    document.body.clientWidth > 768 ? 'gap: 18px;' : 'flex-direction: column; gap: 0px;'
                                   }`,
                                 },
                               }),
@@ -848,12 +846,7 @@ export class ShoppingCollections {
                           );
                         },
                         divCreate: {
-                          class: `${gvc.glitter.ut.frSize(
-                            {
-                              sm: ``,
-                            },
-                            `p-0`
-                          )}`,
+                          class: `${gvc.glitter.ut.frSize({ sm: '' }, 'p-0')}`,
                         },
                       };
                     }),
@@ -1100,7 +1093,6 @@ export class ShoppingCollections {
                       return;
                     }
 
-                    // const regexTitle = /[\s,\/\\]+/g;
                     const forbiddenRegex = /[,/\\]/;
                     if (forbiddenRegex.test(vm.data.title)) {
                       dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
