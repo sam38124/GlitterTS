@@ -773,7 +773,7 @@ export class ShoppingCollections {
                           gvc: gvc,
                           title: '',
                           default: language_data.title,
-                          placeHolder: vm.data.title || '',
+                          placeHolder: vm.data.title || '預設為「分類標籤」輸入值',
                           callback: text => {
                             language_data.title = text;
                             if (language_data.seo.domain === '') {
@@ -798,8 +798,8 @@ export class ShoppingCollections {
                                 view: () => {
                                   return html`<div
                                       class="${document.body.clientWidth < 800
-                                        ? `w-100`
-                                        : ``} justify-content-start justify-content-lg-center"
+                                        ? 'w-100'
+                                        : ''} justify-content-start justify-content-lg-center"
                                       style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex"
                                     >
                                       <div
@@ -891,16 +891,10 @@ export class ShoppingCollections {
                                   pvm.productList.map((opt: OptionsItem, index: number) => {
                                     return html` <div
                                       class="form-check-label c_updown_label"
-                                      style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
+                                      style="display: flex; align-items: center; min-height: 60px; gap: 8px;"
                                     >
-                                      <span class="tx_normal">${index + 1} .</span>
-                                      <div style="line-height: 40px;">
-                                        <img
-                                          class="rounded border me-1"
-                                          src="${opt.image ?? BgWidget.noImageURL}"
-                                          style="width:40px; height:40px;"
-                                        />
-                                      </div>
+                                      <span class="tx_normal" style="min-width: 30px;">${index + 1}.</span>
+                                      ${BgWidget.validImageBox({ gvc, image: opt.image, width: 40 })}
                                       <span class="tx_normal">${opt.value}</span>
                                       ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
                                     </div>`;

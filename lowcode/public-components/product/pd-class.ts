@@ -1755,10 +1755,15 @@ export class PdClass {
     let maxVariant: { sale_price: number; origin_price: number } | null = null;
 
     for (const variant of variants) {
-      const { sale_price, origin_price } = variant;
+      const { sale_price, origin_price, invisible } = variant;
 
       // 建立 specPriceMap
       specPriceMap.set(sale_price, { sale_price, origin_price });
+
+      // 是否為可見規格
+      if (invisible) {
+        continue;
+      }
 
       // 計算最低價 & 最高價
       if (!minVariant || sale_price < minVariant.sale_price) {

@@ -648,8 +648,8 @@ export class ApiShop {
     valid?: boolean;
     is_shipment?: boolean;
     is_reconciliation?: boolean;
-    buyer_name?:string,
-    buyer_phone?:string
+    buyer_name?: string;
+    buyer_phone?: string;
   }) {
     const filterString = this.orderListFilterString(json.filter);
     return BaseApi.create({
@@ -930,7 +930,7 @@ export class ApiShop {
   }
 
   static getCollection() {
-    return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
+    return new Promise<{ result: boolean; response: any }>(resolve => {
       (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
       const config = (window as any).glitter.share._public_config;
       if (config[`collection-manager`] && (window as any).glitter.getUrlParameter('cms') !== 'true') {

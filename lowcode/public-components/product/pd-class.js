@@ -1459,8 +1459,11 @@ export class PdClass {
         let minVariant = null;
         let maxVariant = null;
         for (const variant of variants) {
-            const { sale_price, origin_price } = variant;
+            const { sale_price, origin_price, invisible } = variant;
             specPriceMap.set(sale_price, { sale_price, origin_price });
+            if (invisible) {
+                continue;
+            }
             if (!minVariant || sale_price < minVariant.sale_price) {
                 minVariant = { sale_price, origin_price };
             }

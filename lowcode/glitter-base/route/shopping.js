@@ -783,7 +783,7 @@ export class ApiShop {
         });
     }
     static getCollection() {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             var _a;
             window.glitter.share._public_config = (_a = window.glitter.share._public_config) !== null && _a !== void 0 ? _a : {};
             const config = window.glitter.share._public_config;

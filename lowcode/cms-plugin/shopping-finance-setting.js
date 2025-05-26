@@ -899,7 +899,7 @@ export class ShoppingFinanceSetting {
                     BgWidget.tab(viewList, gvc, vm.key, res => {
                         vm.key = res;
                         gvc.notifyDataChange(vm.id);
-                    }, 'margin-bottom: 0px; margin-top: -10px;'),
+                    }, 'margin: 10px 0 !important'),
                     page,
                 ].join(BgWidget.mbContainer(12));
             },
