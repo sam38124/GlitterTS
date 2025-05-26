@@ -29,7 +29,7 @@
   --main-orange-2: #ffb400;
   --main-orange-3: #ff6c02;
   --main-green: #10931d;
-  --main-yellow: #FFB21C;
+  --main-yellow: #ffb21c;
 
   --item-primary: #4d86db;
   --item-success: #d8ecda;
@@ -1130,7 +1130,7 @@ h6 {
 .insignia-sm {
   border-radius: 0.25rem;
   min-height: 20px;
-  padding: 3px 4px;
+  padding: 3px 6px;
   font-size: 12px;
 }
 

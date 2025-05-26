@@ -277,7 +277,7 @@ export class ShoppingCollections {
                                                                 ApiShop.putCollections({
                                                                     data: { replace: dd, original },
                                                                     token: window.parent.config.token,
-                                                                }).then(r => {
+                                                                }).then(() => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     gvc.notifyDataChange(vm.id);
                                                                 });
@@ -482,13 +482,13 @@ export class ShoppingCollections {
             });
             for (const data of lagDomain) {
                 if (data.domains.includes(vm.data.language_data[data.lang].seo.domain)) {
-                    const langTExt = Language.getLanguageText({
+                    const text = Language.getLanguageText({
                         local: true,
                         compare: data.lang,
                     });
                     return {
                         result: false,
-                        text: `語系「${langTExt}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br/>已存在於其他類別，請更換連結網址`,
+                        text: `語系「${text}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br />已存在於其他類別，請更換連結網址`,
                     };
                 }
             }
@@ -622,7 +622,7 @@ export class ShoppingCollections {
               </div>`,
                         BgWidget.container1x2({
                             html: [
-                                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">分類標籤 ${BgWidget.requiredStar()}</div>
+                                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 12px">分類標籤 ${BgWidget.requiredStar()}</div>
                         ${EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '',
@@ -655,7 +655,7 @@ export class ShoppingCollections {
                                         bind: viewID,
                                         view: () => {
                                             return BgWidget.mainCard([
-                                                html ` <div class="tx_normal fw-normal mb-2">
+                                                html ` <div class="tx_700 mb-2">
                                 連結網址 ${BgWidget.requiredStar()} ${BgWidget.languageInsignia(select_lan)}
                               </div>`,
                                                 gvc.bindView({
@@ -711,8 +711,7 @@ export class ShoppingCollections {
                                         },
                                     };
                                 }),
-                                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">商品</div>
-                        ${(() => {
+                                BgWidget.mainCard((() => {
                                     const pvm = {
                                         id: gvc.glitter.getUUID(),
                                         loading: true,
@@ -720,15 +719,10 @@ export class ShoppingCollections {
                                         productList: [],
                                     };
                                     return html `
-                            <div class="d-flex flex-column p-2" style="gap: 18px;">
-                              <div
-                                class="d-flex align-items-center gray-bottom-line-18"
-                                style="justify-content: space-between;"
-                              >
-                                <div class="form-check-label c_updown_label">
-                                  <div class="tx_normal">商品名稱</div>
-                                </div>
-                                ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                          <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center" style="justify-content: space-between;">
+                              <div class="tx_700" style="margin-bottom: 12px">商品</div>
+                              ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                         BgProduct.productsDialog({
                                             gvc: gvc,
                                             default: vm.data.product_id,
@@ -740,8 +734,8 @@ export class ShoppingCollections {
                                             },
                                         });
                                     }))}
-                              </div>
-                              ${gvc.bindView({
+                            </div>
+                            ${gvc.bindView({
                                         bind: pvm.id,
                                         view: () => {
                                             if (pvm.loading) {
@@ -753,20 +747,20 @@ export class ShoppingCollections {
                                             return gvc.map(pvm.productList.map((opt, index) => {
                                                 var _a;
                                                 return html ` <div
-                                        class="form-check-label c_updown_label"
-                                        style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
-                                      >
-                                        <span class="tx_normal">${index + 1} .</span>
-                                        <div style="line-height: 40px;">
-                                          <img
-                                            class="rounded border me-1"
-                                            src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}"
-                                            style="width:40px; height:40px;"
-                                          />
-                                        </div>
-                                        <span class="tx_normal">${opt.value}</span>
-                                        ${opt.note ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                      </div>`;
+                                      class="form-check-label c_updown_label"
+                                      style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
+                                    >
+                                      <span class="tx_normal">${index + 1} .</span>
+                                      <div style="line-height: 40px;">
+                                        <img
+                                          class="rounded border me-1"
+                                          src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}"
+                                          style="width:40px; height:40px;"
+                                        />
+                                      </div>
+                                      <span class="tx_normal">${opt.value}</span>
+                                      ${opt.note ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                    </div>`;
                                             }));
                                         },
                                         onCreate: () => {
@@ -797,9 +791,9 @@ export class ShoppingCollections {
                                             }
                                         },
                                     })}
-                            </div>
-                          `;
-                                })()}`),
+                          </div>
+                        `;
+                                })()),
                                 BgWidget.mainCard([
                                     html ` <div style="font-weight: 700;" class="mb-3">
                             搜尋引擎列表 ${BgWidget.languageInsignia(select_lan, 'margin-left:5px;')}
@@ -848,7 +842,7 @@ export class ShoppingCollections {
                                         vm.data.parentTitles &&
                                         vm.data.parentTitles.length > 0) ||
                                         vm.type === 'add') {
-                                        return html ` <div class="tx_700" style="margin-bottom: 18px">父層</div>
+                                        return html ` <div class="tx_700" style="margin-bottom: 12px">父層</div>
                             ${BgWidget.select({
                                             gvc: gvc,
                                             callback: text => {
@@ -863,7 +857,7 @@ export class ShoppingCollections {
                                     }
                                     const id = gvc.glitter.getUUID();
                                     return html `
-                          <div class="tx_700" style="margin-bottom: 18px">子分類</div>
+                          <div class="tx_700" style="margin-bottom: 12px">子分類</div>
                           ${gvc.bindView({
                                         bind: id,
                                         view: () => {

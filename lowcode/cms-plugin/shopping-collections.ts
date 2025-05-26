@@ -385,7 +385,7 @@ export class ShoppingCollections {
                                       ApiShop.putCollections({
                                         data: { replace: dd, original },
                                         token: (window.parent as any).config.token,
-                                      }).then(r => {
+                                      }).then(() => {
                                         dialog.dataLoading({ visible: false });
                                         gvc.notifyDataChange(vm.id);
                                       });
@@ -593,13 +593,13 @@ export class ShoppingCollections {
 
       for (const data of lagDomain) {
         if (data.domains.includes(vm.data.language_data[data.lang].seo.domain)) {
-          const langTExt = Language.getLanguageText({
+          const text = Language.getLanguageText({
             local: true,
             compare: data.lang,
           });
           return {
             result: false,
-            text: `語系「${langTExt}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br/>已存在於其他類別，請更換連結網址`,
+            text: `語系「${text}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br />已存在於其他類別，請更換連結網址`,
           };
         }
       }
@@ -753,7 +753,7 @@ export class ShoppingCollections {
                   // 左容器
                   html: [
                     BgWidget.mainCard(
-                      html` <div class="tx_700" style="margin-bottom: 18px">分類標籤 ${BgWidget.requiredStar()}</div>
+                      html` <div class="tx_700" style="margin-bottom: 12px">分類標籤 ${BgWidget.requiredStar()}</div>
                         ${EditorElem.editeInput({
                           gvc: gvc,
                           title: '',
@@ -790,7 +790,7 @@ export class ShoppingCollections {
                         view: () => {
                           return BgWidget.mainCard(
                             [
-                              html` <div class="tx_normal fw-normal mb-2">
+                              html` <div class="tx_700 mb-2">
                                 連結網址 ${BgWidget.requiredStar()} ${BgWidget.languageInsignia(select_lan)}
                               </div>`,
                               gvc.bindView({
@@ -851,105 +851,99 @@ export class ShoppingCollections {
                       };
                     }),
                     BgWidget.mainCard(
-                      html` <div class="tx_700" style="margin-bottom: 18px">商品</div>
-                        ${(() => {
-                          const pvm = {
-                            id: gvc.glitter.getUUID(),
-                            loading: true,
-                            dataList: vm.data.product_id,
-                            productList: [],
-                          };
-                          return html`
-                            <div class="d-flex flex-column p-2" style="gap: 18px;">
-                              <div
-                                class="d-flex align-items-center gray-bottom-line-18"
-                                style="justify-content: space-between;"
-                              >
-                                <div class="form-check-label c_updown_label">
-                                  <div class="tx_normal">商品名稱</div>
-                                </div>
-                                ${BgWidget.grayButton(
-                                  '選擇商品',
-                                  gvc.event(() => {
-                                    BgProduct.productsDialog({
-                                      gvc: gvc,
-                                      default: vm.data.product_id,
-                                      callback: value => {
-                                        pvm.dataList = value;
-                                        vm.data.product_id = value;
-                                        pvm.loading = true;
-                                        gvc.notifyDataChange(pvm.id);
-                                      },
-                                    });
-                                  })
-                                )}
-                              </div>
-                              ${gvc.bindView({
-                                bind: pvm.id,
-                                view: () => {
-                                  if (pvm.loading) {
-                                    return '資料載入中';
-                                  }
-                                  if (pvm.productList.length === 0) {
-                                    return '目前無選取任何商品';
-                                  }
-                                  return gvc.map(
-                                    pvm.productList.map((opt: OptionsItem, index: number) => {
-                                      return html` <div
-                                        class="form-check-label c_updown_label"
-                                        style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
-                                      >
-                                        <span class="tx_normal">${index + 1} .</span>
-                                        <div style="line-height: 40px;">
-                                          <img
-                                            class="rounded border me-1"
-                                            src="${opt.image ?? BgWidget.noImageURL}"
-                                            style="width:40px; height:40px;"
-                                          />
-                                        </div>
-                                        <span class="tx_normal">${opt.value}</span>
-                                        ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                      </div>`;
-                                    })
-                                  );
-                                },
-                                onCreate: () => {
-                                  if (pvm.loading) {
-                                    if (pvm.dataList.length === 0) {
-                                      pvm.productList = [];
-                                      pvm.loading = false;
-                                      setTimeout(() => gvc.notifyDataChange(pvm.id), 100);
-                                    } else {
-                                      ApiShop.getProduct({
-                                        page: 0,
-                                        limit: 99999,
-                                        id_list: pvm.dataList.join(','),
-                                      }).then(data => {
-                                        pvm.productList = data.response.data.map(
-                                          (product: {
-                                            content: {
-                                              id: number;
-                                              title: string;
-                                              preview_image: string[];
-                                            };
-                                          }) => {
-                                            return {
-                                              key: product.content.id,
-                                              value: product.content.title,
-                                              image: product.content.preview_image[0] ?? BgWidget.noImageURL,
-                                            };
-                                          }
-                                        );
-                                        pvm.loading = false;
-                                        gvc.notifyDataChange(pvm.id);
-                                      });
-                                    }
-                                  }
-                                },
-                              })}
+                      (() => {
+                        const pvm = {
+                          id: gvc.glitter.getUUID(),
+                          loading: true,
+                          dataList: vm.data.product_id,
+                          productList: [],
+                        };
+                        return html`
+                          <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center" style="justify-content: space-between;">
+                              <div class="tx_700" style="margin-bottom: 12px">商品</div>
+                              ${BgWidget.grayButton(
+                                '選擇商品',
+                                gvc.event(() => {
+                                  BgProduct.productsDialog({
+                                    gvc: gvc,
+                                    default: vm.data.product_id,
+                                    callback: value => {
+                                      pvm.dataList = value;
+                                      vm.data.product_id = value;
+                                      pvm.loading = true;
+                                      gvc.notifyDataChange(pvm.id);
+                                    },
+                                  });
+                                })
+                              )}
                             </div>
-                          `;
-                        })()}`
+                            ${gvc.bindView({
+                              bind: pvm.id,
+                              view: () => {
+                                if (pvm.loading) {
+                                  return '資料載入中';
+                                }
+                                if (pvm.productList.length === 0) {
+                                  return '目前無選取任何商品';
+                                }
+                                return gvc.map(
+                                  pvm.productList.map((opt: OptionsItem, index: number) => {
+                                    return html` <div
+                                      class="form-check-label c_updown_label"
+                                      style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
+                                    >
+                                      <span class="tx_normal">${index + 1} .</span>
+                                      <div style="line-height: 40px;">
+                                        <img
+                                          class="rounded border me-1"
+                                          src="${opt.image ?? BgWidget.noImageURL}"
+                                          style="width:40px; height:40px;"
+                                        />
+                                      </div>
+                                      <span class="tx_normal">${opt.value}</span>
+                                      ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                    </div>`;
+                                  })
+                                );
+                              },
+                              onCreate: () => {
+                                if (pvm.loading) {
+                                  if (pvm.dataList.length === 0) {
+                                    pvm.productList = [];
+                                    pvm.loading = false;
+                                    setTimeout(() => gvc.notifyDataChange(pvm.id), 100);
+                                  } else {
+                                    ApiShop.getProduct({
+                                      page: 0,
+                                      limit: 99999,
+                                      id_list: pvm.dataList.join(','),
+                                    }).then(data => {
+                                      pvm.productList = data.response.data.map(
+                                        (product: {
+                                          content: {
+                                            id: number;
+                                            title: string;
+                                            preview_image: string[];
+                                          };
+                                        }) => {
+                                          return {
+                                            key: product.content.id,
+                                            value: product.content.title,
+                                            image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                                          };
+                                        }
+                                      );
+                                      pvm.loading = false;
+                                      gvc.notifyDataChange(pvm.id);
+                                    });
+                                  }
+                                }
+                              },
+                            })}
+                          </div>
+                        `;
+                      })()
                     ),
                     BgWidget.mainCard(
                       [
@@ -1005,7 +999,7 @@ export class ShoppingCollections {
                             vm.data.parentTitles.length > 0) ||
                           vm.type === 'add'
                         ) {
-                          return html` <div class="tx_700" style="margin-bottom: 18px">父層</div>
+                          return html` <div class="tx_700" style="margin-bottom: 12px">父層</div>
                             ${BgWidget.select({
                               gvc: gvc,
                               callback: text => {
@@ -1020,7 +1014,7 @@ export class ShoppingCollections {
                         }
                         const id = gvc.glitter.getUUID();
                         return html`
-                          <div class="tx_700" style="margin-bottom: 18px">子分類</div>
+                          <div class="tx_700" style="margin-bottom: 12px">子分類</div>
                           ${gvc.bindView({
                             bind: id,
                             view: () => {
