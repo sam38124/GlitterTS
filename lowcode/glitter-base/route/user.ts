@@ -3,7 +3,7 @@ import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Ad } from '../../public-components/public/ad.js';
-import { fa } from '@faker-js/faker';
+
 
 export class ApiUser {
   public static register(json: { account: string; pwd: string; userData: any }) {
@@ -89,7 +89,7 @@ export class ApiUser {
     });
   }
 
-  public static getUserData(token: string, type: 'list' | 'me') {
+  public static getUserData(token: string, type: 'list' | 'me'):Promise<{response:any,result:boolean}> {
     if(!token){
       return  new Promise((resolve, reject)=>{
         resolve({

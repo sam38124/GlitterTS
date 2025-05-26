@@ -618,7 +618,7 @@ export class Entry {
       //   }
       // },100)
     }
-    ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
+    ApiUser.getUserData(GlobalUser.token,'me').then(async (r:any) => {
       try {
         if (!r.result) {
           GlobalUser.token = ''
