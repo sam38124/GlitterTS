@@ -1020,8 +1020,7 @@ export class MenusSetting {
   static async getUserList(visible_data_array: string[]) {
     return await ApiUser.getUserList({
       page: 0,
-      // limit: 99999,
-      limit: 15,
+      limit: 99999,
       only_id: true,
       id: visible_data_array.join(','),
     }).then(dd => {
@@ -1037,8 +1036,7 @@ export class MenusSetting {
   static async getUserOption() {
     return await ApiUser.getUserList({
       page: 0,
-      // limit: 99999,
-      limit: 15,
+      limit: 99999,
       only_id: true,
     }).then(dd => {
       try {

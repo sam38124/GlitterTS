@@ -4509,8 +4509,7 @@ ${obj.default ?? ''}</textarea
             if (vm.loading) {
               ApiShop.getVariants({
                 page: 0,
-                limit: 99,
-                // limit: 99999,
+                limit: 9999,
                 search: vm.query || undefined,
                 searchType: 'title',
                 orderBy: vm.orderString || undefined,

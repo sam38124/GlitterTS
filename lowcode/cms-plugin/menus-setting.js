@@ -904,7 +904,7 @@ export class MenusSetting {
         return __awaiter(this, void 0, void 0, function* () {
             return yield ApiUser.getUserList({
                 page: 0,
-                limit: 15,
+                limit: 99999,
                 only_id: true,
                 id: visible_data_array.join(','),
             }).then(dd => {
@@ -921,7 +921,7 @@ export class MenusSetting {
         return __awaiter(this, void 0, void 0, function* () {
             return yield ApiUser.getUserList({
                 page: 0,
-                limit: 15,
+                limit: 99999,
                 only_id: true,
             }).then(dd => {
                 var _a;

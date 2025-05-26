@@ -3775,7 +3775,7 @@ ${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}</textarea
                     if (vm.loading) {
                         ApiShop.getVariants({
                             page: 0,
-                            limit: 99,
+                            limit: 9999,
                             search: vm.query || undefined,
                             searchType: 'title',
                             orderBy: vm.orderString || undefined,
