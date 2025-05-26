@@ -2372,8 +2372,6 @@ class Shopping {
             return dd && dd.email;
         }))) {
             if (email) {
-                console.log('==== sendNotifications ====');
-                console.log(email);
                 await auto_fcm_js_1.AutoFcm.orderChangeInfo({
                     app: this.app,
                     tag: type,

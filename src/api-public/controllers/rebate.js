@@ -92,7 +92,9 @@ router.post('/batch', async (req, resp) => {
             const app = req.get('g-app');
             const note = (_a = req.body.note) !== null && _a !== void 0 ? _a : '';
             const amount = (_b = req.body.total) !== null && _b !== void 0 ? _b : 0;
-            const deadline = req.body.rebateEndDay !== '0' ? (0, moment_1.default)().add(req.body.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined;
+            const deadline = req.body.rebateEndDay !== '0'
+                ? (0, moment_1.default)().add(req.body.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
+                : undefined;
             const rebateClass = new rebate_js_1.Rebate(app);
             if (!(await rebateClass.mainStatus())) {
                 return response_1.default.succ(resp, { result: false, msg: '購物金功能關閉中' });

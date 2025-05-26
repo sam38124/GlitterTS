@@ -246,10 +246,9 @@ export class Rebate {
     try {
       if (query.search || query.email_or_phone) {
         const users = (await db.query(getUsersSQL, [])).map((user: { userID: number }) => user.userID);
-        if(users.length > 0){
+        if (users.length > 0) {
           rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
         }
-
       }
 
       const rebateCountSQL = `SELECT count(r.id) as c FROM \`${this.app}\`.t_rebate_point as r
@@ -397,7 +396,7 @@ export class Rebate {
   async minusCheck(user_id: number | string, amount: number) {
     user_id = parseInt(`${user_id}`, 10);
     const getUserRebate = await this.getOneRebate({ user_id });
-    return getUserRebate && getUserRebate.point + amount > 0;
+    return getUserRebate && getUserRebate.point + amount >= 0;
   }
 
   // 增加或減少會員購物金
