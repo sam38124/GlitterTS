@@ -17,6 +17,13 @@ export class ApiUser {
         data: JSON.stringify(json),
       });
       if(res_.result){
+        try{
+          GlobalUser.token = res_.response.token
+          GlobalUser.userInfo = res_.response
+          GlobalUser.updateUserData = JSON.parse(JSON.stringify(res_.response))
+        }catch (e) {
+
+        }
         Ad.gtagEvent( 'sign_up', {
           method:  'normal' // 自訂參數，可略
         })
@@ -652,6 +659,13 @@ export class ApiUser {
         data: JSON.stringify(json),
       });
       if(res_.response.create_user_success){
+        try{
+          GlobalUser.token = res_.response.token
+          GlobalUser.userInfo = res_.response
+          GlobalUser.updateUserData = JSON.parse(JSON.stringify(res_.response))
+        }catch (e) {
+
+        }
         Ad.gtagEvent( 'sign_up', {
           method: json.login_type || 'normal' // 自訂參數，可略
         })

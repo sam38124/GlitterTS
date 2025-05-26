@@ -27,10 +27,10 @@ export class Ad {
         const obj: any = {};
 
         if(GlobalUser.userInfo.email){
-          obj.email = await hashSHA256(GlobalUser.userInfo.email);
+          obj.em = await hashSHA256(GlobalUser.userInfo.email);
         }
         if(GlobalUser.userInfo.phone){
-          obj.phone = await hashSHA256(GlobalUser.userInfo.phone);
+          obj.ph = await hashSHA256(GlobalUser.userInfo.phone);
         }
         fbq('init', (window as any).fb_pixel_id, obj);
       }
