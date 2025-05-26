@@ -265,16 +265,22 @@ export class PaymentPage {
                                         if (`${data.show_understocking}` === 'false') {
                                           return '不追蹤庫存';
                                         }
-                                        const stock = gvc.glitter.share.store_list.filter((dd:any)=>{
-                                          return (dd.id===POSSetting.config.where_store) || (
-                                            gvc.glitter.share.store_list.find((dd:any)=>{
-                                              return dd.id === POSSetting.config.where_store;
-                                            }).support_store ?? []
-                                          ).includes(dd.id);
-                                        }).map((d1:any)=>{
-                                          return  data.stockList[d1.id].count
-                                        }).reduce((acc: any, val: any) => acc + val,0)
-                                       
+                                        const stock = gvc.glitter.share.store_list
+                                          .filter((dd: any) => {
+                                            return (
+                                              dd.id === POSSetting.config.where_store ||
+                                              (
+                                                gvc.glitter.share.store_list.find((dd: any) => {
+                                                  return dd.id === POSSetting.config.where_store;
+                                                }).support_store ?? []
+                                              ).includes(dd.id)
+                                            );
+                                          })
+                                          .map((d1: any) => {
+                                            return data.stockList[d1.id].count;
+                                          })
+                                          .reduce((acc: any, val: any) => acc + val, 0);
+
                                         return `庫存: ${stock || 0}`;
                                       })()}
                                     </div>
@@ -576,7 +582,7 @@ export class PaymentPage {
                                               return new Promise(resolve => {
                                                 ApiUser.getUserList({
                                                   page: 0,
-                                                  limit: 99999,
+                                                  limit: 999,
                                                   search: data.query,
                                                   only_id: true,
                                                 }).then(dd => {

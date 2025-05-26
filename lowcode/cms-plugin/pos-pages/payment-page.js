@@ -228,14 +228,18 @@ export class PaymentPage {
                                     if (`${data.show_understocking}` === 'false') {
                                         return '不追蹤庫存';
                                     }
-                                    const stock = gvc.glitter.share.store_list.filter((dd) => {
+                                    const stock = gvc.glitter.share.store_list
+                                        .filter((dd) => {
                                         var _a;
-                                        return (dd.id === POSSetting.config.where_store) || ((_a = gvc.glitter.share.store_list.find((dd) => {
-                                            return dd.id === POSSetting.config.where_store;
-                                        }).support_store) !== null && _a !== void 0 ? _a : []).includes(dd.id);
-                                    }).map((d1) => {
+                                        return (dd.id === POSSetting.config.where_store ||
+                                            ((_a = gvc.glitter.share.store_list.find((dd) => {
+                                                return dd.id === POSSetting.config.where_store;
+                                            }).support_store) !== null && _a !== void 0 ? _a : []).includes(dd.id));
+                                    })
+                                        .map((d1) => {
                                         return data.stockList[d1.id].count;
-                                    }).reduce((acc, val) => acc + val, 0);
+                                    })
+                                        .reduce((acc, val) => acc + val, 0);
                                     return `庫存: ${stock || 0}`;
                                 })()}
                                     </div>
@@ -515,7 +519,7 @@ export class PaymentPage {
                                                                     return new Promise(resolve => {
                                                                         ApiUser.getUserList({
                                                                             page: 0,
-                                                                            limit: 99999,
+                                                                            limit: 999,
                                                                             search: data.query,
                                                                             only_id: true,
                                                                         }).then(dd => {

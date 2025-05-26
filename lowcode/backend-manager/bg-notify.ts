@@ -1215,7 +1215,7 @@ export class BgNotify {
                     return new Promise(resolve => {
                       ApiUser.getUserListOrders({
                         page: 0,
-                        limit: 99999,
+                        limit: 999,
                         id: postData.userList.map(user => user.id ?? 0).join(','),
                         only_id: true,
                       }).then(dd => {
@@ -1383,7 +1383,7 @@ export class BgNotify {
                                         return new Promise(resolve => {
                                           ApiUser.getUserList({
                                             page: 0,
-                                            limit: 99999,
+                                            limit: 999,
                                             search: data.query,
                                             only_id: true,
                                           }).then(dd => {

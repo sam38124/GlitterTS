@@ -72,7 +72,7 @@ export class ShoppingRebate {
                     return new Promise(resolve => {
                         ApiUser.getUserListOrders({
                             page: 0,
-                            limit: 99999,
+                            limit: 997,
                             search: data.query,
                             orderString: data.orderString,
                             only_id: true,

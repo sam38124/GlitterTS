@@ -4163,7 +4163,7 @@ export class ShoppingOrderManager {
                                         return new Promise(resolve => {
                                             ApiUser.getUserList({
                                                 page: 0,
-                                                limit: 99999,
+                                                limit: 999,
                                                 search: data.query,
                                                 only_id: true,
                                             }).then(dd => {
