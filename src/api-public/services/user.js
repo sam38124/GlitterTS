@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -2260,26 +2250,6 @@ class User {
     async getConfigV2(config) {
         const app = this.app;
         try {
-            function checkConfigCache() {
-                if (!config.key.split(',').find(dd => {
-                    return !User.configData[app + dd + config.user_id];
-                })) {
-                    if (config.key.includes(',')) {
-                        return config.key.split(',').map(dd => {
-                            return {
-                                key: dd,
-                                value: User.configData[app + dd + config.user_id],
-                            };
-                        });
-                    }
-                    else {
-                        return User.configData[app + config.key + config.user_id];
-                    }
-                }
-            }
-            if (checkConfigCache()) {
-                return JSON.parse(JSON.stringify(checkConfigCache()));
-            }
             const that = this;
             const getData = await database_1.default.execute(`SELECT *
          FROM \`${this.app}\`.t_user_public_config
@@ -2336,17 +2306,14 @@ class User {
                 return await that.checkLeakData(config.key, (data && data.value) || {});
             }
             if (config.key.includes(',')) {
-                (await Promise.all(config.key.split(',').map(async (dd) => ({
+                return Promise.all(config.key.split(',').map(async (dd) => ({
                     key: dd,
                     value: await loop(getData.find((d1) => d1.key === dd)),
-                })))).map(dd => {
-                    User.configData[app + dd.key + config.user_id] = dd.value;
-                });
+                })));
             }
             else {
-                User.configData[app + config.key + config.user_id] = await loop(getData[0]);
+                return loop(getData[0]);
             }
-            return JSON.parse(JSON.stringify(checkConfigCache()));
         }
         catch (e) {
             console.error(e);

@@ -3,6 +3,7 @@ import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Ad } from '../../public-components/public/ad.js';
+import { fa } from '@faker-js/faker';
 
 export class ApiUser {
   public static register(json: { account: string; pwd: string; userData: any }) {
@@ -89,15 +90,25 @@ export class ApiUser {
   }
 
   public static getUserData(token: string, type: 'list' | 'me') {
-    return BaseApi.create({
-      url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
-      type: 'GET',
-      headers: {
-        'g-app': getConfig().config.appName,
-        'Content-Type': 'application/json',
-        Authorization: token,
-      },
-    });
+    if(!token){
+      return  new Promise((resolve, reject)=>{
+        resolve({
+          response:{},
+          result:false
+        })
+      })
+    }else{
+      return BaseApi.create({
+        url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
+        type: 'GET',
+        headers: {
+          'g-app': getConfig().config.appName,
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      });
+    }
+
   }
 
   public static getUserLevel(token: string, user_id: string) {

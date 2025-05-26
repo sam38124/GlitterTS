@@ -24,6 +24,13 @@ export class ApiUser {
                 data: JSON.stringify(json),
             });
             if (res_.result) {
+                try {
+                    GlobalUser.token = res_.response.token;
+                    GlobalUser.userInfo = res_.response;
+                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(res_.response));
+                }
+                catch (e) {
+                }
                 Ad.gtagEvent('sign_up', {
                     method: 'normal'
                 });
@@ -82,15 +89,25 @@ export class ApiUser {
         });
     }
     static getUserData(token, type) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
-            type: 'GET',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-                Authorization: token,
-            },
-        });
+        if (!token) {
+            return new Promise((resolve, reject) => {
+                resolve({
+                    response: {},
+                    result: false
+                });
+            });
+        }
+        else {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
+                type: 'GET',
+                headers: {
+                    'g-app': getConfig().config.appName,
+                    'Content-Type': 'application/json',
+                    Authorization: token,
+                },
+            });
+        }
     }
     static getUserLevel(token, user_id) {
         return BaseApi.create({
@@ -571,6 +588,13 @@ export class ApiUser {
                 data: JSON.stringify(json),
             });
             if (res_.response.create_user_success) {
+                try {
+                    GlobalUser.token = res_.response.token;
+                    GlobalUser.userInfo = res_.response;
+                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(res_.response));
+                }
+                catch (e) {
+                }
                 Ad.gtagEvent('sign_up', {
                     method: json.login_type || 'normal'
                 });

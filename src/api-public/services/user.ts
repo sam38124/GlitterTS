@@ -2854,29 +2854,25 @@ export class User {
   async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
     const app = this.app;
     try {
-      function checkConfigCache() {
-        if (
-          !config.key.split(',').find(dd => {
-            return !User.configData[app + dd + config.user_id];
-          })
-        ) {
-          if (config.key.includes(',')) {
-            return config.key.split(',').map(dd => {
-              return {
-                key: dd,
-                value: User.configData[app + dd + config.user_id],
-              };
-            });
-          } else {
-            return User.configData[app + config.key + config.user_id];
-          }
-        }
-      }
+      // function checkConfigCache() {
+      //   if (
+      //     !config.key.split(',').find(dd => {
+      //       return !User.configData[app + dd + config.user_id];
+      //     })
+      //   ) {
+      //     if (config.key.includes(',')) {
+      //       return config.key.split(',').map(dd => {
+      //         return {
+      //           key: dd,
+      //           value: User.configData[app + dd + config.user_id],
+      //         };
+      //       });
+      //     } else {
+      //       return User.configData[app + config.key + config.user_id];
+      //     }
+      //   }
+      // }
 
-      //當有暫存時
-      if (checkConfigCache()) {
-        return JSON.parse(JSON.stringify(checkConfigCache()));
-      }
 
       const that = this;
 
@@ -2947,20 +2943,16 @@ export class User {
       }
 
       if (config.key.includes(',')) {
-        (
-          await Promise.all(
-            config.key.split(',').map(async dd => ({
-              key: dd,
-              value: await loop(getData.find((d1: any) => d1.key === dd)),
-            }))
-          )
-        ).map(dd => {
-          User.configData[app + dd.key + config.user_id] = dd.value;
-        });
+        return Promise.all(
+          config.key.split(',').map(async dd => ({
+            key: dd,
+            value: await loop(getData.find((d1: any) => d1.key === dd)),
+          }))
+        );
       } else {
-        User.configData[app + config.key + config.user_id] = await loop(getData[0]);
+        return loop(getData[0]);
       }
-      return JSON.parse(JSON.stringify(checkConfigCache()));
+
     } catch (e) {
       console.error(e);
       throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);

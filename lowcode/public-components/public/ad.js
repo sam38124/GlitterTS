@@ -34,10 +34,10 @@ export class Ad {
                     }
                     const obj = {};
                     if (GlobalUser.userInfo.email) {
-                        obj.email = yield hashSHA256(GlobalUser.userInfo.email);
+                        obj.em = yield hashSHA256(GlobalUser.userInfo.email);
                     }
                     if (GlobalUser.userInfo.phone) {
-                        obj.phone = yield hashSHA256(GlobalUser.userInfo.phone);
+                        obj.ph = yield hashSHA256(GlobalUser.userInfo.phone);
                     }
                     fbq('init', window.fb_pixel_id, obj);
                 }
