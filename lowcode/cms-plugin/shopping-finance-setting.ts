@@ -1238,9 +1238,8 @@ export class ShoppingFinanceSetting {
           ),
           BgWidget.editeInput({
             gvc: gvc,
-            title: html`<div class="d-flex align-items-center mt-2 gap-2">
-              最低消費金額（輸入0則沒有限制） ${questionDialog(`顧客的購物車必須要消費到這個金額，才能啟用此${t}流`)}
-            </div>`,
+            title: html`<div class="d-flex align-items-center mt-3 gap-2">最低消費金額（輸入 0 則沒有限制）</div>
+              ${BgWidget.grayNote(`購物車需達到此金額，才可使用此${t}流`)}`,
             default: `${data.cartSetting.minimumTotal}`,
             type: 'number',
             callback: text => {
@@ -1250,9 +1249,8 @@ export class ShoppingFinanceSetting {
           }),
           BgWidget.editeInput({
             gvc: gvc,
-            title: html`<div class="d-flex align-items-center mt-2 gap-2">
-              最高消費金額（輸入0則沒有限制） ${questionDialog(`顧客的購物車不可超出這個金額，才能啟用此${t}流`)}
-            </div>`,
+            title: html`<div class="d-flex align-items-center mt-3 gap-2">最高消費金額（輸入 0 則沒有限制）</div>
+              ${BgWidget.grayNote(`購物車需低於此金額，才可使用此${t}流`)}`,
             default: `${data.cartSetting.maximumTotal}`,
             type: 'number',
             callback: text => {
@@ -1260,13 +1258,11 @@ export class ShoppingFinanceSetting {
             },
             placeHolder: '請輸入金額',
           }),
-          BgWidget.horizontalLine(),
+          BgWidget.horizontalLine({ margin: 1.5 }),
           BgWidget.editeInput({
             gvc: gvc,
-            title: html`<div class="d-flex align-items-center mt-2 gap-2">
-              <div style="white-space: break-spaces;">達指定消費金額，訂單免運費（輸入0則不設定此功能）</div>
-              ${questionDialog(html`訂單中「所有商品小計(A)」若達到輸入的指定值，使用此物流則免運`)}
-            </div>`,
+            title: html`<div class="mt-3" style="white-space: break-spaces;">滿額免運（輸入 0 則不啟用）</div>
+              ${BgWidget.grayNote('購物車達到此金額即享有免運優惠')}`,
             default: `${data.cartSetting.freeShipmnetTarget}`,
             type: 'number',
             callback: text => {
