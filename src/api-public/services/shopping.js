@@ -1137,10 +1137,19 @@ class Shopping {
             axios_1.default
                 .request(config)
                 .then((response) => {
-                resolve(response.data.returnCode === '0000');
+                if (response.data.returnCode === '0000') {
+                    resolve(true);
+                }
+                else {
+                    console.error(`line_pay_error:`, response);
+                    console.error(`line_pay_error_config:`, config);
+                    resolve(false);
+                }
             })
                 .catch((error) => {
                 resolve(false);
+                console.error(`line_pay_error:`, error);
+                console.error(`line_pay_error_config:`, config);
             });
         });
     }
@@ -3899,7 +3908,6 @@ class Shopping {
     async putProduct(content) {
         var _a, _b, _c;
         try {
-            const updater_id = `${content.token.userID}`;
             delete content.token;
             content.type = 'product';
             if (content.language_data) {

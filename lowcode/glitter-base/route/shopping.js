@@ -336,15 +336,22 @@ export class ApiShop {
         });
     }
     static getWishList() {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/wishlist?page=0&limit=200`,
-            type: 'get',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
-            },
-        });
+        if (!GlobalUser.token) {
+            return new Promise((resolve, reject) => {
+                resolve({ result: false, response: null });
+            });
+        }
+        else {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/ec/wishlist?page=0&limit=200`,
+                type: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: GlobalUser.token,
+                },
+            });
+        }
     }
     static checkWishList(product_id) {
         return BaseApi.create({

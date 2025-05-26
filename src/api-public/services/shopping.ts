@@ -1709,10 +1709,18 @@ export class Shopping {
       axios
         .request(config)
         .then((response: any) => {
-          resolve(response.data.returnCode === '0000');
+          if(response.data.returnCode === '0000'){
+            resolve(true);
+          }else{
+            console.error(`line_pay_error:`,response)
+            console.error(`line_pay_error_config:`,config)
+            resolve(false);
+          }
         })
         .catch((error: any) => {
           resolve(false);
+          console.error(`line_pay_error:`,error)
+          console.error(`line_pay_error_config:`,config)
         });
     });
   }
@@ -5274,8 +5282,6 @@ export class Shopping {
 
   async putProduct(content: any) {
     try {
-      // 初始化資料
-      const updater_id = `${content.token.userID}`;
       delete content.token;
       content.type = 'product';
 
