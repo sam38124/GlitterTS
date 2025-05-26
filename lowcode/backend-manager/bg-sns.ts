@@ -938,7 +938,7 @@ export class BgSNS {
     function setUserList() {
       let n = 0;
       postData.userList = [];
-      dialog.dataLoading({ visible: true, text: '1更新預計寄件人...' });
+      dialog.dataLoading({ visible: true, text: '更新預計寄件人...' });
 
       new Promise<void>(resolve => {
         const si = setInterval(() => {

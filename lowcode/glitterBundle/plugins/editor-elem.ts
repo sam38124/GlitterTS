@@ -1128,7 +1128,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
       return {
         bind: id,
         view: () => {
-          return new Promise((resolve, reject) => {
+          return new Promise(resolve => {
             (window as any).glitter.getModule(
               obj.gvc.glitter.root_path + `backend-manager/bg-widget.js`,
               async (BgWidget: any) => {
@@ -1174,9 +1174,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
           style: `${obj.style || `overflow-y: auto;`}position:relative;`,
         },
         onCreate: () => {
-          let loading = true;
-          let delay = true;
-          let loadingView = false;
           const interval = setInterval(() => {
             if ((glitter.window as any).FroalaEditor && !glitter.share.richTextRendering) {
               clearInterval(interval);
@@ -1384,7 +1381,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                       }, 300);
                       return;
                     } else {
-                      loadingView = false;
                       const target: any = glitter.document
                         .querySelector(`#` + richID)
                         .querySelector(`[data-cmd="insertImage"]`);

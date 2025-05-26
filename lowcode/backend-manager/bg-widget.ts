@@ -5241,7 +5241,7 @@ ${obj.default ?? ''}</textarea
                 <div class="c_dialog_body h-100">
                   <div
                     class="c_dialog_main h-100"
-                    style="max-height: 100%; padding: 0; gap: 24px; z-index: 1; position: relative;"
+                    style="max-height: 100%; padding: 0; border: 0; gap: 24px; z-index: 1; position: relative;"
                   >
                     ${obj.innerHTML(gvc) ?? ''}
                   </div>
@@ -5742,6 +5742,8 @@ ${obj.default ?? ''}</textarea
     quick_insert?: { title: string; value: string }[];
   }) {
     const gvc = obj.gvc;
+    const dialog = new ShareDialog(gvc.glitter);
+
     return gvc.bindView(
       (() => {
         const id = gvc.glitter.getUUID();
@@ -5836,15 +5838,29 @@ ${obj.default ?? ''}</textarea
                       return [
                         BgWidget.cancel(
                           gvc2.event(() => {
-                            obj.content = originContent;
-                            gvc2.closeDialog();
+                            dialog.checkYesOrNot({
+                              text: '確定要取消並關閉嗎？',
+                              callback: bool => {
+                                if (bool) {
+                                  obj.content = originContent;
+                                  gvc2.closeDialog();
+                                }
+                              },
+                            });
                           })
                         ),
                         BgWidget.save(
                           gvc2.event(() => {
-                            gvc2.closeDialog();
-                            gvc.notifyDataChange(id);
-                            obj.callback(obj.content);
+                            dialog.checkYesOrNot({
+                              text: '確定要儲存並更新嗎？',
+                              callback: bool => {
+                                if (bool) {
+                                  gvc2.closeDialog();
+                                  gvc.notifyDataChange(id);
+                                  obj.callback(obj.content);
+                                }
+                              },
+                            });
                           })
                         ),
                       ].join('');

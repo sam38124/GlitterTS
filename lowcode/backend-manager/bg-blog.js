@@ -1353,6 +1353,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                         bind: id,
                                                                         view: () => {
                                                                             try {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
                                                                                 return html ` <div
                                                   class="d-flex justify-content-between align-items-center gap-3 mb-1"
                                                   style="cursor: pointer;"
@@ -1406,7 +1407,6 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                                             editor.undo.saveStep();
                                                                                                         }
                                                                                                         else {
-                                                                                                            const dialog = new ShareDialog(gvc.glitter);
                                                                                                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                                                         }
                                                                                                     }, html ` <div
@@ -1432,12 +1432,26 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         footer_html: (gvc2) => {
                                                                                             return [
                                                                                                 BgWidget.cancel(gvc2.event(() => {
-                                                                                                    language_data.text = originContent;
-                                                                                                    gvc2.closeDialog();
+                                                                                                    dialog.checkYesOrNot({
+                                                                                                        text: '確定要取消並關閉嗎？',
+                                                                                                        callback: bool => {
+                                                                                                            if (bool) {
+                                                                                                                language_data.text = originContent;
+                                                                                                                gvc2.closeDialog();
+                                                                                                            }
+                                                                                                        },
+                                                                                                    });
                                                                                                 })),
                                                                                                 BgWidget.save(gvc2.event(() => {
-                                                                                                    gvc2.closeDialog();
-                                                                                                    gvc.notifyDataChange(id);
+                                                                                                    dialog.checkYesOrNot({
+                                                                                                        text: '確定要儲存並更新嗎？',
+                                                                                                        callback: bool => {
+                                                                                                            if (bool) {
+                                                                                                                gvc2.closeDialog();
+                                                                                                                gvc.notifyDataChange(id);
+                                                                                                            }
+                                                                                                        },
+                                                                                                    });
                                                                                                 })),
                                                                                             ].join('');
                                                                                         },

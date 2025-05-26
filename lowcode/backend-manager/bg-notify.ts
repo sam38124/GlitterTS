@@ -768,7 +768,14 @@ export class BgNotify {
           : ''}
         ${BgWidget.cancel(
           gvc.event(() => {
-            vm.type = 'list';
+            dialog.checkYesOrNot({
+              text: '確定要取消嗎？',
+              callback: bool => {
+                if (bool) {
+                  vm.type = 'list';
+                }
+              },
+            });
           }),
           obj.readonly ? '關閉' : undefined
         )}

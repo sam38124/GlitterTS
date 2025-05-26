@@ -397,14 +397,28 @@ export class ShoppingSettingBasic {
                                         return [
                                           BgWidget.cancel(
                                             gvc2.event(() => {
-                                              language_data.sub_title = originContent;
-                                              gvc2.closeDialog();
+                                              dialog.checkYesOrNot({
+                                                text: '確定要取消並關閉嗎？',
+                                                callback: bool => {
+                                                  if (bool) {
+                                                    language_data.sub_title = originContent;
+                                                    gvc2.closeDialog();
+                                                  }
+                                                },
+                                              });
                                             })
                                           ),
                                           BgWidget.save(
                                             gvc2.event(() => {
-                                              gvc2.closeDialog();
-                                              gvc.notifyDataChange(id);
+                                              dialog.checkYesOrNot({
+                                                text: '確定要儲存並更新嗎？',
+                                                callback: bool => {
+                                                  if (bool) {
+                                                    gvc2.closeDialog();
+                                                    gvc.notifyDataChange(id);
+                                                  }
+                                                },
+                                              });
                                             })
                                           ),
                                         ].join('');
@@ -746,14 +760,28 @@ export class ShoppingSettingBasic {
                                               return [
                                                 BgWidget.cancel(
                                                   gvc2.event(() => {
-                                                    language_data.content = originContent;
-                                                    gvc2.closeDialog();
+                                                    dialog.checkYesOrNot({
+                                                      text: '確定要取消並關閉嗎？',
+                                                      callback: bool => {
+                                                        if (bool) {
+                                                          language_data.content = originContent;
+                                                          gvc2.closeDialog();
+                                                        }
+                                                      },
+                                                    });
                                                   })
                                                 ),
                                                 BgWidget.save(
                                                   gvc2.event(() => {
-                                                    gvc2.closeDialog();
-                                                    gvc.notifyDataChange(id);
+                                                    dialog.checkYesOrNot({
+                                                      text: '確定要儲存並更新嗎？',
+                                                      callback: bool => {
+                                                        if (bool) {
+                                                          gvc2.closeDialog();
+                                                          gvc.notifyDataChange(id);
+                                                        }
+                                                      },
+                                                    });
                                                   })
                                                 ),
                                               ].join('');

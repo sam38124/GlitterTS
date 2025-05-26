@@ -236,7 +236,6 @@ export class ShoppingFinanceSetting {
                               class="w-100 position-relative main-card"
                               style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex;"
                             >
-                             
                               <div
                                 class="pt-4"
                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
@@ -602,7 +601,6 @@ export class ShoppingFinanceSetting {
                                 })}
                               </div>
                             </div>
-                           
                           </div>`;
                             })
                                 .join('')}
@@ -751,7 +749,8 @@ export class ShoppingFinanceSetting {
                               class="w-100 position-relative main-card"
                               style=" background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex;"
                             >
-                              <div class="pt-4"
+                              <div
+                                class="pt-4"
                                 style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
                               >
                                 <div style="min-width: 46px;max-width: 46px;">
@@ -777,8 +776,8 @@ export class ShoppingFinanceSetting {
                                   </div>
                                 </div>
                               </div>
-                       
-                              <div class="position-absolute"  style="right:10px;top:10px;">
+
+                              <div class="position-absolute" style="right:10px;top:10px;">
                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
@@ -2136,13 +2135,27 @@ export class ShoppingFinanceSetting {
                                                     footer_html: (gvc2) => {
                                                         return [
                                                             BgWidget.cancel(gvc2.event(() => {
-                                                                language_data.info = originContent;
-                                                                gvc2.closeDialog();
+                                                                dialog.checkYesOrNot({
+                                                                    text: '確定要取消並關閉嗎？',
+                                                                    callback: bool => {
+                                                                        if (bool) {
+                                                                            language_data.info = originContent;
+                                                                            gvc2.closeDialog();
+                                                                        }
+                                                                    },
+                                                                });
                                                             })),
                                                             BgWidget.save(gvc2.event(() => {
-                                                                gvc2.closeDialog();
-                                                                gvc.notifyDataChange(id);
-                                                                save();
+                                                                dialog.checkYesOrNot({
+                                                                    text: '確定要儲存並更新嗎？',
+                                                                    callback: bool => {
+                                                                        if (bool) {
+                                                                            gvc2.closeDialog();
+                                                                            gvc.notifyDataChange(id);
+                                                                            save();
+                                                                        }
+                                                                    },
+                                                                });
                                                             })),
                                                         ].join('');
                                                     },
