@@ -61,7 +61,6 @@ class Firebase {
         }
     }
     async sendMessage(cf) {
-        console.log('sendMessage', cf);
         cf.body = cf.body.replace(/<br\s*\/?>/gi, '\n');
         if (cf.userID) {
             web_socket_js_1.WebSocket.noticeChangeMem[cf.userID] &&
@@ -79,9 +78,6 @@ class Firebase {
                                     where userID = ?;`, [cf.userID])).map((dd) => {
                     return dd.deviceToken;
                 });
-                console.log(`sendMessage:${cf.userID}`, `SELECT deviceToken
-                                                 FROM \`${cf.app || this.app}\`.t_fcm
-                                                 where userID = ${database_1.default.escape(cf.userID)};`);
                 const user_cf = ((_a = (await database_1.default.query(`select \`value\`
                                            from \`${cf.app || this.app}\`.t_user_public_config
                                            where \`key\` = 'notify_setting'

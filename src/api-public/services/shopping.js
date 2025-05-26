@@ -2134,11 +2134,9 @@ class Shopping {
                             await this.calcSoldOutStock(item.count * -1, item.id, item.spec);
                         });
                     }
-                    const emailList = new Set([origin.orderData.customer_info, origin.orderData.user_info].map(user => user === null || user === void 0 ? void 0 : user.email));
-                    for (const email of emailList) {
-                        if (email) {
-                            await this.sendNotifications(orderData, 'order-cancel-success');
-                        }
+                    const hasEamil = [origin.orderData.customer_info, origin.orderData.user_info].some(user => Boolean(user === null || user === void 0 ? void 0 : user.email));
+                    if (hasEamil) {
+                        await this.sendNotifications(orderData, 'order-cancel-success');
                     }
                     const useRecord = await rebateClass.getRebateListByRow({
                         search: '',
@@ -2374,6 +2372,8 @@ class Shopping {
             return dd && dd.email;
         }))) {
             if (email) {
+                console.log('==== sendNotifications ====');
+                console.log(email);
                 await auto_fcm_js_1.AutoFcm.orderChangeInfo({
                     app: this.app,
                     tag: type,

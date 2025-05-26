@@ -11,16 +11,15 @@ export class EcPayStrategy implements IPaymentStrategy {
     this.keys = keys;
   }
   async initiatePayment(orderData: Cart, config: PaymentConfig): Promise<PaymentResult> {
-    const ecPayConfig:KeyData = {
+    const ecPayConfig: KeyData = {
       HASH_IV: this.keys.HASH_IV,
       HASH_KEY: this.keys.HASH_KEY,
       ActionURL: this.keys.ActionURL,
       NotifyURL: `${config.domain}/api-public/v1/ec/notify?g-app=${config.app}&type=ecPay`,
       ReturnURL: `${config.domain}/api-public/v1/ec/redirect?g-app=${config.app}&return=${config.id}`,
       MERCHANT_ID: this.keys.MERCHANT_ID,
-      TYPE: 'ecPay' ,
+      TYPE: 'ecPay',
     };
-    console.log("ecPayConfig -- " , ecPayConfig);
     const ecpayInstance = new EcPayV2(config.app, ecPayConfig);
     // 注意：原始的 createOrderPage 可能需要更完整的 orderData，這裡直接傳入
     // 您可能需要根據 EcPay 類別的實際需要調整傳遞給 createOrderPage 的參數

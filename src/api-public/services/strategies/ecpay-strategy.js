@@ -16,7 +16,6 @@ class EcPayStrategy {
             MERCHANT_ID: this.keys.MERCHANT_ID,
             TYPE: 'ecPay',
         };
-        console.log("ecPayConfig -- ", ecPayConfig);
         const ecpayInstance = new financial_serviceV2_js_1.EcPayV2(config.app, ecPayConfig);
         const formHtml = await ecpayInstance.executePayment(orderData);
         return { form: formHtml };

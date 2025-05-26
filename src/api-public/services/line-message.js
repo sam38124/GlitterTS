@@ -28,9 +28,9 @@ class LineMessage {
     async chunkSendLine(userList, content, id, date) {
         try {
             let check = userList.length;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 for (const d of userList) {
-                    this.sendLine({ data: content, lineID: d.lineID }, (res) => {
+                    this.sendLine({ data: content, lineID: d.lineID }, res => {
                         check--;
                         if (check === 0) {
                             database_js_1.default.query(`UPDATE \`${this.app}\`.t_triggers
@@ -103,8 +103,8 @@ class LineMessage {
                     return [small, large];
                 })
                     .then((base64) => {
-                    this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[0]).then((smallUrl) => {
-                        this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[1]).then((largeUrl) => {
+                    this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[0]).then(smallUrl => {
+                        this.uploadFile(`line/${new Date().getTime()}.jpeg`, base64[1]).then(largeUrl => {
                             const message = {
                                 to: obj.lineID,
                                 messages: [
@@ -158,7 +158,6 @@ class LineMessage {
                     },
                     data: JSON.stringify(postData),
                 };
-                console.log("Config -- ", urlConfig);
                 return new Promise((resolve, reject) => {
                     axios_1.default
                         .request(urlConfig)
@@ -241,9 +240,9 @@ class LineMessage {
                  FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`, []);
             let n = 0;
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 for (const email of emails) {
-                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then((dd) => {
+                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then(dd => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
@@ -289,7 +288,7 @@ class LineMessage {
                     },
                 ]);
                 this.chunkSendLine(data.userList, {
-                    text: data.content
+                    text: data.content,
                 }, insertData.insertId);
             }
             return { result: true, message: '寄送成功' };
@@ -303,8 +302,8 @@ class LineMessage {
             const emails = await database_js_1.default.query(`SELECT *
                  FROM \`${this.app}\`.t_triggers
                  WHERE JSON_EXTRACT(content, '$.name') = '${data.id}';`, []);
-            await new Promise((resolve) => {
-                this.deleteSNS({ id: data.id }, (res) => {
+            await new Promise(resolve => {
+                this.deleteSNS({ id: data.id }, res => {
                     resolve(true);
                 });
             });
@@ -322,25 +321,25 @@ class LineMessage {
         try {
             const events = data.events;
             if (data.destination == process_1.default.env.line_destination) {
-                console.log("處理shopnex官方機器人事件");
+                console.log('處理shopnex官方機器人事件');
                 for (const event of events) {
                     switch (event.type) {
-                        case "message":
-                            let data = await this.getUserProfile("U152cb05f49499386f506867cb6adff96");
+                        case 'message':
+                            let data = await this.getUserProfile('U152cb05f49499386f506867cb6adff96');
                             break;
-                        case "postback":
-                            console.log("收到 Postback 事件");
+                        case 'postback':
+                            console.log('收到 Postback 事件');
                             await shopnex_line_message_1.ShopnexLineMessage.handlePostbackEvent(event, this.app);
                             break;
-                        case "join":
-                            console.log("機器人被加入群組/聊天室");
+                        case 'join':
+                            console.log('機器人被加入群組/聊天室');
                             await shopnex_line_message_1.ShopnexLineMessage.handleJoinEvent(event, this.app);
                             break;
-                        case "leave":
-                            console.log("機器人被移出群組/聊天室");
+                        case 'leave':
+                            console.log('機器人被移出群組/聊天室');
                             break;
                         default:
-                            console.log("未知事件類型:", event.type);
+                            console.log('未知事件類型:', event.type);
                             break;
                     }
                 }
@@ -365,14 +364,14 @@ class LineMessage {
                 if (event.source.type == 'group') {
                     await this.getGroupInf(data.events[0].source.groupId);
                     if ((_b = (_a = data.events[0]) === null || _a === void 0 ? void 0 : _a.postback) === null || _b === void 0 ? void 0 : _b.data) {
-                        console.log("data.events[0] -- ", JSON.stringify(data.events[0]));
+                        console.log('data.events[0] -- ', JSON.stringify(data.events[0]));
                         const replyToken = data.events[0].replyToken;
-                        await this.createOrderWithLineFlexMessage(data.events[0], "您已經購買了商品");
+                        await this.createOrderWithLineFlexMessage(data.events[0], '您已經購買了商品');
                         return { result: true, message: 'accept message' };
                     }
-                    if (message.text == "product + 1") {
+                    if (message.text == 'product + 1') {
                     }
-                    if (message.text == "test") {
+                    if (message.text == 'test') {
                         const replyToken = data.events[0].replyToken;
                         const multiPageMessage = {
                             type: 'flex',
@@ -406,12 +405,12 @@ class LineMessage {
                                                     wrap: true,
                                                 },
                                                 {
-                                                    type: "text",
-                                                    text: "NT 3500",
-                                                    size: "sm",
-                                                    color: "#111111",
-                                                    align: "end"
-                                                }
+                                                    type: 'text',
+                                                    text: 'NT 3500',
+                                                    size: 'sm',
+                                                    color: '#111111',
+                                                    align: 'end',
+                                                },
                                             ],
                                         },
                                         footer: {
@@ -426,12 +425,9 @@ class LineMessage {
                                                         type: 'postback',
                                                         label: '我要購買商品一',
                                                         data: JSON.stringify({
-                                                            "id": 709,
-                                                            "spec": [
-                                                                "深棕",
-                                                                "100cm"
-                                                            ],
-                                                            "title": "伊麗莎白 實木衣櫃"
+                                                            id: 709,
+                                                            spec: ['深棕', '100cm'],
+                                                            title: '伊麗莎白 實木衣櫃',
                                                         }),
                                                     },
                                                 },
@@ -464,12 +460,12 @@ class LineMessage {
                                                     wrap: true,
                                                 },
                                                 {
-                                                    type: "text",
-                                                    text: "NT 5200",
-                                                    size: "sm",
-                                                    color: "#111111",
-                                                    align: "end"
-                                                }
+                                                    type: 'text',
+                                                    text: 'NT 5200',
+                                                    size: 'sm',
+                                                    color: '#111111',
+                                                    align: 'end',
+                                                },
                                             ],
                                         },
                                         footer: {
@@ -484,15 +480,12 @@ class LineMessage {
                                                         type: 'postback',
                                                         label: '我要購買商品二',
                                                         data: JSON.stringify({
-                                                            "id": 710,
-                                                            "sku": "",
-                                                            "count": 1,
-                                                            "spec": [
-                                                                "黑色",
-                                                                "小號"
-                                                            ],
-                                                            "title": "溫德米爾 茶几",
-                                                            "sale_price": 5200,
+                                                            id: 710,
+                                                            sku: '',
+                                                            count: 1,
+                                                            spec: ['黑色', '小號'],
+                                                            title: '溫德米爾 茶几',
+                                                            sale_price: 5200,
                                                         }),
                                                     },
                                                 },
@@ -525,12 +518,12 @@ class LineMessage {
                                                     wrap: true,
                                                 },
                                                 {
-                                                    type: "text",
-                                                    text: "NT 5200",
-                                                    size: "sm",
-                                                    color: "#111111",
-                                                    align: "end"
-                                                }
+                                                    type: 'text',
+                                                    text: 'NT 5200',
+                                                    size: 'sm',
+                                                    color: '#111111',
+                                                    align: 'end',
+                                                },
                                             ],
                                         },
                                         footer: {
@@ -545,15 +538,12 @@ class LineMessage {
                                                         type: 'postback',
                                                         label: '我要購買商品二',
                                                         data: JSON.stringify({
-                                                            "id": 710,
-                                                            "sku": "",
-                                                            "count": 1,
-                                                            "spec": [
-                                                                "黑色",
-                                                                "小號"
-                                                            ],
-                                                            "title": "溫德米爾 茶几",
-                                                            "sale_price": 5200,
+                                                            id: 710,
+                                                            sku: '',
+                                                            count: 1,
+                                                            spec: ['黑色', '小號'],
+                                                            title: '溫德米爾 茶几',
+                                                            sale_price: 5200,
                                                         }),
                                                     },
                                                 },
@@ -586,12 +576,12 @@ class LineMessage {
                                                     wrap: true,
                                                 },
                                                 {
-                                                    type: "text",
-                                                    text: "NT 5200",
-                                                    size: "sm",
-                                                    color: "#111111",
-                                                    align: "end"
-                                                }
+                                                    type: 'text',
+                                                    text: 'NT 5200',
+                                                    size: 'sm',
+                                                    color: '#111111',
+                                                    align: 'end',
+                                                },
                                             ],
                                         },
                                         footer: {
@@ -606,15 +596,12 @@ class LineMessage {
                                                         type: 'postback',
                                                         label: '我要購買商品二',
                                                         data: JSON.stringify({
-                                                            "id": 710,
-                                                            "sku": "",
-                                                            "count": 1,
-                                                            "spec": [
-                                                                "黑色",
-                                                                "小號"
-                                                            ],
-                                                            "title": "溫德米爾 茶几",
-                                                            "sale_price": 5200,
+                                                            id: 710,
+                                                            sku: '',
+                                                            count: 1,
+                                                            spec: ['黑色', '小號'],
+                                                            title: '溫德米爾 茶几',
+                                                            sale_price: 5200,
                                                         }),
                                                     },
                                                 },
@@ -627,18 +614,16 @@ class LineMessage {
                         try {
                             await axios_1.default.post('https://api.line.me/v2/bot/message/reply', {
                                 replyToken: replyToken,
-                                messages: [
-                                    multiPageMessage
-                                ]
+                                messages: [multiPageMessage],
                             }, {
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                }
+                                    Authorization: `Bearer ${token}`,
+                                },
                             });
                         }
                         catch (e) {
-                            console.log("e -- ", e.response.data);
+                            console.log('e -- ', e.response.data);
                         }
                     }
                     return { result: true, message: 'accept message' };
@@ -688,45 +673,45 @@ class LineMessage {
                     await new chat_js_1.Chat(this.app).addMessage(chatData);
                 }
                 switch (event.type) {
-                    case "message":
-                        console.log("收到訊息事件");
-                        console.log("event -- ", event);
+                    case 'message':
+                        console.log('收到訊息事件');
+                        console.log('event -- ', event);
                         break;
-                    case "postback":
-                        console.log("收到 Postback 事件");
+                    case 'postback':
+                        console.log('收到 Postback 事件');
                         break;
-                    case "follow":
-                        console.log("用戶開始追蹤機器人");
+                    case 'follow':
+                        console.log('用戶開始追蹤機器人');
                         break;
-                    case "unfollow":
-                        console.log("用戶取消追蹤機器人");
+                    case 'unfollow':
+                        console.log('用戶取消追蹤機器人');
                         break;
-                    case "join":
-                        console.log("機器人被加入群組/聊天室");
+                    case 'join':
+                        console.log('機器人被加入群組/聊天室');
                         break;
-                    case "leave":
-                        console.log("機器人被移出群組/聊天室");
+                    case 'leave':
+                        console.log('機器人被移出群組/聊天室');
                         break;
-                    case "memberJoined":
-                        console.log("新成員加入群組/聊天室");
+                    case 'memberJoined':
+                        console.log('新成員加入群組/聊天室');
                         break;
-                    case "memberLeft":
-                        console.log("成員離開群組/聊天室");
+                    case 'memberLeft':
+                        console.log('成員離開群組/聊天室');
                         break;
-                    case "reaction":
-                        console.log("收到 Reaction 事件");
+                    case 'reaction':
+                        console.log('收到 Reaction 事件');
                         break;
-                    case "videoPlayComplete":
-                        console.log("影片播放完畢");
+                    case 'videoPlayComplete':
+                        console.log('影片播放完畢');
                         break;
-                    case "unsend":
-                        console.log("用戶撤回訊息");
+                    case 'unsend':
+                        console.log('用戶撤回訊息');
                         break;
-                    case "things":
-                        console.log("收到 LINE Things 物聯網事件");
+                    case 'things':
+                        console.log('收到 LINE Things 物聯網事件');
                         break;
                     default:
-                        console.log("未知事件類型:", event.type);
+                        console.log('未知事件類型:', event.type);
                         break;
                 }
             }
@@ -737,7 +722,7 @@ class LineMessage {
         }
     }
     async createOrderWithLineFlexMessage(messageData, message) {
-        console.log("message -- ", messageData);
+        console.log('message -- ', messageData);
         function areSpecsEqual(spec1, spec2) {
             if (spec1.length !== spec2.length) {
                 return false;
@@ -750,7 +735,7 @@ class LineMessage {
         const post = new user_js_1.User(this.app, this.token);
         const groupId = messageData.source.groupId;
         const userId = messageData.source.userId || '未知使用者';
-        const dataKey = groupId + "-" + userId;
+        const dataKey = groupId + '-' + userId;
         const cart = await redis_js_1.default.getValue(dataKey);
         const newData = JSON.parse(messageData.postback.data);
         let productData = [];
@@ -760,7 +745,7 @@ class LineMessage {
             user_id: 'manager',
         });
         if (cart) {
-            if (typeof cart === "string") {
+            if (typeof cart === 'string') {
                 productData = JSON.parse(cart);
             }
         }
@@ -783,11 +768,10 @@ class LineMessage {
             await new Promise(async (resolve) => {
                 resolve(await this.sendLine({
                     data: {
-                        text: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id)
+                        text: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
                     },
-                    lineID: lineID
-                }, (res) => {
-                }));
+                    lineID: lineID,
+                }, res => { }));
             });
         }
     }
@@ -901,31 +885,31 @@ class LineMessage {
         const replyToken = event.replyToken;
         const groupId = event.source.groupId;
         console.log(`機器人加入群組: ${groupId}`);
-        await axios_1.default.post("https://api.line.me/v2/bot/message/reply", {
+        await axios_1.default.post('https://api.line.me/v2/bot/message/reply', {
             replyToken: replyToken,
             messages: [
                 {
-                    type: "text",
-                    text: "👋 大家好，我是你的 LINE 機器人！請讓管理員點擊驗證按鈕以啟用機器人功能。"
+                    type: 'text',
+                    text: '👋 大家好，我是你的 LINE 機器人！請讓管理員點擊驗證按鈕以啟用機器人功能。',
                 },
                 {
-                    type: "template",
-                    altText: "請點擊驗證按鈕來完成綁定",
+                    type: 'template',
+                    altText: '請點擊驗證按鈕來完成綁定',
                     template: {
-                        type: "buttons",
-                        text: "請點擊驗證按鈕",
+                        type: 'buttons',
+                        text: '請點擊驗證按鈕',
                         actions: [
                             {
-                                type: "postback",
-                                label: "驗證群組",
-                                data: "action=verify"
-                            }
-                        ]
-                    }
-                }
-            ]
+                                type: 'postback',
+                                label: '驗證群組',
+                                data: 'action=verify',
+                            },
+                        ],
+                    },
+                },
+            ],
         }, {
-            headers: { Authorization: `Bearer ${process_1.default.env.LINE_CHANNEL_ACCESS_TOKEN}` }
+            headers: { Authorization: `Bearer ${process_1.default.env.LINE_CHANNEL_ACCESS_TOKEN}` },
         });
     }
     async checkPoints(message, user_count) {
@@ -990,14 +974,14 @@ class LineMessage {
         }
         const url = `https://api.line.me/v2/bot/profile/${userId}`;
         const headers = {
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
         };
         try {
             const response = await axios_1.default.get(url, { headers });
             return response.data;
         }
         catch (error) {
-            console.error("無法獲取使用者資訊:", error);
+            console.error('無法獲取使用者資訊:', error);
             return null;
         }
     }

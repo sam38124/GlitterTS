@@ -17,7 +17,6 @@ class EzPayStrategy {
             TYPE: 'newWebPay',
         };
         const ezpayInstance = new financial_serviceV2_js_1.EzPayV2(config.app, ezPayConfig);
-        console.log('ezPayConfig -- ', ezPayConfig);
         const formHtml = await ezpayInstance.executePayment(orderData);
         return { form: formHtml };
     }

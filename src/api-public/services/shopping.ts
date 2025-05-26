@@ -2991,13 +2991,11 @@ export class Shopping {
             });
           }
 
-          const emailList = new Set(
-            [origin.orderData.customer_info, origin.orderData.user_info].map(user => user?.email)
+          const hasEamil = [origin.orderData.customer_info, origin.orderData.user_info].some(user =>
+            Boolean(user?.email)
           );
-          for (const email of emailList) {
-            if (email) {
-              await this.sendNotifications(orderData, 'order-cancel-success');
-            }
+          if (hasEamil) {
+            await this.sendNotifications(orderData, 'order-cancel-success');
           }
 
           // 購物金取消訂單退回

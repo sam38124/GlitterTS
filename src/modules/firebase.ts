@@ -74,7 +74,6 @@ export class Firebase {
     app?: string;
     pass_store?: boolean;
   }) {
-    console.log('sendMessage', cf);
     cf.body = cf.body.replace(/<br\s*\/?>/gi, '\n');
     if (cf.userID) {
       WebSocket.noticeChangeMem[cf.userID] &&
@@ -96,12 +95,6 @@ export class Firebase {
         ).map((dd: any) => {
           return dd.deviceToken;
         });
-        console.log(
-          `sendMessage:${cf.userID}`,
-          `SELECT deviceToken
-                                                 FROM \`${cf.app || this.app}\`.t_fcm
-                                                 where userID = ${db.escape(cf.userID)};`
-        );
         const user_cf = (
           (
             await db.query(
@@ -130,8 +123,8 @@ export class Firebase {
         cf.token = [cf.token];
       }
       if (Array.isArray(cf.token)) {
-        let error_token:string[]=[]
-        await  Promise.all(
+        let error_token: string[] = [];
+        await Promise.all(
           cf.token.map(token => {
             return new Promise(async (resolve, reject) => {
               try {
@@ -168,7 +161,7 @@ export class Firebase {
                   })
                   .catch((error: any) => {
                     if (error.errorInfo.code === 'messaging/registration-token-not-registered') {
-                      error_token.push(token)
+                      error_token.push(token);
                     }
                     resolve(true);
                   });
@@ -179,11 +172,11 @@ export class Firebase {
             });
           })
         );
-        if(error_token.length>0){
+        if (error_token.length > 0) {
           await db.query(
             `delete 
              FROM \`${cf.app || this.app}\`.t_fcm
-             where userID = ? and deviceToken in (${error_token.map(d=>db.escape(d)).join(',')});`,
+             where userID = ? and deviceToken in (${error_token.map(d => db.escape(d)).join(',')});`,
             [cf.userID]
           );
         }
