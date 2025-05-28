@@ -14,7 +14,7 @@ type ViewModel = {
   filterID: string;
   type: 'list' | 'add' | 'replace';
   data: Collection;
-  dataList: any;
+  dataList: Collection[] | undefined;
   query: string;
   allParents: string[];
 };
@@ -239,7 +239,7 @@ export class ShoppingCollections {
                                   );
                                 } else {
                                   // 建立列表項目
-                                  function createListItem(item: any, index: number): HTMLLIElement {
+                                  function createListItem(item: Collection, index: number): HTMLLIElement {
                                     const li = document.createElement('li');
                                     li.className = 'li-style';
                                     li.setAttribute('data-index', index.toString());
@@ -255,7 +255,7 @@ export class ShoppingCollections {
                                       animation: 150,
                                       onEnd: function () {
                                         const items = [...el.children].map(
-                                          child => vm.dataList[parseInt(child.getAttribute('data-index') as string)]
+                                          child => vm.dataList?.[parseInt(child.getAttribute('data-index') as string)]
                                         );
                                         ApiShop.sortCollections({
                                           data: { list: items },
@@ -273,7 +273,7 @@ export class ShoppingCollections {
                                     const childContainer = document.getElementById('child-list') as HTMLElement;
                                     childContainer.innerHTML = '';
 
-                                    vm.dataList.forEach((item: any, index: number) => {
+                                    vm.dataList?.forEach((item, index) => {
                                       if (item.parentTitles[0] === parentTitle) {
                                         childContainer.appendChild(createListItem(item, index));
                                       }
@@ -285,7 +285,7 @@ export class ShoppingCollections {
                                   const parentContainer = document.getElementById('parent-list') as HTMLElement;
 
                                   // 初始化父層類別列表
-                                  vm.dataList.forEach((item: any, index: number) => {
+                                  vm.dataList?.forEach((item, index) => {
                                     if (item.parentTitles.length === 0) {
                                       // 如果是父層類別
                                       const li = createListItem(item, index);
@@ -459,7 +459,9 @@ export class ShoppingCollections {
                         });
                       },
                       rowClick: (_, index) => {
-                        vm.data = vm.dataList[index];
+                        if (vm.dataList) {
+                          vm.data = vm.dataList[index];
+                        }
                         vm.type = 'replace';
                       },
                       filter: [
@@ -472,7 +474,7 @@ export class ShoppingCollections {
                                 if (response) {
                                   dialog.dataLoading({ visible: true });
                                   ApiShop.deleteCollections({
-                                    data: { data: vm.dataList.filter((dd: any) => dd.checked) },
+                                    data: { data: vm.dataList?.filter(dd => dd.checked) },
                                     token: (window.parent as any).config.token,
                                   }).then(res => {
                                     dialog.dataLoading({ visible: false });
@@ -574,10 +576,10 @@ export class ShoppingCollections {
 
     function getValidLangDomain(): { result: boolean; text: string } {
       const supports = language_setting.support as LanguageLocation[];
-      const dataList = vm.dataList.filter((data: { title: string }) => data.title !== vm.data.title);
+      const dataList = vm.dataList?.filter((data: { title: string }) => data.title !== vm.data.title);
 
       const lagDomain = supports.map(lang => {
-        const domainMap = dataList.map((item: any) => {
+        const domainMap = dataList?.map(item => {
           if (!item.language_data) {
             return '';
           }
@@ -691,7 +693,7 @@ export class ShoppingCollections {
                                                 window.parent as any
                                               ).store_info.language_setting.support.includes(dd.key);
                                             })
-                                            .sort((dd: any) => {
+                                            .sort(dd => {
                                               return dd.key === select_lan ? -1 : 1;
                                             });
 
@@ -700,7 +702,7 @@ export class ShoppingCollections {
                                             style="gap:15px;"
                                           >
                                             ${sup
-                                              .map((dd: any) => {
+                                              .map(dd => {
                                                 return html`
                                                   <div
                                                     class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
@@ -978,63 +980,101 @@ export class ShoppingCollections {
                         ,
                       ].join(BgWidget.mbContainer(10))
                     ),
-                  ].join(html` <div style="margin-top: 24px;"></div>`),
+                  ].join(BgWidget.mbContainer(24)),
                   ratio: 75,
                 },
                 {
                   // 右容器
-                  html: [
-                    BgWidget.summaryCard(
-                      (() => {
-                        if (
-                          (vm.data.allCollections &&
-                            vm.data.allCollections.length > 0 &&
-                            vm.data.parentTitles &&
-                            vm.data.parentTitles.length > 0) ||
-                          vm.type === 'add'
-                        ) {
-                          return html` <div class="tx_700" style="margin-bottom: 12px">父層</div>
-                            ${BgWidget.select({
-                              gvc: gvc,
-                              callback: text => {
-                                vm.data.parentTitles[0] = text;
-                              },
-                              default: vm.data.parentTitles[0] ?? '',
-                              options: vm.data.allCollections.map((item: string) => {
-                                return { key: item, value: item };
-                              }),
-                              style: 'margin: 8px 0;',
-                            })}`;
-                        }
-                        const id = gvc.glitter.getUUID();
-                        return html`
-                          <div class="tx_700" style="margin-bottom: 12px">子分類</div>
-                          ${gvc.bindView({
-                            bind: id,
-                            view: () => {
-                              return gvc.map(
-                                vm.data.subCollections.map((item: string) => {
-                                  return html` <div
-                                    style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;"
-                                  >
-                                    ${item}<i
-                                      class="fa-regular fa-trash cursor_pointer"
-                                      onclick="${gvc.event(() => {
-                                        vm.data.subCollections = vm.data.subCollections.filter(
-                                          (sub: string) => item !== sub
-                                        );
-                                        gvc.notifyDataChange(id);
-                                      })}"
-                                    ></i>
-                                  </div>`;
-                                })
-                              );
-                            },
-                          })}
-                        `;
-                      })()
-                    ),
-                  ].join(html` <div style="margin-top: 24px;"></div>`),
+                  html: gvc.bindView(
+                    (() => {
+                      const summaryId = glitter.getUUID();
+                      return {
+                        bind: summaryId,
+                        view: () => {
+                          function firstParentView() {
+                            return html`<div class="tx_700" style="margin-bottom: 12px">父層</div>
+                              ${BgWidget.select({
+                                gvc: gvc,
+                                callback: text => {
+                                  vm.data.parentTitles[0] = text;
+                                  gvc.notifyDataChange(summaryId);
+                                },
+                                default: vm.data.parentTitles[0] ?? '',
+                                options: vm.data.allCollections.map((item: string) => {
+                                  return { key: item, value: item };
+                                }),
+                                style: 'margin: 8px 0;',
+                              })}`;
+                          }
+
+                          function secondParentView(subs: string[]) {
+                            return html`<div class="tx_700" style="margin-bottom: 12px">第二層</div>
+                              ${BgWidget.select({
+                                gvc: gvc,
+                                callback: text => {
+                                  vm.data.parentTitles[1] = text;
+                                  gvc.notifyDataChange(summaryId);
+                                },
+                                default: vm.data.parentTitles[1] ?? '',
+                                options: ['(無)', ...subs].map((item: string) => {
+                                  return { key: item, value: item };
+                                }),
+                                style: 'margin: 8px 0;',
+                              })}`;
+                          }
+
+                          function levelSetting() {
+                            const allCollections = Array.isArray(vm.data.allCollections) ? vm.data.allCollections : [];
+                            const parentTitles = Array.isArray(vm.data.parentTitles) ? vm.data.parentTitles : [];
+
+                            if (vm.type === 'add' || (allCollections.length > 0 && parentTitles.length > 0)) {
+                              const secondTab = vm.dataList?.find(item => item.title === parentTitles[0]);
+
+                              return [
+                                firstParentView(),
+                                secondTab &&
+                                Array.isArray(secondTab.subCollections) &&
+                                secondTab?.subCollections.length > 0
+                                  ? secondParentView(secondTab.subCollections)
+                                  : '',
+                              ].join(BgWidget.mbContainer(12));
+                            }
+
+                            const id = gvc.glitter.getUUID();
+
+                            console.log(vm.data);
+
+                            return html`
+                              <div class="tx_700" style="margin-bottom: 12px">子分類</div>
+                              ${gvc.bindView({
+                                bind: id,
+                                view: () =>
+                                  vm.data.subCollections
+                                    .map((item: string) => {
+                                      return html` <div
+                                        style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;"
+                                      >
+                                        ${item}<i
+                                          class="fa-regular fa-trash cursor_pointer"
+                                          onclick="${gvc.event(() => {
+                                            vm.data.subCollections = vm.data.subCollections.filter(
+                                              (sub: string) => item !== sub
+                                            );
+                                            gvc.notifyDataChange(id);
+                                          })}"
+                                        ></i>
+                                      </div>`;
+                                    })
+                                    .join(''),
+                              })}
+                            `;
+                          }
+
+                          return [BgWidget.summaryCard(levelSetting())].join(BgWidget.mbContainer(24));
+                        },
+                      };
+                    })()
+                  ),
                   ratio: 25,
                 }
               ),
@@ -1118,6 +1158,8 @@ export class ShoppingCollections {
                       dialog.warningMessage({ text: validLangDomain.text, callback: () => {} });
                       return;
                     }
+
+                    console.log({ replace: vm.data, original });
 
                     dialog.dataLoading({ visible: true });
                     ApiShop.putCollections({

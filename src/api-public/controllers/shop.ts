@@ -376,9 +376,12 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
         searchType: req.query.searchType as string,
         progress: req.query.progress as string,
       });
-      orders.data = orders.data.filter((dd:any) => {
-        return (dd.orderData.customer_info.phone===req.query.buyer_phone) && (dd.orderData.customer_info.name===req.query.buyer_name)
-      })
+      orders.data = orders.data.filter((dd: any) => {
+        return (
+          dd.orderData.customer_info.phone === req.query.buyer_phone &&
+          dd.orderData.customer_info.name === req.query.buyer_name
+        );
+      });
       return response.succ(resp, orders);
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -1161,13 +1164,11 @@ router.get('/collection/product/variants', async (req: express.Request, resp: ex
 router.put('/collection', async (req: express.Request, resp: express.Response) => {
   try {
     if (await UtPermission.isManager(req)) {
-      return response.succ(
-        resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).putCollection(
-          req.body.replace,
-          req.body.original
-        )
-      );
+      const { replace, original } = req.body;
+      const _shopping = new Shopping(req.get('g-app') as string, req.body.token);
+
+      // return response.succ(resp, await _shopping.putCollection(replace, original));
+      return response.succ(resp, await _shopping.putCollectionV2(replace, original));
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
     }
@@ -1180,7 +1181,7 @@ router.delete('/collection', async (req: express.Request, resp: express.Response
     if (await UtPermission.isManager(req)) {
       return response.succ(
         resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).deleteCollection(req.body.data)
+        await new Shopping(req.get('g-app') as string, req.body.token).deleteCollectionV2(req.body.data)
       );
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);

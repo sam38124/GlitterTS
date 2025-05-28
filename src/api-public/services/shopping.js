@@ -3504,10 +3504,8 @@ class Shopping {
                     return ((_a = replace.product_id) !== null && _a !== void 0 ? _a : []).findIndex(rid => rid === oid) === -1;
                 });
                 if (delete_id_list.length > 0) {
-                    const products_sql = `SELECT *
-                                FROM \`${this.app}\`.t_manager_post
-                                WHERE id in (${delete_id_list.join(',')});`;
-                    const delete_product_list = await database_js_1.default.query(products_sql, []);
+                    const delete_product_list = await database_js_1.default.query(` SELECT * FROM \`${this.app}\`.t_manager_post WHERE id IN (${delete_id_list.join(',')});
+              `, []);
                     for (const product of delete_product_list) {
                         product.content.collection = product.content.collection.filter((str) => {
                             if (original.parentTitles[0]) {
@@ -3577,6 +3575,163 @@ class Shopping {
          SET value = ?
          WHERE \`key\` = 'collection';
         `, [config.value]);
+            return { result: true };
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
+        }
+    }
+    async putCollectionV2(replace, original) {
+        var _a, _b, _c, _d;
+        try {
+            function removeCollection(config, target) {
+                const path = target.parentTitles;
+                let currentLevel = config;
+                for (let i = 0; i < path.length; i++) {
+                    const found = currentLevel.find(c => c.title === path[i]);
+                    if (!found) {
+                        console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
+                        return;
+                    }
+                    currentLevel = found.array;
+                }
+                const index = currentLevel.findIndex(c => c.title === target.title);
+                if (index !== -1) {
+                    formatData.array = Array.isArray(currentLevel[index].array)
+                        ? currentLevel[index].array
+                        : [];
+                    currentLevel.splice(index, 1);
+                }
+                else {
+                    console.warn(`找不到原始項目：${target.title}，略過刪除`);
+                }
+            }
+            function insertIntoConfig(config, replace) {
+                if (replace.parentTitles.length === 0 || replace.parentTitles[0] === '無') {
+                    config.push(formatData);
+                    return;
+                }
+                if (replace.parentTitles[0] === '(無)') {
+                    replace.parentTitles = [];
+                }
+                const copyParentTitles = replace.parentTitles.slice();
+                for (let i = 0; i < copyParentTitles.length; i++) {
+                    if (copyParentTitles[i] === '(無)') {
+                        replace.parentTitles = copyParentTitles.slice(0, i);
+                    }
+                }
+                let currentLevel = config;
+                for (let i = 0; i < replace.parentTitles.length; i++) {
+                    const title = replace.parentTitles[i];
+                    const found = currentLevel.find(c => c.title === title);
+                    if (!found) {
+                        throw new Error(`找不到父類別：${title}`);
+                    }
+                    if (i === replace.parentTitles.length - 1) {
+                        found.array.push(formatData);
+                    }
+                    else {
+                        currentLevel = found.array;
+                    }
+                }
+            }
+            function analyzeIdLists(leftIds, rightIds) {
+                const leftSet = new Set(leftIds);
+                const rightSet = new Set(rightIds);
+                return {
+                    left_only: leftIds.filter(id => !rightSet.has(id)),
+                    intersection: leftIds.filter(id => rightSet.has(id)),
+                    right_only: rightIds.filter(id => !leftSet.has(id)),
+                    all_set: [...new Set([...leftSet, ...rightSet])],
+                };
+            }
+            function buildStringMapFromConfig(config, original, replace) {
+                var _a;
+                const targetDepth = ((_a = original.parentTitles) !== null && _a !== void 0 ? _a : []).length;
+                const stringMap = [];
+                const originalTitle = original.title;
+                const replaceTitle = replace.title;
+                const findAllPaths = (item, parentPath = []) => {
+                    var _a;
+                    const currentPath = [...parentPath, item.title];
+                    const fullPath = currentPath.join(' / ');
+                    if (currentPath[targetDepth] === originalTitle) {
+                        const newPathParts = [...currentPath];
+                        newPathParts[targetDepth] = replaceTitle;
+                        const newFullPath = newPathParts.join(' / ');
+                        stringMap.push({
+                            old: fullPath,
+                            new: newFullPath,
+                        });
+                    }
+                    ((_a = item.array) !== null && _a !== void 0 ? _a : []).forEach(child => {
+                        findAllPaths(child, currentPath);
+                    });
+                };
+                for (const item of config) {
+                    findAllPaths(item);
+                }
+                return stringMap;
+            }
+            function main(config, original, replace) {
+                removeCollection(config, original);
+                insertIntoConfig(config, replace);
+                return config;
+            }
+            const configData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+            `, []))[0];
+            const config = configData.value || [];
+            replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
+            const formatData = {
+                array: [],
+                code: replace.code,
+                title: replace.title,
+                seo_title: replace.seo_title,
+                seo_content: replace.seo_content,
+                seo_image: replace.seo_image,
+                language_data: replace.language_data,
+                hidden: Boolean(replace.hidden),
+            };
+            const id_container = analyzeIdLists((_a = original.product_id) !== null && _a !== void 0 ? _a : [], (_b = replace.product_id) !== null && _b !== void 0 ? _b : []);
+            const update_path_array = buildStringMapFromConfig(config, original, replace);
+            main(config, original, replace);
+            if (id_container.all_set.length > 0) {
+                const product_list = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE id IN (${id_container.all_set.join(',')});`, []);
+                for (const product of product_list) {
+                    const currentPaths = (_c = product.content.collection) !== null && _c !== void 0 ? _c : [];
+                    const isLeftOnly = id_container.left_only.includes(product.id);
+                    const isRightOnly = id_container.right_only.includes(product.id);
+                    const isIntersection = id_container.intersection.includes(product.id);
+                    let pathsAfterRemoval = currentPaths;
+                    if (isLeftOnly) {
+                        for (const { old } of update_path_array) {
+                            pathsAfterRemoval = pathsAfterRemoval.filter((path) => path !== old);
+                        }
+                    }
+                    let pathsAfterUpdate = pathsAfterRemoval;
+                    if (isIntersection) {
+                        for (const { old, new: newVal } of update_path_array) {
+                            const index = pathsAfterUpdate.findIndex((p) => p === old);
+                            if (index !== -1) {
+                                pathsAfterUpdate[index] = newVal;
+                            }
+                        }
+                    }
+                    const newPath = replace.title ? [...((_d = replace.parentTitles) !== null && _d !== void 0 ? _d : []), replace.title] : [];
+                    const newMap = newPath.map((path, i) => {
+                        return i === 0 ? path : [...newPath.slice(0, i), path].join(' / ');
+                    });
+                    let finalPaths = pathsAfterUpdate;
+                    if (isRightOnly || isIntersection) {
+                        finalPaths = [...new Set([...pathsAfterUpdate, ...newMap])];
+                    }
+                    product.content.collection = finalPaths;
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            }
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `, [config]);
             return { result: true };
         }
         catch (e) {
@@ -3990,14 +4145,75 @@ class Shopping {
                 const find_collection = deleteList.find(obj => obj.parent === index);
                 return !(find_collection && find_collection.child[0] === -1);
             });
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                              SET value = ?
-                              WHERE \`key\` = 'collection';`;
-            await database_js_1.default.execute(update_col_sql, [config.value]);
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `, [config.value]);
             return { result: true };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'deleteCollection Error:' + e, null);
+        }
+    }
+    async deleteCollectionV2(dataArray) {
+        try {
+            const configData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+            `, []))[0];
+            const config = configData.value || [];
+            const containsAnyTagSQL = (tags) => {
+                const conditions = tags.map(tag => `JSON_CONTAINS(content, '["${tag}"]', '$.collection')`).join(' OR ');
+                return `SELECT * FROM \`${this.app}\`.t_manager_post WHERE ${conditions}`;
+            };
+            const removeCollection = async (config, target) => {
+                var _a, _b;
+                const path = (_a = target.parentTitles) !== null && _a !== void 0 ? _a : [];
+                let currentLevel = config;
+                const fullPath = [...path, target.title];
+                const fullPathString = fullPath.join(' / ');
+                for (let i = 0; i < path.length; i++) {
+                    const found = currentLevel.find(c => c.title === path[i]);
+                    if (!found) {
+                        console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
+                        return;
+                    }
+                    currentLevel = found.array;
+                }
+                const index = currentLevel.findIndex(c => c.title === target.title);
+                if (index === -1) {
+                    console.warn(`找不到原始項目：${target.title}，略過刪除`);
+                    return;
+                }
+                const removed = currentLevel.splice(index, 1)[0];
+                if (!removed)
+                    return;
+                const tagToDelete = [];
+                function gatherAllPaths(node, currentPath) {
+                    var _a;
+                    const full = [...currentPath, node.title].join(' / ');
+                    tagToDelete.push(full);
+                    if (((_a = node.array) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                        for (const child of node.array) {
+                            gatherAllPaths(child, [...currentPath, node.title]);
+                        }
+                    }
+                }
+                gatherAllPaths(removed, path);
+                console.log(containsAnyTagSQL(tagToDelete));
+                const productList = await database_js_1.default.query(containsAnyTagSQL(tagToDelete), []);
+                for (const product of productList) {
+                    const before = (_b = product.content.collection) !== null && _b !== void 0 ? _b : [];
+                    product.content.collection = before.filter((c) => !tagToDelete.includes(c));
+                    console.log(product.id, product.content.collection);
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            };
+            for (const data of dataArray) {
+                removeCollection(config, data);
+            }
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `, [config]);
+            return { result: true };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'deleteCollection Error:' + e, null);
         }
     }
     async deleteCollectionProduct(parent_name, children_list) {

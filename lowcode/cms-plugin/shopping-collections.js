@@ -147,6 +147,7 @@ export class ShoppingCollections {
                                         },
                                         divCreate: {},
                                         onCreate: () => {
+                                            var _a;
                                             if (loading) {
                                                 gvc.addMtScript([
                                                     {
@@ -176,7 +177,7 @@ export class ShoppingCollections {
                                                     window.Sortable.create(el, {
                                                         animation: 150,
                                                         onEnd: function () {
-                                                            const items = [...el.children].map(child => vm.dataList[parseInt(child.getAttribute('data-index'))]);
+                                                            const items = [...el.children].map(child => { var _a; return (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a[parseInt(child.getAttribute('data-index'))]; });
                                                             ApiShop.sortCollections({
                                                                 data: { list: items },
                                                                 token: window.parent.config.token,
@@ -189,9 +190,10 @@ export class ShoppingCollections {
                                                     });
                                                 }
                                                 function loadChildItems(parentTitle) {
+                                                    var _a;
                                                     const childContainer = document.getElementById('child-list');
                                                     childContainer.innerHTML = '';
-                                                    vm.dataList.forEach((item, index) => {
+                                                    (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a.forEach((item, index) => {
                                                         if (item.parentTitles[0] === parentTitle) {
                                                             childContainer.appendChild(createListItem(item, index));
                                                         }
@@ -199,7 +201,7 @@ export class ShoppingCollections {
                                                     initSortable('child-list');
                                                 }
                                                 const parentContainer = document.getElementById('parent-list');
-                                                vm.dataList.forEach((item, index) => {
+                                                (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a.forEach((item, index) => {
                                                     if (item.parentTitles.length === 0) {
                                                         const li = createListItem(item, index);
                                                         li.addEventListener('click', () => {
@@ -351,7 +353,9 @@ export class ShoppingCollections {
                                     });
                                 },
                                 rowClick: (_, index) => {
-                                    vm.data = vm.dataList[index];
+                                    if (vm.dataList) {
+                                        vm.data = vm.dataList[index];
+                                    }
                                     vm.type = 'replace';
                                 },
                                 filter: [
@@ -361,10 +365,11 @@ export class ShoppingCollections {
                                             dialog.checkYesOrNot({
                                                 text: '確定要刪除商品類別嗎？<br/>（若此類別包含子類別，也將一併刪除）',
                                                 callback: response => {
+                                                    var _a;
                                                     if (response) {
                                                         dialog.dataLoading({ visible: true });
                                                         ApiShop.deleteCollections({
-                                                            data: { data: vm.dataList.filter((dd) => dd.checked) },
+                                                            data: { data: (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a.filter(dd => dd.checked) },
                                                             token: window.parent.config.token,
                                                         }).then(res => {
                                                             dialog.dataLoading({ visible: false });
@@ -463,10 +468,11 @@ export class ShoppingCollections {
         const language_setting = window.parent.store_info.language_setting;
         let select_lan = language_setting.def;
         function getValidLangDomain() {
+            var _a;
             const supports = language_setting.support;
-            const dataList = vm.dataList.filter((data) => data.title !== vm.data.title);
+            const dataList = (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a.filter((data) => data.title !== vm.data.title);
             const lagDomain = supports.map(lang => {
-                const domainMap = dataList.map((item) => {
+                const domainMap = dataList === null || dataList === void 0 ? void 0 : dataList.map(item => {
                     if (!item.language_data) {
                         return '';
                     }
@@ -567,7 +573,7 @@ export class ShoppingCollections {
                                                                 .filter(dd => {
                                                                 return window.parent.store_info.language_setting.support.includes(dd.key);
                                                             })
-                                                                .sort((dd) => {
+                                                                .sort(dd => {
                                                                 return dd.key === select_lan ? -1 : 1;
                                                             });
                                                             return html ` <div
@@ -575,7 +581,7 @@ export class ShoppingCollections {
                                             style="gap:15px;"
                                           >
                                             ${sup
-                                                                .map((dd) => {
+                                                                .map(dd => {
                                                                 return html `
                                                   <div
                                                     class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center"
@@ -824,54 +830,89 @@ export class ShoppingCollections {
                                     })}`,
                                     ,
                                 ].join(BgWidget.mbContainer(10))),
-                            ].join(html ` <div style="margin-top: 24px;"></div>`),
+                            ].join(BgWidget.mbContainer(24)),
                             ratio: 75,
                         }, {
-                            html: [
-                                BgWidget.summaryCard((() => {
-                                    var _a;
-                                    if ((vm.data.allCollections &&
-                                        vm.data.allCollections.length > 0 &&
-                                        vm.data.parentTitles &&
-                                        vm.data.parentTitles.length > 0) ||
-                                        vm.type === 'add') {
-                                        return html ` <div class="tx_700" style="margin-bottom: 12px">父層</div>
-                            ${BgWidget.select({
-                                            gvc: gvc,
-                                            callback: text => {
-                                                vm.data.parentTitles[0] = text;
-                                            },
-                                            default: (_a = vm.data.parentTitles[0]) !== null && _a !== void 0 ? _a : '',
-                                            options: vm.data.allCollections.map((item) => {
-                                                return { key: item, value: item };
-                                            }),
-                                            style: 'margin: 8px 0;',
-                                        })}`;
-                                    }
-                                    const id = gvc.glitter.getUUID();
-                                    return html `
-                          <div class="tx_700" style="margin-bottom: 12px">子分類</div>
-                          ${gvc.bindView({
-                                        bind: id,
-                                        view: () => {
-                                            return gvc.map(vm.data.subCollections.map((item) => {
-                                                return html ` <div
-                                    style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;"
-                                  >
-                                    ${item}<i
-                                      class="fa-regular fa-trash cursor_pointer"
-                                      onclick="${gvc.event(() => {
-                                                    vm.data.subCollections = vm.data.subCollections.filter((sub) => item !== sub);
-                                                    gvc.notifyDataChange(id);
-                                                })}"
-                                    ></i>
-                                  </div>`;
-                                            }));
-                                        },
-                                    })}
-                        `;
-                                })()),
-                            ].join(html ` <div style="margin-top: 24px;"></div>`),
+                            html: gvc.bindView((() => {
+                                const summaryId = glitter.getUUID();
+                                return {
+                                    bind: summaryId,
+                                    view: () => {
+                                        function firstParentView() {
+                                            var _a;
+                                            return html `<div class="tx_700" style="margin-bottom: 12px">父層</div>
+                              ${BgWidget.select({
+                                                gvc: gvc,
+                                                callback: text => {
+                                                    vm.data.parentTitles[0] = text;
+                                                    gvc.notifyDataChange(summaryId);
+                                                },
+                                                default: (_a = vm.data.parentTitles[0]) !== null && _a !== void 0 ? _a : '',
+                                                options: vm.data.allCollections.map((item) => {
+                                                    return { key: item, value: item };
+                                                }),
+                                                style: 'margin: 8px 0;',
+                                            })}`;
+                                        }
+                                        function secondParentView(subs) {
+                                            var _a;
+                                            return html `<div class="tx_700" style="margin-bottom: 12px">第二層</div>
+                              ${BgWidget.select({
+                                                gvc: gvc,
+                                                callback: text => {
+                                                    vm.data.parentTitles[1] = text;
+                                                    gvc.notifyDataChange(summaryId);
+                                                },
+                                                default: (_a = vm.data.parentTitles[1]) !== null && _a !== void 0 ? _a : '',
+                                                options: ['(無)', ...subs].map((item) => {
+                                                    return { key: item, value: item };
+                                                }),
+                                                style: 'margin: 8px 0;',
+                                            })}`;
+                                        }
+                                        function levelSetting() {
+                                            var _a;
+                                            const allCollections = Array.isArray(vm.data.allCollections) ? vm.data.allCollections : [];
+                                            const parentTitles = Array.isArray(vm.data.parentTitles) ? vm.data.parentTitles : [];
+                                            if (vm.type === 'add' || (allCollections.length > 0 && parentTitles.length > 0)) {
+                                                const secondTab = (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a.find(item => item.title === parentTitles[0]);
+                                                return [
+                                                    firstParentView(),
+                                                    secondTab &&
+                                                        Array.isArray(secondTab.subCollections) &&
+                                                        (secondTab === null || secondTab === void 0 ? void 0 : secondTab.subCollections.length) > 0
+                                                        ? secondParentView(secondTab.subCollections)
+                                                        : '',
+                                                ].join(BgWidget.mbContainer(12));
+                                            }
+                                            const id = gvc.glitter.getUUID();
+                                            console.log(vm.data);
+                                            return html `
+                              <div class="tx_700" style="margin-bottom: 12px">子分類</div>
+                              ${gvc.bindView({
+                                                bind: id,
+                                                view: () => vm.data.subCollections
+                                                    .map((item) => {
+                                                    return html ` <div
+                                        style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;"
+                                      >
+                                        ${item}<i
+                                          class="fa-regular fa-trash cursor_pointer"
+                                          onclick="${gvc.event(() => {
+                                                        vm.data.subCollections = vm.data.subCollections.filter((sub) => item !== sub);
+                                                        gvc.notifyDataChange(id);
+                                                    })}"
+                                        ></i>
+                                      </div>`;
+                                                })
+                                                    .join(''),
+                                            })}
+                            `;
+                                        }
+                                        return [BgWidget.summaryCard(levelSetting())].join(BgWidget.mbContainer(24));
+                                    },
+                                };
+                            })()),
                             ratio: 25,
                         }),
                         BgWidget.mbContainer(240),
@@ -942,6 +983,7 @@ export class ShoppingCollections {
                                 dialog.warningMessage({ text: validLangDomain.text, callback: () => { } });
                                 return;
                             }
+                            console.log({ replace: vm.data, original });
                             dialog.dataLoading({ visible: true });
                             ApiShop.putCollections({
                                 data: { replace: vm.data, original },

@@ -319,7 +319,8 @@ router.get('/order', async (req, resp) => {
                 progress: req.query.progress,
             });
             orders.data = orders.data.filter((dd) => {
-                return (dd.orderData.customer_info.phone === req.query.buyer_phone) && (dd.orderData.customer_info.name === req.query.buyer_name);
+                return (dd.orderData.customer_info.phone === req.query.buyer_phone &&
+                    dd.orderData.customer_info.name === req.query.buyer_name);
             });
             return response_1.default.succ(resp, orders);
         }
@@ -966,7 +967,9 @@ router.get('/collection/product/variants', async (req, resp) => {
 router.put('/collection', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollection(req.body.replace, req.body.original));
+            const { replace, original } = req.body;
+            const _shopping = new shopping_1.Shopping(req.get('g-app'), req.body.token);
+            return response_1.default.succ(resp, await _shopping.putCollectionV2(replace, original));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -979,7 +982,7 @@ router.put('/collection', async (req, resp) => {
 router.delete('/collection', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteCollection(req.body.data));
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteCollectionV2(req.body.data));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

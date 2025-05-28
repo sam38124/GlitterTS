@@ -300,11 +300,26 @@ class OrderDetail {
 type Collection = {
   title: string;
   array: Collection[];
-  checked: boolean;
+  checked?: boolean;
   product_id?: number[];
   parentTitles: string[];
   subCollections: string[];
   allCollections: string[];
+  seo_title: string;
+  seo_content: string;
+  seo_image: string;
+  code: string;
+  language_data: {
+    'en-US': seo;
+    'zh-CN': seo;
+    'zh-TW': seo;
+  };
+  hidden?: boolean;
+};
+
+type FormatCollection = {
+  title: string;
+  array: FormatCollection[];
   seo_title: string;
   seo_content: string;
   seo_image: string;
@@ -4779,11 +4794,14 @@ export class Shopping {
         const delete_id_list = (original.product_id ?? []).filter(oid => {
           return (replace.product_id ?? []).findIndex(rid => rid === oid) === -1;
         });
+
         if (delete_id_list.length > 0) {
-          const products_sql = `SELECT *
-                                FROM \`${this.app}\`.t_manager_post
-                                WHERE id in (${delete_id_list.join(',')});`;
-          const delete_product_list = await db.query(products_sql, []);
+          const delete_product_list = await db.query(
+            ` SELECT * FROM \`${this.app}\`.t_manager_post WHERE id IN (${delete_id_list.join(',')});
+              `,
+            []
+          );
+
           for (const product of delete_product_list) {
             product.content.collection = product.content.collection.filter((str: string) => {
               if (original.parentTitles[0]) {
@@ -4863,6 +4881,222 @@ export class Shopping {
          WHERE \`key\` = 'collection';
         `,
         [config.value]
+      );
+
+      return { result: true };
+    } catch (e) {
+      console.error(e);
+      throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
+    }
+  }
+
+  async putCollectionV2(replace: Collection, original: Collection) {
+    try {
+      // 遞迴移除 original
+      function removeCollection(config: FormatCollection[], target: Collection) {
+        const path = target.parentTitles;
+        let currentLevel = config;
+
+        for (let i = 0; i < path.length; i++) {
+          const found = currentLevel.find(c => c.title === path[i]);
+          if (!found) {
+            console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
+            return;
+          }
+          currentLevel = found.array;
+        }
+
+        const index = currentLevel.findIndex(c => c.title === target.title);
+        if (index !== -1) {
+          formatData.array = Array.isArray(currentLevel[index].array)
+            ? (currentLevel[index].array as FormatCollection[])
+            : [];
+          currentLevel.splice(index, 1); // 刪除原始項目
+        } else {
+          console.warn(`找不到原始項目：${target.title}，略過刪除`);
+        }
+      }
+
+      // 插入 replace 到指定位置（和前面邏輯相同）
+      function insertIntoConfig(config: FormatCollection[], replace: Collection) {
+        if (replace.parentTitles.length === 0 || replace.parentTitles[0] === '無') {
+          config.push(formatData);
+          return;
+        }
+
+        if (replace.parentTitles[0] === '(無)') {
+          replace.parentTitles = [];
+        }
+
+        const copyParentTitles = replace.parentTitles.slice();
+        for (let i = 0; i < copyParentTitles.length; i++) {
+          if (copyParentTitles[i] === '(無)') {
+            replace.parentTitles = copyParentTitles.slice(0, i);
+          }
+        }
+
+        let currentLevel = config;
+        for (let i = 0; i < replace.parentTitles.length; i++) {
+          const title = replace.parentTitles[i];
+          const found = currentLevel.find(c => c.title === title);
+          if (!found) {
+            throw new Error(`找不到父類別：${title}`);
+          }
+          if (i === replace.parentTitles.length - 1) {
+            found.array.push(formatData);
+          } else {
+            currentLevel = found.array;
+          }
+        }
+      }
+
+      // product id 交集物件
+      function analyzeIdLists(leftIds: number[], rightIds: number[]) {
+        const leftSet = new Set(leftIds);
+        const rightSet = new Set(rightIds);
+
+        return {
+          left_only: leftIds.filter(id => !rightSet.has(id)),
+          intersection: leftIds.filter(id => rightSet.has(id)),
+          right_only: rightIds.filter(id => !leftSet.has(id)),
+          all_set: [...new Set([...leftSet, ...rightSet])],
+        };
+      }
+
+      // 更新前與更新後的類別字串
+      function buildStringMapFromConfig(
+        config: FormatCollection[],
+        original: Collection,
+        replace: Collection
+      ): { old: string; new: string }[] {
+        const targetDepth = (original.parentTitles ?? []).length;
+        const stringMap: { old: string; new: string }[] = [];
+
+        const originalTitle = original.title;
+        const replaceTitle = replace.title;
+
+        const findAllPaths = (item: FormatCollection, parentPath: string[] = []) => {
+          const currentPath = [...parentPath, item.title];
+          const fullPath = currentPath.join(' / ');
+
+          if (currentPath[targetDepth] === originalTitle) {
+            // 只替換指定深度層級的 title
+            const newPathParts = [...currentPath];
+            newPathParts[targetDepth] = replaceTitle;
+            const newFullPath = newPathParts.join(' / ');
+
+            stringMap.push({
+              old: fullPath,
+              new: newFullPath,
+            });
+          }
+
+          // 遞迴處理子項
+          (item.array ?? []).forEach(child => {
+            findAllPaths(child, currentPath);
+          });
+        };
+
+        for (const item of config) {
+          findAllPaths(item);
+        }
+
+        return stringMap;
+      }
+
+      // 主程式
+      function main(config: FormatCollection[], original: Collection, replace: Collection): FormatCollection[] {
+        removeCollection(config, original); // 從 config 中刪除 original
+        insertIntoConfig(config, replace); // 插入 replace 到正確位置
+        return config;
+      }
+
+      // 取得類別設定資料
+      const configData = (
+        await db.query(
+          `SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+            `,
+          []
+        )
+      )[0];
+      const config: FormatCollection[] = configData.value || [];
+
+      // 排除類別標題前後空白
+      replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
+
+      // 更新資料
+      const formatData: FormatCollection = {
+        array: [],
+        code: replace.code,
+        title: replace.title,
+        seo_title: replace.seo_title,
+        seo_content: replace.seo_content,
+        seo_image: replace.seo_image,
+        language_data: replace.language_data,
+        hidden: Boolean(replace.hidden),
+      };
+
+      const id_container = analyzeIdLists(original.product_id ?? [], replace.product_id ?? []);
+      const update_path_array = buildStringMapFromConfig(config, original, replace);
+
+      // 更新類別設定資料
+      main(config, original, replace);
+
+      // 更新商品內的類別陣列
+      if (id_container.all_set.length > 0) {
+        const product_list = await db.query(
+          `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id IN (${id_container.all_set.join(',')});`,
+          []
+        );
+
+        for (const product of product_list) {
+          const currentPaths = product.content.collection ?? [];
+
+          const isLeftOnly = id_container.left_only.includes(product.id);
+          const isRightOnly = id_container.right_only.includes(product.id);
+          const isIntersection = id_container.intersection.includes(product.id);
+
+          // 1. 移除：left_only
+          let pathsAfterRemoval = currentPaths;
+          if (isLeftOnly) {
+            for (const { old } of update_path_array) {
+              pathsAfterRemoval = pathsAfterRemoval.filter((path: string) => path !== old);
+            }
+          }
+
+          // 2. 更新：intersection
+          let pathsAfterUpdate = pathsAfterRemoval;
+          if (isIntersection) {
+            for (const { old, new: newVal } of update_path_array) {
+              const index = pathsAfterUpdate.findIndex((p: string) => p === old);
+              if (index !== -1) {
+                pathsAfterUpdate[index] = newVal;
+              }
+            }
+          }
+
+          // 3. 新增：right_only
+          const newPath = replace.title ? [...(replace.parentTitles ?? []), replace.title] : [];
+          const newMap = newPath.map((path, i) => {
+            return i === 0 ? path : [...newPath.slice(0, i), path].join(' / ');
+          });
+
+          let finalPaths = pathsAfterUpdate;
+          if (isRightOnly || isIntersection) {
+            finalPaths = [...new Set([...pathsAfterUpdate, ...newMap])];
+          }
+
+          product.content.collection = finalPaths;
+
+          await this.updateProductCollection(product.content, product.id);
+        }
+      }
+
+      // 更新商品類別 config
+      await db.execute(
+        `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `,
+        [config]
       );
 
       return { result: true };
@@ -5398,14 +5632,104 @@ export class Shopping {
       });
 
       // 更新商品類別
-      const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                              SET value = ?
-                              WHERE \`key\` = 'collection';`;
-      await db.execute(update_col_sql, [config.value]);
+      await db.execute(
+        `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `,
+        [config.value]
+      );
 
       return { result: true };
     } catch (e) {
-      throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+      throw exception.BadRequestError('BAD_REQUEST', 'deleteCollection Error:' + e, null);
+    }
+  }
+
+  async deleteCollectionV2(dataArray: Collection[]) {
+    try {
+      // 取得類別設定資料
+      const configData = (
+        await db.query(
+          `SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+            `,
+          []
+        )
+      )[0];
+      const config: Collection[] = configData.value || [];
+
+      const containsAnyTagSQL = (tags: string[]): string => {
+        const conditions = tags.map(tag => `JSON_CONTAINS(content, '["${tag}"]', '$.collection')`).join(' OR ');
+        return `SELECT * FROM \`${this.app}\`.t_manager_post WHERE ${conditions}`;
+      };
+
+      const removeCollection = async (config: FormatCollection[], target: Collection) => {
+        const path = target.parentTitles ?? [];
+        let currentLevel = config;
+
+        const fullPath: string[] = [...path, target.title];
+        const fullPathString = fullPath.join(' / ');
+
+        // 先遞迴找到要刪除的分類
+        for (let i = 0; i < path.length; i++) {
+          const found = currentLevel.find(c => c.title === path[i]);
+          if (!found) {
+            console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
+            return;
+          }
+          currentLevel = found.array;
+        }
+
+        const index = currentLevel.findIndex(c => c.title === target.title);
+        if (index === -1) {
+          console.warn(`找不到原始項目：${target.title}，略過刪除`);
+          return;
+        }
+
+        const removed = currentLevel.splice(index, 1)[0]; // 移除並取得項目
+        if (!removed) return;
+
+        // 同時刪除商品中使用此分類路徑的 collection
+        const tagToDelete: string[] = [];
+
+        function gatherAllPaths(node: FormatCollection, currentPath: string[]) {
+          const full = [...currentPath, node.title].join(' / ');
+          tagToDelete.push(full);
+
+          if (node.array?.length > 0) {
+            for (const child of node.array) {
+              gatherAllPaths(child, [...currentPath, node.title]);
+            }
+          }
+        }
+
+        gatherAllPaths(removed, path); // path = 父層，removed 是當前被刪的節點
+
+        // 更新每個使用該分類的商品
+        console.log(containsAnyTagSQL(tagToDelete));
+        const productList = await db.query(containsAnyTagSQL(tagToDelete), []);
+
+        for (const product of productList) {
+          const before = product.content.collection ?? [];
+          product.content.collection = before.filter((c: string) => !tagToDelete.includes(c));
+
+          console.log(product.id, product.content.collection);
+          await this.updateProductCollection(product.content, product.id);
+        }
+      };
+
+      for (const data of dataArray) {
+        removeCollection(config, data);
+      }
+
+      // 更新商品類別
+      await db.execute(
+        `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+        `,
+        [config]
+      );
+
+      return { result: true };
+    } catch (e) {
+      throw exception.BadRequestError('BAD_REQUEST', 'deleteCollection Error:' + e, null);
     }
   }
 

@@ -170,7 +170,7 @@ declare class OrderDetail {
 type Collection = {
     title: string;
     array: Collection[];
-    checked: boolean;
+    checked?: boolean;
     product_id?: number[];
     parentTitles: string[];
     subCollections: string[];
@@ -538,6 +538,9 @@ export declare class Shopping {
         result: boolean;
         message?: undefined;
     }>;
+    putCollectionV2(replace: Collection, original: Collection): Promise<{
+        result: boolean;
+    }>;
     sortCollection(data: Collection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
@@ -547,6 +550,9 @@ export declare class Shopping {
     promisesProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
     deleteCollection(dataArray: Collection[]): Promise<{
+        result: boolean;
+    }>;
+    deleteCollectionV2(dataArray: Collection[]): Promise<{
         result: boolean;
     }>;
     deleteCollectionProduct(parent_name: string, children_list?: string[]): Promise<{
