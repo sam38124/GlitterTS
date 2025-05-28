@@ -488,6 +488,7 @@ export class BgProduct {
     title?: string;
     default: (number | string)[];
     callback: (value: any) => void;
+    single?: boolean;
   }) {
     return obj.gvc.glitter.innerDialog((gvc: GVC) => {
       const vm = {
@@ -514,6 +515,16 @@ export class BgProduct {
                 container: { style: 'margin: 3rem 0;' },
               });
             }
+
+            function formatOptionId(path: string | number) {
+              const key = path
+                .toString()
+                .split('/') // 拆分所有層級
+                .map(segment => segment.trim()) // 去除空白
+                .join('_'); // 統一格式為「底線」
+              return `_collections_opt_${key}`;
+            }
+
             return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
               <div class="w-100 d-flex align-items-center p-3 border-bottom">
                 <div class="tx_700">${obj.title ?? '商品分類'}</div>
@@ -529,56 +540,63 @@ export class BgProduct {
               <div class="c_dialog">
                 <div class="c_dialog_body">
                   <div class="c_dialog_main" style="gap: 18px; max-height: 500px;">
-                    <div class="position-sticky px-1" style="top: 0; background-color: #fff;">
-                      ${BgWidget.searchFilter(
-                        gvc.event((e, event) => {
-                          vm.query = e.value;
-                          vm.loading = true;
-                          obj.gvc.notifyDataChange(vm.id);
-                        }),
-                        vm.query || '',
-                        '搜尋'
-                      )}
-                    </div>
                     ${obj.gvc.map(
                       vm.options.map((opt: OptionsItem) => {
+                        const id = formatOptionId(opt.key);
+
                         function call() {
-                          if (obj.default.includes(opt.key)) {
-                            obj.default = obj.default.filter(item => item !== opt.key);
+                          const cloneDefault = obj.default.slice();
+
+                          if (obj.single) {
+                            obj.default = [opt.key];
                           } else {
-                            obj.default.push(opt.key);
+                            if (obj.default.includes(opt.key)) {
+                              obj.default = obj.default.filter(item => item !== opt.key);
+                            } else {
+                              obj.default.push(opt.key);
+                            }
                           }
-                          obj.gvc.notifyDataChange(vm.id);
+
+                          gvc.notifyDataChange([...cloneDefault.map(key => formatOptionId(key)), id]);
                         }
 
-                        return html` <div class="d-flex align-items-center" style="gap: 24px">
-                          <input
-                            class="form-check-input mt-0 ${vm.checkClass}"
-                            type="checkbox"
-                            id="${opt.key}"
-                            name="radio_${vm.id}"
-                            onclick="${obj.gvc.event(() => call())}"
-                            ${obj.default.includes(opt.key) ? 'checked' : ''}
-                          />
-                          <div
-                            class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
-                            onclick="${obj.gvc.event(() => call())}"
-                          >
-                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                            ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                          </div>
-                        </div>`;
+                        return gvc.bindView({
+                          bind: id,
+                          view: () => {
+                            return html`<input
+                                class="form-check-input mt-0 ${vm.checkClass}"
+                                type="checkbox"
+                                id="${opt.key}"
+                                name="radio_${vm.id}"
+                                onclick="${obj.gvc.event(() => call())}"
+                                ${obj.default.includes(opt.key) ? 'checked' : ''}
+                              />
+                              <div
+                                class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3"
+                                onclick="${obj.gvc.event(() => call())}"
+                              >
+                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                              </div>`;
+                          },
+                          divCreate: {
+                            class: 'd-flex align-items-center',
+                            style: 'gap: 24px',
+                          },
+                        });
                       })
                     )}
                   </div>
                   <div class="c_dialog_bar">
-                    ${BgWidget.cancel(
-                      obj.gvc.event(() => {
-                        obj.callback([]);
-                        gvc.closeDialog();
-                      }),
-                      '清除全部'
-                    )}
+                    ${obj.single
+                      ? ''
+                      : BgWidget.cancel(
+                          obj.gvc.event(() => {
+                            obj.callback([]);
+                            gvc.closeDialog();
+                          }),
+                          '清除全部'
+                        )}
                     ${BgWidget.cancel(
                       obj.gvc.event(() => {
                         obj.callback(vm.def);

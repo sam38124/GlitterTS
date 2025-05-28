@@ -186,6 +186,20 @@ type Collection = {
     };
     hidden?: boolean;
 };
+type FormatCollection = {
+    title: string;
+    array: FormatCollection[];
+    seo_title: string;
+    seo_content: string;
+    seo_image: string;
+    code: string;
+    language_data: {
+        'en-US': seo;
+        'zh-CN': seo;
+        'zh-TW': seo;
+    };
+    hidden?: boolean;
+};
 type ShipmentSetting = {
     cartSetting: {
         minimumTotal: number;
@@ -542,6 +556,7 @@ export declare class Shopping {
         result: boolean;
     }>;
     sortCollection(data: Collection[]): Promise<boolean>;
+    sortCollectionV2(dataArray: FormatCollection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
     removeLogisticGroup(group_key: string): Promise<boolean>;

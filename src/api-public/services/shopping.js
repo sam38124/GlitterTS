@@ -383,17 +383,15 @@ class Shopping {
                 return dd.content;
             })
                 .map((product) => {
-                var _a;
+                var _a, _b;
                 product.content.designated_logistics = (_a = product.content.designated_logistics) !== null && _a !== void 0 ? _a : { list: [], type: 'all' };
                 if (product.content.designated_logistics.group === '' && !product.content.designated_logistics.type) {
                     product.content.designated_logistics = { list: [], type: 'all' };
                 }
-                product.content.collection = Array.from(new Set((() => {
-                    var _a;
-                    return ((_a = product.content.collection) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                        return dd.replace(' / ', '/').replace(' /', '/').replace('/ ', '/').replace('/', ' / ');
-                    });
-                })()));
+                product.content.collection = Array.from(new Set(((_b = product.content.collection) !== null && _b !== void 0 ? _b : []).map((path) => path
+                    .split('/')
+                    .map(segment => segment.trim())
+                    .join(' / '))));
                 return new Promise(async (resolve) => {
                     var _a, _b, _c;
                     if (product) {
@@ -3419,7 +3417,7 @@ class Shopping {
              FROM \`${this.app}\`.public_config
              WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
             config.value = config.value || [];
-            if (replace.parentTitles[0] === '(無)') {
+            if (replace.parentTitles[0] === '請選擇項目') {
                 replace.parentTitles = [];
             }
             replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
@@ -3585,39 +3583,45 @@ class Shopping {
     async putCollectionV2(replace, original) {
         var _a, _b, _c, _d;
         try {
-            function removeCollection(config, target) {
+            const removeCollection = (config, target) => {
                 const path = target.parentTitles;
                 let currentLevel = config;
                 for (let i = 0; i < path.length; i++) {
                     const found = currentLevel.find(c => c.title === path[i]);
                     if (!found) {
-                        console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
-                        return;
+                        console.warn(`putCollectionV2 無法找到原本的父類別：${path[i]}，略過刪除`);
+                        return -1;
                     }
                     currentLevel = found.array;
                 }
                 const index = currentLevel.findIndex(c => c.title === target.title);
                 if (index !== -1) {
-                    formatData.array = Array.isArray(currentLevel[index].array)
-                        ? currentLevel[index].array
-                        : [];
+                    if (Array.isArray(currentLevel[index].array)) {
+                        const currentLevelArray = currentLevel[index].array.filter(item => {
+                            return replace.subCollections.includes(item.title);
+                        });
+                        formatData.array = currentLevelArray;
+                    }
+                    else {
+                        formatData.array = [];
+                    }
                     currentLevel.splice(index, 1);
+                    return index;
                 }
                 else {
-                    console.warn(`找不到原始項目：${target.title}，略過刪除`);
+                    console.warn(`putCollectionV2 找不到原始項目：${target.title}，略過刪除`);
+                    return -1;
                 }
-            }
-            function insertIntoConfig(config, replace) {
+            };
+            function insertIntoConfig(config, replace, originIndex) {
                 if (replace.parentTitles.length === 0 || replace.parentTitles[0] === '無') {
-                    config.push(formatData);
+                    const start = originIndex > -1 ? originIndex : config.length;
+                    config.splice(start, 0, formatData);
                     return;
-                }
-                if (replace.parentTitles[0] === '(無)') {
-                    replace.parentTitles = [];
                 }
                 const copyParentTitles = replace.parentTitles.slice();
                 for (let i = 0; i < copyParentTitles.length; i++) {
-                    if (copyParentTitles[i] === '(無)') {
+                    if (copyParentTitles[i] === '請選擇項目') {
                         replace.parentTitles = copyParentTitles.slice(0, i);
                     }
                 }
@@ -3629,7 +3633,8 @@ class Shopping {
                         throw new Error(`找不到父類別：${title}`);
                     }
                     if (i === replace.parentTitles.length - 1) {
-                        found.array.push(formatData);
+                        const start = originIndex > -1 ? originIndex : found.array.length;
+                        found.array.splice(start, 0, formatData);
                     }
                     else {
                         currentLevel = found.array;
@@ -3652,6 +3657,7 @@ class Shopping {
                 const stringMap = [];
                 const originalTitle = original.title;
                 const replaceTitle = replace.title;
+                const replaceParentPath = [...replace.parentTitles, replace.title];
                 const findAllPaths = (item, parentPath = []) => {
                     var _a;
                     const currentPath = [...parentPath, item.title];
@@ -3659,7 +3665,15 @@ class Shopping {
                     if (currentPath[targetDepth] === originalTitle) {
                         const newPathParts = [...currentPath];
                         newPathParts[targetDepth] = replaceTitle;
-                        const newFullPath = newPathParts.join(' / ');
+                        let newFullPath = newPathParts.join(' / ');
+                        if (fullPath.startsWith(replaceParentPath.join(' / '))) {
+                            const isRemoveCol = replace.subCollections.some(sub => {
+                                return !fullPath.startsWith([...replaceParentPath, sub].join(' / '));
+                            });
+                            if (isRemoveCol) {
+                                newFullPath = '';
+                            }
+                        }
                         stringMap.push({
                             old: fullPath,
                             new: newFullPath,
@@ -3675,8 +3689,8 @@ class Shopping {
                 return stringMap;
             }
             function main(config, original, replace) {
-                removeCollection(config, original);
-                insertIntoConfig(config, replace);
+                const originIndex = removeCollection(config, original);
+                insertIntoConfig(config, replace, originIndex);
                 return config;
             }
             const configData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
@@ -3719,14 +3733,12 @@ class Shopping {
                         }
                     }
                     const newPath = replace.title ? [...((_d = replace.parentTitles) !== null && _d !== void 0 ? _d : []), replace.title] : [];
-                    const newMap = newPath.map((path, i) => {
-                        return i === 0 ? path : [...newPath.slice(0, i), path].join(' / ');
-                    });
+                    const newMap = newPath.map((path, i) => [...newPath.slice(0, i), path].join(' / '));
                     let finalPaths = pathsAfterUpdate;
                     if (isRightOnly || isIntersection) {
                         finalPaths = [...new Set([...pathsAfterUpdate, ...newMap])];
                     }
-                    product.content.collection = finalPaths;
+                    product.content.collection = finalPaths.filter((path) => path.length > 0);
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
@@ -3744,9 +3756,8 @@ class Shopping {
         try {
             if (data && data[0]) {
                 const parentTitle = (_a = data[0].parentTitles[0]) !== null && _a !== void 0 ? _a : '';
-                const config = (_b = (await database_js_1.default.query(`SELECT *
-               FROM \`${this.app}\`.public_config
-               WHERE \`key\` = 'collection';`, []))[0]) !== null && _b !== void 0 ? _b : {};
+                const config = (_b = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';
+              `, []))[0]) !== null && _b !== void 0 ? _b : {};
                 config.value = config.value || [];
                 if (parentTitle === '') {
                     config.value = data.map(item => {
@@ -3763,9 +3774,7 @@ class Shopping {
                     });
                     config.value[index].array = sortList;
                 }
-                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config
-           SET value = ?
-           WHERE \`key\` = 'collection';
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
           `, [config.value]);
                 return true;
             }
@@ -3774,6 +3783,41 @@ class Shopping {
         catch (e) {
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
+        }
+    }
+    async sortCollectionV2(dataArray) {
+        var _a, _b;
+        try {
+            if (!Array.isArray(dataArray) || !dataArray.length)
+                return false;
+            const configRow = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []);
+            const originConfig = (_b = (_a = configRow[0]) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : [];
+            function isSameStructure(origin, target) {
+                const getMapByTitle = (list) => new Map(list.map(item => [item.title, item]));
+                const originMap = getMapByTitle(origin);
+                const targetMap = getMapByTitle(target);
+                if (originMap.size !== targetMap.size)
+                    return false;
+                for (const [title, a] of originMap) {
+                    const b = targetMap.get(title);
+                    if (!b)
+                        return false;
+                    const aChildren = Array.isArray(a.array) ? a.array : [];
+                    const bChildren = Array.isArray(b.array) ? b.array : [];
+                    if (!isSameStructure(aChildren, bChildren))
+                        return false;
+                }
+                return true;
+            }
+            if (!isSameStructure(originConfig, dataArray)) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', '僅允許更動排序，不可新增、刪除或修改分類結構。', null);
+            }
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`, [dataArray]);
+            return true;
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'sortCollection Error: ' + e, null);
         }
     }
     checkVariantDataType(variants) {
@@ -4166,19 +4210,17 @@ class Shopping {
                 var _a, _b;
                 const path = (_a = target.parentTitles) !== null && _a !== void 0 ? _a : [];
                 let currentLevel = config;
-                const fullPath = [...path, target.title];
-                const fullPathString = fullPath.join(' / ');
                 for (let i = 0; i < path.length; i++) {
                     const found = currentLevel.find(c => c.title === path[i]);
                     if (!found) {
-                        console.warn(`無法找到原本的父類別：${path[i]}，略過刪除`);
+                        console.warn(`deleteCollectionV2 無法找到原本的父類別：${path[i]}，略過刪除`);
                         return;
                     }
                     currentLevel = found.array;
                 }
                 const index = currentLevel.findIndex(c => c.title === target.title);
                 if (index === -1) {
-                    console.warn(`找不到原始項目：${target.title}，略過刪除`);
+                    console.warn(`deleteCollectionV2 找不到原始項目：${target.title}，略過刪除`);
                     return;
                 }
                 const removed = currentLevel.splice(index, 1)[0];
@@ -4196,12 +4238,10 @@ class Shopping {
                     }
                 }
                 gatherAllPaths(removed, path);
-                console.log(containsAnyTagSQL(tagToDelete));
                 const productList = await database_js_1.default.query(containsAnyTagSQL(tagToDelete), []);
                 for (const product of productList) {
                     const before = (_b = product.content.collection) !== null && _b !== void 0 ? _b : [];
                     product.content.collection = before.filter((c) => !tagToDelete.includes(c));
-                    console.log(product.id, product.content.collection);
                     await this.updateProductCollection(product.content, product.id);
                 }
             };
@@ -4270,10 +4310,8 @@ class Shopping {
     }
     async updateProductCollection(content, id) {
         try {
-            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
-                             SET content = ?
-                             WHERE \`id\` = ?;`;
-            await database_js_1.default.execute(updateProdSQL, [content, id]);
+            await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE \`id\` = ?;
+        `, [content, id]);
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + express_1.default, null);

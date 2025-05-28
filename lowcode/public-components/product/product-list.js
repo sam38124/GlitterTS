@@ -303,130 +303,128 @@ export class ProductList {
             });
         }
         function getCollectionHTML() {
-            return gvc.bindView((() => {
-                const id = glitter.getUUID();
-                let loading = true;
-                return {
-                    bind: id,
-                    view: () => {
-                        if (loading) {
-                            return ProductList.spinner();
+            const id = glitter.getUUID();
+            const undefinedOption = '請選擇項目';
+            let loading = true;
+            return gvc.bindView({
+                bind: id,
+                view: () => {
+                    if (loading) {
+                        return ProductList.spinner();
+                    }
+                    const cols = vm.collections.filter((item) => {
+                        return item.parentTitles.length === 0 && !Boolean(item.hidden);
+                    });
+                    return html `<ul class="border navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="border-bottom" style="padding: 16px; cursor: pointer;">
+              <div
+                class="d-flex tx_700"
+                style="color: ${fontColor};"
+                onclick="${gvc.event(() => {
+                        changePage('all-product', 'page', {});
+                        gvc.glitter.closeDrawer();
+                    })}"
+              >
+                ${(() => {
+                        if (gvc.glitter.getUrlParameter('ai-search')) {
+                            return Language.text('ai_choose');
+                        }
+                        else if (gvc.glitter.getUrlParameter('search')) {
+                            return `${Language.text('search')}: ${gvc.glitter.getUrlParameter('search')}`;
                         }
                         else {
-                            const cols = vm.collections.filter((item) => {
-                                return item.parentTitles.length === 0 && !Boolean(item.hidden);
-                            });
-                            return html `<ul class="border navbar-nav me-auto mb-2 mb-lg-0">
-                  <li class="border-bottom" style="padding: 16px; cursor: pointer;">
-                    <div
-                      class="d-flex tx_700"
-                      style="color: ${fontColor};"
-                      onclick="${gvc.event(() => {
-                                changePage('all-product', 'page', {});
-                                gvc.glitter.closeDrawer();
-                            })}"
-                    >
-                      ${(() => {
-                                if (gvc.glitter.getUrlParameter('ai-search')) {
-                                    return Language.text('ai_choose');
-                                }
-                                else if (gvc.glitter.getUrlParameter('search')) {
-                                    return `${Language.text('search')}: ${gvc.glitter.getUrlParameter('search')}`;
-                                }
-                                else {
-                                    return Language.text('all_products');
-                                }
-                            })()}
-                    </div>
-                  </li>
-                  ${cols
-                                .map((item, index) => {
-                                let subHTML = '';
-                                if (item.subCollections.length > 0) {
-                                    for (const col of vm.collections) {
-                                        if (item.subCollections.includes(col.title) &&
-                                            col.parentTitles[0] === item.title &&
-                                            !Boolean(col.hidden)) {
-                                            subHTML += html `<ul
-                              class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
-                              style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)
-                                                ? `background:#f5f5f5;`
-                                                : ``}"
-                              onclick="${gvc.event(() => {
-                                                changePage(`collections/${col.code || col.title}`, 'page', {});
-                                                gvc.glitter.closeDrawer();
-                                            })}"
-                            >
-                              <li style="font-weight: 500; line-height: 40px;">
-                                <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
-                              </li>
-                            </ul>`;
-                                        }
-                                    }
-                                }
-                                return html ` <li
-                        class="${index + 1 === cols.length ? '' : 'border-bottom'}"
-                        style="${item.subCollections.length > 0 && subHTML.length > 0
-                                    ? ''
-                                    : 'padding: 16px;'} cursor: pointer;"
-                      >
-                        ${item.subCollections.length > 0 && subHTML.length > 0
-                                    ? ProductList.openBoxContainer({
-                                        gvc,
-                                        tag: 'collection-box',
-                                        title: item.title,
-                                        code: item.code,
-                                        insideHTML: subHTML,
-                                        length: item.subCollections.length,
-                                        changePage,
-                                        fontColor,
-                                        openOnInit: [item.code]
-                                            .concat(vm.collections
-                                            .filter((col) => {
-                                            return (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title);
-                                        })
-                                            .map((dd) => {
-                                            return dd.code || dd.title;
-                                        }))
-                                            .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
-                                    })
-                                    : html `<div
-                              class="d-flex tx_700"
-                              style="color: ${fontColor};"
-                              onclick="${gvc.event(() => {
-                                        changePage('collections/' + item.code, 'page', {});
+                            return Language.text('all_products');
+                        }
+                    })()}
+              </div>
+            </li>
+            ${cols
+                        .map((item, index) => {
+                        let subHTML = '';
+                        if (item.subCollections.length > 0) {
+                            for (const col of vm.collections) {
+                                if (item.subCollections.includes(col.title) &&
+                                    col.parentTitles[0] === item.title &&
+                                    !Boolean(col.hidden)) {
+                                    subHTML += html `<ul
+                        class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
+                        style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) ===
+                                        (col.code || col.title)
+                                        ? `background:#f5f5f5;`
+                                        : ``}"
+                        onclick="${gvc.event(() => {
+                                        changePage(`collections/${col.code || col.title}`, 'page', {});
                                         gvc.glitter.closeDrawer();
                                     })}"
-                            >
-                              ${item.title}
-                            </div>`}
-                      </li>`;
-                            })
-                                .join('')}
-                </ul>`;
-                        }
-                    },
-                    divCreate: {
-                        style: 'position: sticky; top: 7.5rem;',
-                    },
-                    onCreate: () => {
-                        if (loading) {
-                            ApiShop.getCollection().then((data) => {
-                                if (data.result && data.response.value.length > 0) {
-                                    setAdTag();
-                                    vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
-                                    vm.collections = updateCollections({
-                                        collections: data.response.value,
-                                    });
-                                    updatePageTitle();
+                      >
+                        <li style="font-weight: 500; line-height: 40px;">
+                          <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
+                        </li>
+                      </ul>`;
                                 }
-                                loading = false;
-                                gvc.notifyDataChange(id);
-                            });
+                            }
                         }
-                    },
-                };
-            })());
+                        return html ` <li
+                  class="${index + 1 === cols.length ? '' : 'border-bottom'}"
+                  style="${item.subCollections.length > 0 && subHTML.length > 0
+                            ? ''
+                            : 'padding: 16px;'} cursor: pointer;"
+                >
+                  ${item.subCollections.length > 0 && subHTML.length > 0
+                            ? ProductList.openBoxContainer({
+                                gvc,
+                                tag: 'collection-box',
+                                title: item.title,
+                                code: item.code,
+                                insideHTML: subHTML,
+                                length: item.subCollections.length,
+                                changePage,
+                                fontColor,
+                                openOnInit: [item.code]
+                                    .concat(vm.collections
+                                    .filter((col) => {
+                                    return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
+                                })
+                                    .map((dd) => {
+                                    return dd.code || dd.title;
+                                }))
+                                    .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
+                            })
+                            : html `<div
+                        class="d-flex tx_700"
+                        style="color: ${fontColor};"
+                        onclick="${gvc.event(() => {
+                                changePage('collections/' + item.code, 'page', {});
+                                gvc.glitter.closeDrawer();
+                            })}"
+                      >
+                        ${item.title}
+                      </div>`}
+                </li>`;
+                    })
+                        .join('')}
+          </ul>`;
+                },
+                divCreate: {
+                    style: 'position: sticky; top: 7.5rem;',
+                },
+                onCreate: () => {
+                    if (loading) {
+                        ApiShop.getCollection().then((data) => {
+                            if (data.result && data.response.value.length > 0) {
+                                setAdTag();
+                                vm.allParents = [undefinedOption].concat(data.response.value.map((item) => item.title));
+                                vm.collections = updateCollections({
+                                    collections: data.response.value,
+                                });
+                                updatePageTitle();
+                            }
+                            loading = false;
+                            gvc.notifyDataChange(id);
+                        });
+                    }
+                },
+            });
         }
         function collectionTitle(titleText) {
             var _a, _b, _c;

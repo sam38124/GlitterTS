@@ -1195,7 +1195,7 @@ router.put('/collection/sort', async (req: express.Request, resp: express.Respon
     if (await UtPermission.isManager(req)) {
       return response.succ(
         resp,
-        await new Shopping(req.get('g-app') as string, req.body.token).sortCollection(req.body.list)
+        await new Shopping(req.get('g-app') as string, req.body.token).sortCollectionV2(req.body.list)
       );
     } else {
       throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
