@@ -602,20 +602,6 @@ export class BgWidget {
     });
   }
 
-  static customInsignia(text: string, args: { size?: 'sm' | 'md'; class?: string; style?: string }) {
-    const sizeMap = {
-      sm: 'insignia insignia-sm',
-      md: 'insignia',
-    };
-
-    return html` <div
-      class="${sizeMap[args.size ?? 'md'] ?? sizeMap.md} ${args.class ?? ''}"
-      style="${args.style ?? ''}"
-    >
-      ${text}
-    </div>`;
-  }
-
   static languageInsignia(language: LanguageLocation, style?: string) {
     switch (language) {
       case 'zh-TW':

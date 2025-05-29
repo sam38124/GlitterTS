@@ -119,7 +119,7 @@ export interface VoucherData {
   rebate_total: number;
 }
 
-interface seo {
+interface Seo {
   title: string;
   seo: {
     domain: string;
@@ -310,9 +310,9 @@ type Collection = {
   seo_image: string;
   code: string;
   language_data: {
-    'en-US': seo;
-    'zh-CN': seo;
-    'zh-TW': seo;
+    'en-US': Seo;
+    'zh-CN': Seo;
+    'zh-TW': Seo;
   };
   hidden?: boolean;
 };
@@ -325,9 +325,9 @@ type FormatCollection = {
   seo_image: string;
   code: string;
   language_data: {
-    'en-US': seo;
-    'zh-CN': seo;
-    'zh-TW': seo;
+    'en-US': Seo;
+    'zh-CN': Seo;
+    'zh-TW': Seo;
   };
   hidden?: boolean;
 };

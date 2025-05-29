@@ -23,22 +23,21 @@ export class ProductList {
         const text = Tool.randomString(5);
         const height = (document.body.clientWidth > 768 ? 56 : 59) * (obj.length + 1);
         const closeHeight = 56;
+        const currentPage = decodeURIComponent((obj.gvc.glitter.getUrlParameter('page') || '').split('/').reverse()[0]);
         obj.gvc.addStyle(`
       .box-item:hover {
-        background-color: #f5f5f5;
+        background-color: #dddddd;
       }
       .box-container-${text} {
         position: relative;
         height: ${closeHeight}px;
-        overflow-y: hidden;
         transition: height 0.3s ease-out;
       }
       .box-container-${text}.open-box {
         max-height: ${height}px;
         height: ${height}px;
-        overflow-y: auto;
       }
-      .box-navbar-${text} {
+      .box-navbar {
         position: sticky;
         top: 0;
         min-height: 20px;
@@ -47,12 +46,14 @@ export class ProductList {
         padding: 16px;
         align-items: flex-start;
         justify-content: space-between;
-        cursor: pointer;
+      }
+      .box-navbar:hover {
+        background-color: #f5f5f5;
       }
       .arrow-icon-${text} {
         color: #393939 !important;
         box-shadow: none !important;
-        background-color: #fff !important;
+        background: transparent;
         background-image: url(${this.arrowDownDataImage('#000')}) !important;
         background-repeat: no-repeat;
         cursor: pointer;
@@ -66,20 +67,20 @@ export class ProductList {
         transform: rotate(180deg);
       }
       .box-inside-${text} {
-        padding: 0 1.5rem 1.5rem;
-        overflow-y: auto;
+        padding: 0 0 1.5rem 1.5rem;
+        min-height: 56px;
       }
 
       @media (max-width: 768px) {
         .box-inside-${text} {
           padding: 0 1rem 0.5rem;
-          overflow-x: hidden;
         }
       }
     `);
-        return html ` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box` : ''}">
+        return html ` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? 'open-box' : ''}">
       <div
-        class="box-navbar-${text} ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
+        class="box-navbar ${(_a = obj.guideClass) !== null && _a !== void 0 ? _a : ''}"
+        style="${currentPage === (obj.code || obj.title) ? 'background-color: #dddddd' : ''}"
         onclick="${obj.gvc.event(e => {
             if (!obj.autoClose) {
                 const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
@@ -98,30 +99,31 @@ export class ProductList {
                 e.parentElement.classList.toggle('open-box');
                 e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
                 const container = window.document.querySelector(`.box-container-${text}`);
+                const inside = window.document.querySelector(`.box-inside-${text}`);
                 if (e.parentElement.classList.contains('open-box')) {
                     const si = setInterval(() => {
-                        const inside = window.document.querySelector(`.box-inside-${text}`);
                         if (inside) {
                             const insideHeight = inside.clientHeight;
                             if (insideHeight + closeHeight < height) {
-                                container.style.height = `${insideHeight + closeHeight + 20}px`;
                             }
                             else {
-                                container.style.height = `${height}px`;
                             }
+                            container.style.height = `${height}px`;
+                            inside.style.display = 'block';
                             clearInterval(si);
                         }
                     }, 100);
                 }
                 else {
                     container.style.height = `${closeHeight}px`;
+                    inside.style.display = 'none';
                 }
             }, 50);
         })}"
       >
         <div
           class="d-flex tx_700"
-          style="color: ${obj.fontColor};"
+          style="color: ${obj.fontColor}; cursor: pointer;"
           onclick="${obj.gvc.event(() => {
             obj.changePage('collections/' + obj.code, 'page', {});
             obj.gvc.glitter.closeDrawer();
@@ -130,10 +132,15 @@ export class ProductList {
           ${obj.title}
         </div>
         <div class="d-flex">
-          <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
+          <button class="box-tag-${obj.tag} arrow-icon-${text} ${obj.openOnInit ? 'open-box' : ''}"></button>
         </div>
       </div>
-      <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} ">${obj.insideHTML}</div>
+      <div
+        class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} "
+        style="${obj.openOnInit ? '' : 'display: none;'}"
+      >
+        ${obj.insideHTML}
+      </div>
     </div>`;
     }
     static spinner() {
@@ -186,6 +193,7 @@ export class ProductList {
                 cl.changePage(index, type, subData);
             };
         });
+        const currentPage = decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]);
         function updateCollections(data) {
             const flattenCollections = (collections, parentTitles = [], topLevelCollections = []) => {
                 let flattened = [];
@@ -200,7 +208,7 @@ export class ProductList {
                             else {
                                 return title;
                             }
-                        })(), array: [], product_id: product_id !== null && product_id !== void 0 ? product_id : [], checked: false, parentTitles: parentTitles.length ? [...parentTitles] : [], allCollections: parentTitles.length ? [...topLevelCollections] : [], subCollections: array.map(subCol => (() => {
+                        })(), array: array, product_id: product_id !== null && product_id !== void 0 ? product_id : [], checked: false, parentTitles: parentTitles.length ? [...parentTitles] : [], allCollections: parentTitles.length ? [...topLevelCollections] : [], subCollections: array.map(subCol => (() => {
                             const language_data = subCol.language_data;
                             if (language_data &&
                                 language_data[Language.getLanguage()] &&
@@ -260,6 +268,12 @@ export class ProductList {
             })());
             return flattenCollections(data.collections, [], topLevelCollections);
         }
+        function getTotalChildCount(item) {
+            if (item.array.length === 0) {
+                return 0;
+            }
+            return item.array.reduce((sum, child) => sum + getTotalChildCount(child), item.array.length);
+        }
         function getProductList() {
             return __awaiter(this, void 0, void 0, function* () {
                 const orderByParam = glitter.getUrlParameter('order_by');
@@ -312,14 +326,75 @@ export class ProductList {
                     if (loading) {
                         return ProductList.spinner();
                     }
-                    const cols = vm.collections.filter((item) => {
-                        return item.parentTitles.length === 0 && !Boolean(item.hidden);
-                    });
-                    return html `<ul class="border navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="border-bottom" style="padding: 16px; cursor: pointer;">
+                    const firstCols = vm.collections.filter((item) => item.parentTitles.length === 0 && !Boolean(item.hidden));
+                    function printUL(col) {
+                        return html `<div
+              class="box-navbar"
+              style="${currentPage === (col.code || col.title) ? 'background: #dddddd;' : ''}"
+              onclick="${gvc.event(() => {
+                            changePage(`collections/${col.code || col.title}`, 'page', {});
+                            gvc.glitter.closeDrawer();
+                        })}"
+            >
+              <div style="font-weight: 500;">
+                <div class="d-flex tx_700" style="color: ${fontColor}; cursor: pointer;">${col.title}</div>
+              </div>
+            </div>`;
+                    }
+                    function renderItem(item, depth, index) {
+                        let subHTML = '';
+                        try {
+                            if (item.array.length > 0) {
+                                item.array.map((col, index) => {
+                                    if (!Boolean(col.hidden)) {
+                                        subHTML += col.array.length > 0 ? renderItem(col, depth + 1, index) : printUL(col);
+                                    }
+                                });
+                            }
+                            const openOnInit = (() => {
+                                const currentItem = vm.collections.find((col) => (col.code || col.title) === currentPage);
+                                if (!currentItem)
+                                    return false;
+                                return currentItem.parentTitles.includes(item.title);
+                            })();
+                            return html ` <div
+                class="${index + 1 === firstCols.length ? '' : ''}"
+                style="${item.array.length > 0 && subHTML.length > 0 ? '' : 'padding: 16px;'}"
+              >
+                ${item.array.length > 0 && subHTML.length > 0
+                                ? ProductList.openBoxContainer({
+                                    gvc,
+                                    tag: `collection-box-${depth}-${index}`,
+                                    title: item.title,
+                                    code: item.code,
+                                    insideHTML: subHTML,
+                                    length: getTotalChildCount(item),
+                                    changePage,
+                                    fontColor,
+                                    openOnInit,
+                                })
+                                : html `<div
+                      class="d-flex tx_700"
+                      style="color: ${fontColor}; cursor: pointer;"
+                      onclick="${gvc.event(() => {
+                                    changePage('collections/' + item.code, 'page', {});
+                                    gvc.glitter.closeDrawer();
+                                })}"
+                    >
+                      ${item.title}
+                    </div>`}
+              </div>`;
+                        }
+                        catch (error) {
+                            console.error(error);
+                            return 123;
+                        }
+                    }
+                    return html `<div class="${PdClass.isPhone() ? '' : 'border'} navbar-nav me-auto mb-2 mb-lg-0">
+            <div style="padding: 16px;">
               <div
                 class="d-flex tx_700"
-                style="color: ${fontColor};"
+                style="color: ${fontColor}; cursor: pointer;"
                 onclick="${gvc.event(() => {
                         changePage('all-product', 'page', {});
                         gvc.glitter.closeDrawer();
@@ -337,76 +412,12 @@ export class ProductList {
                         }
                     })()}
               </div>
-            </li>
-            ${cols
-                        .map((item, index) => {
-                        let subHTML = '';
-                        if (item.subCollections.length > 0) {
-                            for (const col of vm.collections) {
-                                if (item.subCollections.includes(col.title) &&
-                                    col.parentTitles[0] === item.title &&
-                                    !Boolean(col.hidden)) {
-                                    subHTML += html `<ul
-                        class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
-                        style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) ===
-                                        (col.code || col.title)
-                                        ? `background:#f5f5f5;`
-                                        : ``}"
-                        onclick="${gvc.event(() => {
-                                        changePage(`collections/${col.code || col.title}`, 'page', {});
-                                        gvc.glitter.closeDrawer();
-                                    })}"
-                      >
-                        <li style="font-weight: 500; line-height: 40px;">
-                          <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
-                        </li>
-                      </ul>`;
-                                }
-                            }
-                        }
-                        return html ` <li
-                  class="${index + 1 === cols.length ? '' : 'border-bottom'}"
-                  style="${item.subCollections.length > 0 && subHTML.length > 0
-                            ? ''
-                            : 'padding: 16px;'} cursor: pointer;"
-                >
-                  ${item.subCollections.length > 0 && subHTML.length > 0
-                            ? ProductList.openBoxContainer({
-                                gvc,
-                                tag: 'collection-box',
-                                title: item.title,
-                                code: item.code,
-                                insideHTML: subHTML,
-                                length: item.subCollections.length,
-                                changePage,
-                                fontColor,
-                                openOnInit: [item.code]
-                                    .concat(vm.collections
-                                    .filter((col) => {
-                                    return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
-                                })
-                                    .map((dd) => {
-                                    return dd.code || dd.title;
-                                }))
-                                    .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
-                            })
-                            : html `<div
-                        class="d-flex tx_700"
-                        style="color: ${fontColor};"
-                        onclick="${gvc.event(() => {
-                                changePage('collections/' + item.code, 'page', {});
-                                gvc.glitter.closeDrawer();
-                            })}"
-                      >
-                        ${item.title}
-                      </div>`}
-                </li>`;
-                    })
-                        .join('')}
-          </ul>`;
+            </div>
+            ${firstCols.map((item, index) => renderItem(item, 0, index)).join('')}
+          </div>`;
                 },
                 divCreate: {
-                    style: 'position: sticky; top: 7.5rem;',
+                    style: PdClass.isPhone() ? '' : 'position: sticky; top: 7.5rem;',
                 },
                 onCreate: () => {
                     if (loading) {
@@ -534,7 +545,9 @@ export class ProductList {
       <div class="container d-flex mt-2" style="min-height: 1000px;">
         <div
           class="d-none d-sm-block mt-4"
-          style="${PdClass.isPad() ? 'width: 180px; min-width: 180px;' : 'width: 282px; min-width: 282px;'}"
+          style="${PdClass.isPad()
+            ? 'width: 180px; min-width: 180px;'
+            : 'width: 282px; min-width: 282px; margin-bottom: 300px;'}"
         >
           ${getCollectionHTML()}
         </div>
@@ -551,17 +564,11 @@ export class ProductList {
             })}
               </div>`}
           <div class="d-flex justify-content-between mb-3">
-            ${document.body.clientWidth > 768
-            ? html `<div class="fw-500" style="font-size: 24px; color: ${fontColor}">
-                  ${gvc.bindView({
-                bind: ids.pageTitle,
-                view: () => vm.title,
-            })}
-                </div>`
-            : html `<button
+            ${PdClass.isPhone()
+            ? html `<button
                   class="filter-btn"
                   onclick="${gvc.event(() => {
-                glitter.setDrawer(html `<div class="p-3">
+                glitter.setDrawer(html `<div class="py-3 px-2" style="height: 100vh; overflow: scroll;">
                         <div
                           class="fw-500 mb-3"
                           style="font-size: 24px; color: ${fontColor};padding-top:${gvc.glitter.share
@@ -577,7 +584,13 @@ export class ProductList {
                 >
                   <i class="fa-regular fa-filter-list me-1"></i>
                   ${Language.text('filter')}
-                </button>`}
+                </button>`
+            : html `<div class="fw-500" style="font-size: 24px; color: ${fontColor}">
+                  ${gvc.bindView({
+                bind: ids.pageTitle,
+                view: () => vm.title,
+            })}
+                </div>`}
             <select
               class="form-select form-select-xs"
               style="width: 200px;"

@@ -352,27 +352,13 @@ export class ShoppingCollections {
                                                                     key: '標題',
                                                                     value: html `<div
                                           class="fs-7"
-                                          style="min-width: ${document.body.clientWidth > 768 ? 400 : 225}px;"
+                                          style="min-width: ${document.body.clientWidth > 768
+                                                                        ? 400
+                                                                        : 225}px; padding-left: ${4 + dd.parentTitles.length * 12}px"
                                         >
-                                          ${(() => {
-                                                                        switch (true) {
-                                                                            case dd.parentTitles.length === 1:
-                                                                                return BgWidget.customInsignia('2', {
-                                                                                    size: 'sm',
-                                                                                    style: 'background: #c8e6c9; width: 25px;',
-                                                                                });
-                                                                            case dd.parentTitles.length === 2:
-                                                                                return BgWidget.customInsignia('3', {
-                                                                                    size: 'sm',
-                                                                                    style: 'background: #a5d6a7; width: 30px;',
-                                                                                });
-                                                                            default:
-                                                                                return BgWidget.customInsignia('1', {
-                                                                                    size: 'sm',
-                                                                                    style: 'background: #a5d6a7; width: 20px;',
-                                                                                });
-                                                                        }
-                                                                    })()}
+                                          ${dd.parentTitles.length > 0
+                                                                        ? html `<i class="fa-solid fa-arrow-turn-down-right me-1"></i>`
+                                                                        : ''}
                                           ${dd.title}
                                         </div>`,
                                                                 },
