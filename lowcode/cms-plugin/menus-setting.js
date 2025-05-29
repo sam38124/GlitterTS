@@ -376,7 +376,7 @@ export class MenusSetting {
                       style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex"
                     >
                       ${(() => {
-                        function renderItems(array) {
+                        function renderItems(array, depth) {
                             const id = gvc.glitter.getUUID();
                             return (gvc.bindView(() => {
                                 return {
@@ -453,24 +453,26 @@ export class MenusSetting {
                                               </div>
                                             </div>
                                             <div class="flex-fill"></div>
-                                            <div
-                                              class="child me-2"
-                                              onclick="${cf.gvc.event((_, event) => {
-                                                event.stopPropagation();
-                                                MenusSetting.editEvent({
-                                                    link: '',
-                                                    title: '',
-                                                    visible_type: 'all',
-                                                    items: [],
-                                                }, data => {
-                                                    dd.items = dd.items || [];
-                                                    dd.items.push(data);
-                                                    gvc.notifyDataChange(vm.id);
-                                                });
-                                            })}"
-                                            >
-                                              <i class="fa-solid fa-plus" style="color:#393939;"></i>
-                                            </div>
+                                            ${depth < 2
+                                                ? html `<div
+                                                  class="child me-2"
+                                                  onclick="${cf.gvc.event((_, event) => {
+                                                    event.stopPropagation();
+                                                    MenusSetting.editEvent({
+                                                        link: '',
+                                                        title: '',
+                                                        visible_type: 'all',
+                                                        items: [],
+                                                    }, data => {
+                                                        dd.items = dd.items || [];
+                                                        dd.items.push(data);
+                                                        gvc.notifyDataChange(vm.id);
+                                                    });
+                                                })}"
+                                                >
+                                                  <i class="fa-solid fa-plus" style="color:#393939;"></i>
+                                                </div>`
+                                                : ''}
                                             <div
                                               class="child"
                                               onclick="${cf.gvc.event((_, event) => {
@@ -491,7 +493,7 @@ export class MenusSetting {
                                                 class=" w-100 ${dd.toggle ? '' : 'd-none'}"
                                                 style="padding-left: 35px;"
                                               >
-                                                ${renderItems(dd.items)}
+                                                ${renderItems(dd.items, depth + 1)}
                                               </div>
                                             `
                                                 : ''}
@@ -573,7 +575,7 @@ export class MenusSetting {
                               </div>
                             </div>`);
                         }
-                        return renderItems(link);
+                        return renderItems(link, 0);
                     })()}
                     </div>
                   </div>

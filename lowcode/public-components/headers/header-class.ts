@@ -7,6 +7,7 @@ import { PdClass } from '../product/pd-class.js';
 import { CartModule } from '../modules/cart-module.js';
 
 const html = String.raw;
+const css = String.raw;
 
 export class HeaderClass {
   static hideShopperBtn() {
@@ -427,5 +428,69 @@ export class HeaderClass {
         }
       }
     );
+  }
+
+  static getChangePagePath(gvc: GVC) {
+    return new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href;
+  }
+
+  static addStyle(gvc: GVC) {
+    gvc.addStyle(css`
+      .h-logo-image {
+        width: 150px;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+
+      .h-logo-text-1 {
+        width: 150px;
+        margin-bottom: 20px;
+        font-size: 36px;
+      }
+
+      .h-logo-text-2 {
+        margin-bottom: 20px;
+        font-size: 20px;
+      }
+
+      .h-glass-div {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgb(107, 114, 128);
+      }
+
+      .h-20px-pointer {
+        cursor: pointer;
+        font-size: 20px;
+      }
+
+      .h-checkout-count-icon {
+        width: 18px;
+        height: 18px;
+        color: white !important;
+        background: #fe5541;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        display: flex;
+        font-weight: 500;
+      }
+
+      .h-member-button {
+        cursor: pointer;
+        display: flex;
+        width: 100px;
+        padding: 7px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-radius: 5px;
+      }
+    `);
   }
 }

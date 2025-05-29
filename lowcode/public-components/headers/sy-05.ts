@@ -6,6 +6,7 @@ import { Color } from '../public/color.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
 import { PdClass } from '../product/pd-class.js';
+import { HeaderClass } from './header-class.js';
 
 const html = String.raw;
 
@@ -15,9 +16,9 @@ export class Sy05 {
       widget: widget,
       browser: () => {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
-        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
-          changePage = cl.changePage;
-        });
+        gvc.glitter.getModule(HeaderClass.getChangePagePath(gvc), cl => (changePage = cl.changePage));
+
+        HeaderClass.addStyle(gvc);
 
         return html`
           <!--Header Sy05-->
@@ -55,22 +56,13 @@ export class Sy05 {
                                         ${widget.formData.logo.type === 'text'
                                           ? html`
                                               <div
-                                                class=" fw-bold d-flex align-items-center justify-content-center"
-                                                style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${widget
-                                                  .formData.theme_color['title'] ?? '#000'};"
+                                                class="fw-bold d-flex align-items-center justify-content-center h-logo-text-1"
+                                                style="color: ${widget.formData.theme_color['title'] ?? '#000'};"
                                               >
                                                 ${widget.formData.logo.value}
                                               </div>
                                             `
-                                          : html`<img
-                                              style="width: 150px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border-radius: 10px;
-    margin-bottom: 20px;"
-                                              src="${widget.formData.logo.value}"
-                                            /> `}
+                                          : html`<img class="h-logo-image" src="${widget.formData.logo.value}" /> `}
                                       </div>
                                     </div>
                                   </div>
@@ -104,18 +96,29 @@ export class Sy05 {
                                           loop(vm.data);
                                         }
 
-                                        function loopItems(data: any, show_border: boolean) {
+                                        function openParent(data: any, current_path: string[], depth: number) {
+                                          data.open = current_path[depth] === data.title;
+
+                                          if ((data.items || []).length > 0) {
+                                            for (const d87 of data.items) {
+                                              openParent(d87, current_path, depth + 1);
+                                            }
+                                          }
+                                        }
+
+                                        function loopItems(data: any, show_border: boolean, current_path: string[]) {
                                           return data
                                             .map((dd: any) => {
+                                              const path = [...current_path, dd.title];
                                               return html`
                                                 <li
                                                   style="${show_border
                                                     ? `border-bottom: 1px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;`
-                                                    : ``}"
+                                                    : ''}"
                                                 >
                                                   <div
                                                     class="nav-link d-flex justify-content-between"
-                                                    style="padding: 16px;"
+                                                    style="padding: 16px; gap: 30px;"
                                                     onclick="${gvc.event(() => {
                                                       if (((dd as any).items ?? []).length === 0) {
                                                         if (dd.link) {
@@ -127,6 +130,9 @@ export class Sy05 {
                                                         resetToggle();
                                                         if (!og) {
                                                           dd.open = true;
+                                                        }
+                                                        for (const d4 of vm.data) {
+                                                          openParent(d4, path, 0);
                                                         }
                                                         gvc.notifyDataChange(id);
                                                       }
@@ -152,22 +158,22 @@ export class Sy05 {
                                                           style="color: ${widget.formData.theme_color['title'] ??
                                                           '#000'} !important;"
                                                         ></i>`
-                                                      : ``}
+                                                      : ''}
                                                   </div>
                                                   ${dd.open
-                                                    ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false)}</ul>`
-                                                    : ``}
+                                                    ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false, path)}</ul>`
+                                                    : ''}
                                                 </li>
                                               `;
                                             })
                                             .join('');
                                         }
 
-                                        return loopItems(vm.data, true);
+                                        return loopItems(vm.data, true, []);
                                       },
                                       divCreate: {
                                         class: `navbar-nav me-auto mb-2 mb-lg-0`,
-                                        style: ``,
+                                        style: '',
                                         elem: `ul`,
                                       },
                                     };
@@ -193,7 +199,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
     color: ${widget.formData.theme_color['title'] ?? '#000'};"
                     ></i>
                   </div>
-                  <div class="${widget.formData.logo.type === 'text' ? `` : `h-100`}"
+                  <div class="${widget.formData.logo.type === 'text' ? '' : `h-100`}"
                        onclick="${gvc.event(() => {
                          changePage('index', 'home', {});
                        })}"> ${
@@ -216,7 +222,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                        }
                   </div>
                   <!--選單列表顯示區塊-->
-                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
+                  <ul class="navbar-nav d-none d-md-block flex-fill ps-2" >
                     ${gvc.bindView(() => {
                       const id = gvc.glitter.getUUID();
                       const vm = {
@@ -253,7 +259,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                       }
                                     })}"
                                     >${dd.title}
-                                    ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
+                                    ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ''}</a
                                   >
                                   ${dd.items.length > 0
                                     ? html`<ul
@@ -263,7 +269,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                                       >
                                         ${loopItems(dd.items)}
                                       </ul>`
-                                    : ``}
+                                    : ''}
                                 </li>`;
                               })
                               .join('');

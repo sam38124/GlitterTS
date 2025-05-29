@@ -14,6 +14,7 @@ import { Color } from '../public/color.js';
 import { HeadInitial } from './head-initial.js';
 import { HeaderMobile } from './header-mobile.js';
 import { PdClass } from '../product/pd-class.js';
+import { HeaderClass } from './header-class.js';
 const html = String.raw;
 export class Sy05 {
     static main(gvc, widget, subData) {
@@ -22,9 +23,8 @@ export class Sy05 {
             browser: () => {
                 var _a, _b, _c;
                 let changePage = (index, type, subData) => { };
-                gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
-                    changePage = cl.changePage;
-                });
+                gvc.glitter.getModule(HeaderClass.getChangePagePath(gvc), cl => (changePage = cl.changePage));
+                HeaderClass.addStyle(gvc);
                 return html `
           <!--Header Sy05-->
             <div style="height: 76px;"></div>
@@ -62,22 +62,13 @@ export class Sy05 {
                                         ${widget.formData.logo.type === 'text'
                                     ? html `
                                               <div
-                                                class=" fw-bold d-flex align-items-center justify-content-center"
-                                                style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${(_a = widget
-                                        .formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
+                                                class="fw-bold d-flex align-items-center justify-content-center h-logo-text-1"
+                                                style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
                                               >
                                                 ${widget.formData.logo.value}
                                               </div>
                                             `
-                                    : html `<img
-                                              style="width: 150px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border-radius: 10px;
-    margin-bottom: 20px;"
-                                              src="${widget.formData.logo.value}"
-                                            /> `}
+                                    : html `<img class="h-logo-image" src="${widget.formData.logo.value}" /> `}
                                       </div>
                                     </div>
                                   </div>
@@ -106,19 +97,28 @@ export class Sy05 {
                                                 }
                                                 loop(vm.data);
                                             }
-                                            function loopItems(data, show_border) {
+                                            function openParent(data, current_path, depth) {
+                                                data.open = current_path[depth] === data.title;
+                                                if ((data.items || []).length > 0) {
+                                                    for (const d87 of data.items) {
+                                                        openParent(d87, current_path, depth + 1);
+                                                    }
+                                                }
+                                            }
+                                            function loopItems(data, show_border, current_path) {
                                                 return data
                                                     .map((dd) => {
                                                     var _a, _b, _c, _d, _e;
+                                                    const path = [...current_path, dd.title];
                                                     return html `
                                                 <li
                                                   style="${show_border
                                                         ? `border-bottom: 1px solid ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;`
-                                                        : ``}"
+                                                        : ''}"
                                                 >
                                                   <div
                                                     class="nav-link d-flex justify-content-between"
-                                                    style="padding: 16px;"
+                                                    style="padding: 16px; gap: 30px;"
                                                     onclick="${gvc.event(() => {
                                                         var _a;
                                                         if (((_a = dd.items) !== null && _a !== void 0 ? _a : []).length === 0) {
@@ -132,6 +132,9 @@ export class Sy05 {
                                                             resetToggle();
                                                             if (!og) {
                                                                 dd.open = true;
+                                                            }
+                                                            for (const d4 of vm.data) {
+                                                                openParent(d4, path, 0);
                                                             }
                                                             gvc.notifyDataChange(id);
                                                         }
@@ -155,21 +158,21 @@ export class Sy05 {
                                                           class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
                                                           style="color: ${(_d = widget.formData.theme_color['title']) !== null && _d !== void 0 ? _d : '#000'} !important;"
                                                         ></i>`
-                                                        : ``}
+                                                        : ''}
                                                   </div>
                                                   ${dd.open
-                                                        ? `<ul class="ps-3  pb-2">${loopItems((_e = dd.items) !== null && _e !== void 0 ? _e : [], false)}</ul>`
-                                                        : ``}
+                                                        ? `<ul class="ps-3  pb-2">${loopItems((_e = dd.items) !== null && _e !== void 0 ? _e : [], false, path)}</ul>`
+                                                        : ''}
                                                 </li>
                                               `;
                                                 })
                                                     .join('');
                                             }
-                                            return loopItems(vm.data, true);
+                                            return loopItems(vm.data, true, []);
                                         },
                                         divCreate: {
                                             class: `navbar-nav me-auto mb-2 mb-lg-0`,
-                                            style: ``,
+                                            style: '',
                                             elem: `ul`,
                                         },
                                     };
@@ -193,7 +196,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
     color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'};"
                     ></i>
                   </div>
-                  <div class="${widget.formData.logo.type === 'text' ? `` : `h-100`}"
+                  <div class="${widget.formData.logo.type === 'text' ? '' : `h-100`}"
                        onclick="${gvc.event(() => {
                     changePage('index', 'home', {});
                 })}"> ${widget.formData.logo.type === 'text'
@@ -212,7 +215,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                              `}
                   </div>
                   <!--選單列表顯示區塊-->
-                  <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" >
+                  <ul class="navbar-nav d-none d-md-block flex-fill ps-2" >
                     ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
@@ -243,7 +246,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                                         }
                                     })}"
                                     >${dd.title}
-                                    ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
+                                    ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ''}</a
                                   >
                                   ${dd.items.length > 0
                                         ? html `<ul
@@ -252,7 +255,7 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                                       >
                                         ${loopItems(dd.items)}
                                       </ul>`
-                                        : ``}
+                                        : ''}
                                 </li>`;
                                 })
                                     .join('');

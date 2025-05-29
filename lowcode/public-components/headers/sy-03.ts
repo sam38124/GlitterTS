@@ -19,21 +19,20 @@ export class Sy03 {
       widget: widget,
       browser: () => {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
-        gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, cl => {
-          changePage = cl.changePage;
-        });
+        gvc.glitter.getModule(HeaderClass.getChangePagePath(gvc), cl => (changePage = cl.changePage));
+
         const colors = Color.getTheme(gvc, widget.formData);
+        HeaderClass.addStyle(gvc);
 
         return html` <!--Header Sy03-->
           <div class="d-sm-none" style="height: 76px;"></div>
           <nav
             class="navbar navbar-expand-lg vw-100 header header-place shadow   top-0 left-0  py-0 position-fixed position-sm-relative"
-            style="background:  ${widget.formData.theme_color['background'] ?? '#000'} !important;z-index:9999;
-"
+            style="background:  ${widget.formData.theme_color['background'] ?? '#000'} !important;z-index:9999;"
           >
             <div
               class="container header-place  h-100 align-items-center justify-content-center d-flex"
-              style="${document.body.clientWidth < 800 ? `height:76px !important;` : ``}"
+              style="${document.body.clientWidth < 800 ? `height:76px !important;` : ''}"
             >
               <div class="d-flex flex-column align-items-center justify-content-center pb-md-3 pt-md-3 flex-fill">
                 <!--LOGO顯示區塊-->
@@ -63,20 +62,12 @@ export class Sy03 {
                                           changePage('index', 'home', {});
                                         })}"
                                       >
-                                        <img
-                                          style="width: 150px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border-radius: 10px;
-    margin-bottom: 20px;"
-                                          src="${widget.formData.logo}"
-                                        />
+                                        <img class="h-logo-image" src="${widget.formData.logo}" />
                                       </div>
                                     </div>
                                   </div>
                                   <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
-                                  <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none` : ``}">
+                                  <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none` : ''}">
                                     <input
                                       class="form-control fw-500 "
                                       placeholder="${Language.text('find_product')}"
@@ -87,13 +78,7 @@ export class Sy03 {
                                       })}"
                                     />
 
-                                    <div
-                                      style=" position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgb(107, 114, 128);"
-                                    >
+                                    <div class="h-glass-div">
                                       <i class="fa-solid fa-magnifying-glass"></i>
                                     </div>
                                   </div>
@@ -127,18 +112,29 @@ export class Sy03 {
                                           loop(vm.data);
                                         }
 
-                                        function loopItems(data: any, show_border: boolean) {
+                                        function openParent(data: any, current_path: string[], depth: number) {
+                                          data.open = current_path[depth] === data.title;
+
+                                          if ((data.items || []).length > 0) {
+                                            for (const d87 of data.items) {
+                                              openParent(d87, current_path, depth + 1);
+                                            }
+                                          }
+                                        }
+
+                                        function loopItems(data: any, show_border: boolean, current_path: string[]) {
                                           return data
                                             .map((dd: any) => {
+                                              const path = [...current_path, dd.title];
                                               return html`
                                                 <li
                                                   style="${show_border
                                                     ? `border-bottom: 1px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;`
-                                                    : ``}"
+                                                    : ''}"
                                                 >
                                                   <div
                                                     class="nav-link d-flex justify-content-between"
-                                                    style="padding: 16px;"
+                                                    style="padding: 16px; gap: 30px;"
                                                     onclick="${gvc.event(() => {
                                                       if (((dd as any).items ?? []).length === 0) {
                                                         if (dd.link) {
@@ -150,6 +146,9 @@ export class Sy03 {
                                                         resetToggle();
                                                         if (!og) {
                                                           dd.open = true;
+                                                        }
+                                                        for (const d4 of vm.data) {
+                                                          openParent(d4, path, 0);
                                                         }
                                                         gvc.notifyDataChange(id);
                                                       }
@@ -172,22 +171,22 @@ export class Sy03 {
                                                     ${(dd.items ?? []).length
                                                       ? `<i class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
                                                                                    style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;"></i>`
-                                                      : ``}
+                                                      : ''}
                                                   </div>
                                                   ${dd.open
-                                                    ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false)}</ul>`
-                                                    : ``}
+                                                    ? `<ul class="ps-3  pb-2">${loopItems(dd.items ?? [], false, path)}</ul>`
+                                                    : ''}
                                                 </li>
                                               `;
                                             })
                                             .join('');
                                         }
 
-                                        return loopItems(vm.data, true);
+                                        return loopItems(vm.data, true, []);
                                       },
                                       divCreate: {
                                         class: `navbar-nav me-auto mb-2 mb-lg-0`,
-                                        style: ``,
+                                        style: '',
                                         elem: `ul`,
                                       },
                                     };
@@ -238,7 +237,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                   </div>
                 </div>
                 <!--選單列表顯示區塊-->
-                <ul class="navbar-nav  d-none d-md-block flex-fill ps-2 position-sticky">
+                <ul class="navbar-nav d-none d-md-block flex-fill ps-2 position-sticky">
                   ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     const vm = {
@@ -275,13 +274,17 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                     }
                                   })}"
                                   >${dd.title}
-                                  ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
+                                  ${dd.items.length > 0 ? html`<i class="fa-solid m-2 fa-angle-down fs-5"></i>` : ''}</a
                                 >
                                 ${dd.items.length > 0
-                                  ? `<ul class="dropdown-menu" style="background:${widget.formData.theme_color['background'] ?? '#000'} !important;
-    cursor: pointer;
-    z-index: 99999;">${loopItems(dd.items)}</ul>`
-                                  : ``}
+                                  ? html`<ul
+                                      class="dropdown-menu"
+                                      style="background:${widget.formData.theme_color['background'] ??
+                                      '#000'} !important; cursor: pointer; z-index: 99999;"
+                                    >
+                                      ${loopItems(dd.items)}
+                                    </ul>`
+                                  : ''}
                               </li>`;
                             })
                             .join('');
@@ -290,8 +293,8 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                         return loopItems(vm.data);
                       },
                       divCreate: {
-                        class: `navbar-nav ms-3 me-auto mt-3`,
-                        style: `flex-direction: row; gap: 15px;`,
+                        class: `navbar-nav ms-3 me-auto mt-3 flex-wrap`,
+                        style: `flex-direction: row; gap: 15px; align-items: center;`,
                         elem: `ul`,
                       },
                     };
@@ -302,7 +305,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                 class="d-flex align-items-center ${document.body.clientWidth >= 800
                   ? `position-lg-absolute`
                   : `position-relative`} "
-                style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}"
+                style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ''}"
               >
                 <!--固定按鈕顯示區塊-->
                 <ul class="navbar-nav flex-row ms-auto">
@@ -346,7 +349,7 @@ padding-bottom: 2px;
                     };
                   })}
                   ${HeaderClass.hideShopperBtn()
-                    ? ``
+                    ? ''
                     : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
                                 ${gvc.bindView(() => {
                                   const vm = {
@@ -357,7 +360,7 @@ padding-bottom: 2px;
                                     bind: vm.id,
                                     view: () => {
                                       if (PdClass.isShoppingPage()) {
-                                        return ``;
+                                        return '';
                                       }
                                       if (!vm.toggle) {
                                         return html`<i
@@ -446,7 +449,7 @@ padding-bottom: 2px;
                                                 ${vm.count}
                                               </div>
                                             </div>`
-                                          : ``
+                                          : ''
                                       );
                                     });
                                   });
