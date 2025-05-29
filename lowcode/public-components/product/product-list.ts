@@ -484,7 +484,9 @@ export class ProductList {
         return 0;
       }
 
-      return item.array.reduce((sum, child) => sum + getTotalChildCount(child), item.array.length);
+      const arr = item.array.filter(child => !child.hidden);
+
+      return arr.reduce((sum, child) => sum + getTotalChildCount(child), arr.length);
     }
 
     async function getProductList() {
@@ -610,8 +612,8 @@ export class ProductList {
                     </div>`}
               </div>`;
             } catch (error) {
-              console.error(error);
-              return 123;
+              console.error('Product-list RenderItem Error: ', error);
+              return '發生錯誤';
             }
           }
 

@@ -213,12 +213,12 @@ export class ShoppingCollections {
 
                               return html`
                                 <div class="p-2">
-                                  ${BgWidget.grayNote('提示：左鍵拖曳可排列順序，點擊可顯示向下一層類別')}
+                                  ${BgWidget.grayNote('提示：左鍵拖曳可排列順序，點擊可顯示向下一層分類')}
                                   <div class="d-flex justify-content-start mt-3">
                                     <div class="layer-container">
                                       ${[0, 1, 2]
                                         .map(depth => {
-                                          const title = ['第一層類別', '第二層類別', '第三層類別'][depth];
+                                          const title = ['第一層分類', '第二層分類', '第三層分類'][depth];
                                           return html` <div class="flex-1 layer-block">
                                             <div class="tx_700 fs-4 text-center mb-2">${title}</div>
                                             <ul class="ul-style" id="layer-list-${depth}"></ul>
@@ -312,10 +312,6 @@ export class ShoppingCollections {
                                       path.every((p, i) => p === parentPath[i])
                                     ) {
                                       container.appendChild(createListItem(item, index));
-                                      container.appendChild(createListItem(item, index));
-                                      container.appendChild(createListItem(item, index));
-                                      container.appendChild(createListItem(item, index));
-                                      container.appendChild(createListItem(item, index));
                                     }
                                   });
                                   initSortable(nextId);
@@ -401,7 +397,7 @@ export class ShoppingCollections {
                         gvc.notifyDataChange(vm.id);
                       }),
                       vm.query || '',
-                      '搜尋類別'
+                      '搜尋分類'
                     ),
                     BgWidget.tableV3({
                       gvc: gvc,
@@ -433,7 +429,7 @@ export class ShoppingCollections {
                                     const original = structuredClone(dd);
                                     const isChildren = dd.parentTitles && dd.parentTitles.length > 0;
 
-                                    // 更新類別顯示資料
+                                    // 更新分類顯示資料
                                     function triggerHidden() {
                                       dd.hidden = !Boolean(dd.hidden);
 
@@ -452,7 +448,7 @@ export class ShoppingCollections {
                                       if (isChildren) {
                                         const parent = collectionsMap.get(dd.parentTitles[0]);
                                         if (parent?.hidden && dd.hidden) {
-                                          dialog.infoMessage({ text: '請先開啟顯示父層類別' });
+                                          dialog.infoMessage({ text: '請先開啟顯示第一層分類' });
                                         } else {
                                           triggerHidden();
                                         }
@@ -461,7 +457,7 @@ export class ShoppingCollections {
                                           triggerHidden();
                                         } else {
                                           dialog.checkYesOrNot({
-                                            text: '若關閉顯示該父層類別，所有子層也將會關閉顯示，是否確定要執行？',
+                                            text: '若關閉顯示該層分類，子層分類也將會關閉顯示，是否確定要執行？',
                                             callback: bool => bool && triggerHidden(),
                                           });
                                         }
@@ -527,7 +523,7 @@ export class ShoppingCollections {
                           name: '批量移除',
                           event: () => {
                             dialog.checkYesOrNot({
-                              text: '確定要刪除商品類別嗎？<br/>（若此類別包含子類別，也將一併刪除）',
+                              text: '確定要刪除商品分類嗎？<br/>（若包含子分類，也將一併刪除）',
                               callback: response => {
                                 if (response) {
                                   dialog.dataLoading({ visible: true });
@@ -661,7 +657,7 @@ export class ShoppingCollections {
           });
           return {
             result: false,
-            text: `語系「${text}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br />已存在於其他類別，請更換連結網址`,
+            text: `語系「${text}」的連結網址「${vm.data.language_data[data.lang].seo.domain}」<br />已存在於其他分類，請更換連結網址`,
           };
         }
       }
@@ -705,7 +701,7 @@ export class ShoppingCollections {
                     vm.type = 'list';
                   })
                 )}
-                ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
+                ${BgWidget.title(obj.type === 'add' ? '新增分類' : '編輯分類')}
                 <div class="flex-fill"></div>
                 <div class="d-flex align-items-center gap-2">
                   ${BgWidget.grayButton(
@@ -806,7 +802,7 @@ export class ShoppingCollections {
                   )}
                   ${vm.type === 'add'
                     ? BgWidget.grayButton(
-                        '代入現有類別',
+                        '代入現有分類',
                         gvc.event(() => {
                           BgProduct.collectionsDialog({
                             gvc: gvc,
@@ -848,7 +844,7 @@ export class ShoppingCollections {
                     BgWidget.mainCard(
                       html` <div class="d-flex flex-column" style="margin-bottom: 12px; gap:5px;">
                           <div class="tx_700">前台分類顯示名稱 ${BgWidget.languageInsignia(select_lan)}</div>
-                          ${BgWidget.grayNote(`未設定則參照分類標籤顯示`)}
+                          ${BgWidget.grayNote('未設定則參照分類標籤顯示')}
                         </div>
                         ${EditorElem.editeInput({
                           gvc: gvc,
@@ -1070,9 +1066,16 @@ export class ShoppingCollections {
                       return {
                         bind: summaryId,
                         view: () => {
+                          function isUndefinedOption(key: string) {
+                            return !key || ShoppingCollections.undefinedOption === key;
+                          }
+
                           function firstParentView() {
                             return [
-                              html`<div class="tx_700" style="margin-bottom: 12px">父層</div>`,
+                              html`<div class="tx_700">第一層</div>`,
+                              vm.type === 'add' && isUndefinedOption(vm.data.parentTitles[0])
+                                ? BgWidget.grayNote('若未選取項目，則為第一層分類')
+                                : '',
                               BgWidget.select({
                                 gvc: gvc,
                                 callback: text => {
@@ -1092,7 +1095,10 @@ export class ShoppingCollections {
 
                           function secondParentView(subs: string[]) {
                             return [
-                              html`<div class="tx_700" style="margin-bottom: 12px">第二層</div>`,
+                              html`<div class="tx_700">第二層</div>`,
+                              vm.type === 'add' && isUndefinedOption(vm.data.parentTitles[1])
+                                ? BgWidget.grayNote('若未選取項目，則為第二層分類')
+                                : '',
                               BgWidget.select({
                                 gvc: gvc,
                                 callback: text => {
@@ -1112,31 +1118,35 @@ export class ShoppingCollections {
                           function editSubCollection() {
                             const id = gvc.glitter.getUUID();
 
-                            if (!vm.data.subCollections || vm.data.subCollections.length === 0) {
+                            if (vm.data.parentTitles.length === 2) {
                               return '';
                             }
 
                             return [
                               html`<div class="tx_700" style="margin-bottom: 12px">子分類</div>`,
-                              gvc.bindView({
-                                bind: id,
-                                view: () =>
-                                  vm.data.subCollections
-                                    .map((item: string) => {
-                                      return html`<div class="d-flex align-items-center justify-content-between mt-2">
-                                        ${item}<i
-                                          class="fa-regular fa-trash cursor_pointer"
-                                          onclick="${gvc.event(() => {
-                                            vm.data.subCollections = vm.data.subCollections.filter(
-                                              (sub: string) => item !== sub
-                                            );
-                                            gvc.notifyDataChange(id);
-                                          })}"
-                                        ></i>
-                                      </div>`;
-                                    })
-                                    .join(''),
-                              }),
+                              !vm.data.subCollections || vm.data.subCollections.length === 0
+                                ? '尚未建立子分類'
+                                : gvc.bindView({
+                                    bind: id,
+                                    view: () =>
+                                      vm.data.subCollections
+                                        .map((item: string) => {
+                                          return html`<div
+                                            class="d-flex align-items-center justify-content-between mt-2"
+                                          >
+                                            ${item}<i
+                                              class="fa-regular fa-trash cursor_pointer"
+                                              onclick="${gvc.event(() => {
+                                                vm.data.subCollections = vm.data.subCollections.filter(
+                                                  (sub: string) => item !== sub
+                                                );
+                                                gvc.notifyDataChange(id);
+                                              })}"
+                                            ></i>
+                                          </div>`;
+                                        })
+                                        .join(''),
+                                  }),
                             ].join('');
                           }
 
@@ -1149,7 +1159,9 @@ export class ShoppingCollections {
                             if (vm.type === 'add') {
                               return [
                                 firstParentView(),
-                                parentSubs.length > 0 ? secondParentView(parentSubs) : '',
+                                parentSubs.length > 0
+                                  ? secondParentView(parentSubs.filter((item: string) => item !== vm.data.title))
+                                  : '',
                               ].join('');
                             }
 
@@ -1178,10 +1190,10 @@ export class ShoppingCollections {
               html` <div class="update-bar-container">
                 ${obj.type === 'replace'
                   ? BgWidget.redButton(
-                      '刪除類別',
+                      '刪除分類',
                       gvc.event(() => {
                         dialog.checkYesOrNot({
-                          text: '確定要刪除商品類別嗎？<br/>（若此類別包含子類別，也將一併刪除）',
+                          text: '確定要刪除商品分類嗎？<br/>（若包含子分類，也將一併刪除）',
                           callback: bool => {
                             if (bool) {
                               dialog.dataLoading({ visible: true });
@@ -1271,7 +1283,7 @@ export class ShoppingCollections {
                       return;
                     }
 
-                    // --- 更新類別方法 ---
+                    // --- 更新分類方法 ---
                     function putEvent() {
                       dialog.dataLoading({ visible: true });
                       ApiShop.putCollections({
@@ -1295,11 +1307,7 @@ export class ShoppingCollections {
                     // --- 取代原有的標籤程序 ---
                     if (vm.cloneTarget && vm.cloneTarget.title === vm.data.title) {
                       dialog.checkYesOrNot({
-                        text: [
-                          '本次新增的「分類標籤」與代入的類別標籤相同，',
-                          '將刪除原本存在的類別，並新增本次的類別資料，',
-                          '<b>附帶的子類別將不會保留</b>，確定要執行嗎？',
-                        ].join('<br/>'),
+                        text: ['若移動當前商品分類，<b>附帶的子分類將不會保留</b>，', '確定要執行嗎？'].join('<br/>'),
                         callback: bool => {
                           if (bool && vm.cloneTarget) {
                             ApiShop.deleteCollections({

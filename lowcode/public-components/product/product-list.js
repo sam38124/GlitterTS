@@ -272,7 +272,8 @@ export class ProductList {
             if (item.array.length === 0) {
                 return 0;
             }
-            return item.array.reduce((sum, child) => sum + getTotalChildCount(child), item.array.length);
+            const arr = item.array.filter(child => !child.hidden);
+            return arr.reduce((sum, child) => sum + getTotalChildCount(child), arr.length);
         }
         function getProductList() {
             return __awaiter(this, void 0, void 0, function* () {
@@ -386,8 +387,8 @@ export class ProductList {
               </div>`;
                         }
                         catch (error) {
-                            console.error(error);
-                            return 123;
+                            console.error('Product-list RenderItem Error: ', error);
+                            return '發生錯誤';
                         }
                     }
                     return html `<div class="${PdClass.isPhone() ? '' : 'border'} navbar-nav me-auto mb-2 mb-lg-0">
