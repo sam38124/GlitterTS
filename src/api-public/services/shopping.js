@@ -3613,6 +3613,14 @@ class Shopping {
                     return -1;
                 }
             };
+            function setHiddenStatus(parentCollection) {
+                for (const collection of parentCollection.array) {
+                    collection.hidden = Boolean(parentCollection.hidden || collection.hidden);
+                    if (collection.array.length > 0) {
+                        setHiddenStatus(collection);
+                    }
+                }
+            }
             function insertIntoConfig(config, replace, originIndex) {
                 if (replace.parentTitles.length === 0 || replace.parentTitles[0] === '無') {
                     const start = originIndex > -1 ? originIndex : config.length;
@@ -3691,6 +3699,9 @@ class Shopping {
             function main(config, original, replace) {
                 const originIndex = removeCollection(config, original);
                 insertIntoConfig(config, replace, originIndex);
+                for (const col of config) {
+                    setHiddenStatus(col);
+                }
                 return config;
             }
             const configData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';

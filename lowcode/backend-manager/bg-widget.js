@@ -434,6 +434,19 @@ export class BgWidget {
             size: (_c = args === null || args === void 0 ? void 0 : args.size) !== null && _c !== void 0 ? _c : 'md',
         });
     }
+    static customInsignia(text, args) {
+        var _b, _c, _d, _e;
+        const sizeMap = {
+            sm: 'insignia insignia-sm',
+            md: 'insignia',
+        };
+        return html ` <div
+      class="${(_c = sizeMap[(_b = args.size) !== null && _b !== void 0 ? _b : 'md']) !== null && _c !== void 0 ? _c : sizeMap.md} ${(_d = args.class) !== null && _d !== void 0 ? _d : ''}"
+      style="${(_e = args.style) !== null && _e !== void 0 ? _e : ''}"
+    >
+      ${text}
+    </div>`;
+    }
     static languageInsignia(language, style) {
         switch (language) {
             case 'zh-TW':

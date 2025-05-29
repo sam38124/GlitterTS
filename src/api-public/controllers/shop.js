@@ -968,8 +968,7 @@ router.put('/collection', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             const { replace, original } = req.body;
-            const _shopping = new shopping_1.Shopping(req.get('g-app'), req.body.token);
-            return response_1.default.succ(resp, await _shopping.putCollectionV2(replace, original));
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollectionV2(replace, original));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

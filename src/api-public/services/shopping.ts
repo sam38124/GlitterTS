@@ -4931,6 +4931,15 @@ export class Shopping {
         }
       };
 
+      function setHiddenStatus(parentCollection: FormatCollection) {
+        for (const collection of parentCollection.array) {
+          collection.hidden = Boolean(parentCollection.hidden || collection.hidden);
+          if (collection.array.length > 0) {
+            setHiddenStatus(collection);
+          }
+        }
+      }
+
       // 插入 replace 到指定位置（和前面邏輯相同）
       function insertIntoConfig(config: FormatCollection[], replace: Collection, originIndex: number) {
         if (replace.parentTitles.length === 0 || replace.parentTitles[0] === '無') {
@@ -5031,6 +5040,9 @@ export class Shopping {
       function main(config: FormatCollection[], original: Collection, replace: Collection): FormatCollection[] {
         const originIndex = removeCollection(config, original); // 從 config 中刪除 original
         insertIntoConfig(config, replace, originIndex); // 插入 replace 到正確位置
+        for (const col of config) {
+          setHiddenStatus(col);
+        }
         return config;
       }
 
@@ -5047,7 +5059,7 @@ export class Shopping {
       // 排除類別標題前後空白
       replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
 
-      // 更新資料
+      // 格式化類別資料
       const formatData: FormatCollection = {
         array: [],
         code: replace.code,

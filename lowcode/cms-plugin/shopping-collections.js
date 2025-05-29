@@ -133,19 +133,24 @@ export class ShoppingCollections {
                                             if (loading) {
                                                 return BgWidget.spinner();
                                             }
-                                            return html ` <div class="d-flex justify-content-center">
-                                <div class="layer-container">
-                                  ${[0, 1, 2]
+                                            return html `
+                                <div class="p-2">
+                                  ${BgWidget.grayNote('提示：左鍵拖曳可排列順序，點擊可顯示向下一層類別')}
+                                  <div class="d-flex justify-content-start mt-3">
+                                    <div class="layer-container">
+                                      ${[0, 1, 2]
                                                 .map(depth => {
                                                 const title = ['第一層類別', '第二層類別', '第三層類別'][depth];
                                                 return html ` <div class="flex-1 layer-block">
-                                        <div class="tx_700 fs-4 text-center mb-2">${title}</div>
-                                        <ul class="ul-style" id="layer-list-${depth}"></ul>
-                                      </div>`;
+                                            <div class="tx_700 fs-4 text-center mb-2">${title}</div>
+                                            <ul class="ul-style" id="layer-list-${depth}"></ul>
+                                          </div>`;
                                             })
                                                 .join('')}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>`;
+                              `;
                                         },
                                         onCreate: () => {
                                             var _a;
@@ -186,7 +191,8 @@ export class ShoppingCollections {
                                                 function initSortable(containerId) {
                                                     const el = document.getElementById(containerId);
                                                     window.parent.Sortable.create(el, {
-                                                        animation: 150,
+                                                        animation: 200,
+                                                        scroll: true,
                                                         onEnd: () => {
                                                             const items = [...el.children].map(child => { var _a; return (_a = vm.dataList) === null || _a === void 0 ? void 0 : _a[parseInt(child.getAttribute('data-index'))]; });
                                                             vm.collectionList = ShoppingCollections.sortedCollectionConfig(vm.collectionList, items);
@@ -209,6 +215,10 @@ export class ShoppingCollections {
                                                         const path = (_a = item.parentTitles) !== null && _a !== void 0 ? _a : [];
                                                         if (path.length === parentPath.length &&
                                                             path.every((p, i) => p === parentPath[i])) {
+                                                            container.appendChild(createListItem(item, index));
+                                                            container.appendChild(createListItem(item, index));
+                                                            container.appendChild(createListItem(item, index));
+                                                            container.appendChild(createListItem(item, index));
                                                             container.appendChild(createListItem(item, index));
                                                         }
                                                     });
@@ -344,10 +354,26 @@ export class ShoppingCollections {
                                           class="fs-7"
                                           style="min-width: ${document.body.clientWidth > 768 ? 400 : 225}px;"
                                         >
-                                          ${isChildren
-                                                                        ? html ` <i class="fa-solid fa-arrow-turn-down-right me-2"></i
-                                                >${dd.parentTitles.join(' / ')} / ${dd.title}`
-                                                                        : dd.title}
+                                          ${(() => {
+                                                                        switch (true) {
+                                                                            case dd.parentTitles.length === 1:
+                                                                                return BgWidget.customInsignia('2', {
+                                                                                    size: 'sm',
+                                                                                    style: 'background: #c8e6c9; width: 25px;',
+                                                                                });
+                                                                            case dd.parentTitles.length === 2:
+                                                                                return BgWidget.customInsignia('3', {
+                                                                                    size: 'sm',
+                                                                                    style: 'background: #a5d6a7; width: 30px;',
+                                                                                });
+                                                                            default:
+                                                                                return BgWidget.customInsignia('1', {
+                                                                                    size: 'sm',
+                                                                                    style: 'background: #a5d6a7; width: 20px;',
+                                                                                });
+                                                                        }
+                                                                    })()}
+                                          ${dd.title}
                                         </div>`,
                                                                 },
                                                                 {
@@ -460,6 +486,8 @@ export class ShoppingCollections {
         border: 1px solid #ccc;
         border-radius: 10px;
         width: 190px;
+        height: 380px;
+        overflow-y: auto;
       }
 
       .li-style {
